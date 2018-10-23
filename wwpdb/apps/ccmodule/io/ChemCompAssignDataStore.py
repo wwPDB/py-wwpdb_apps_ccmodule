@@ -77,9 +77,9 @@ __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
 import sys, cPickle, time, traceback, shutil, os.path
-from pdbx_v2.writer.PdbxWriter     import PdbxWriter
-from pdbx_v2.reader.PdbxContainers import *
-from pdbx_v2.reader.DataCategory   import DataCategory
+from mmcif.io.PdbxWriter     import PdbxWriter
+from mmcif.api.PdbxContainers import *
+from mmcif.api.DataCategory   import DataCategory
 
 class ChemCompAssignDataStore(object):
     ''' Class serves as data container serving needs for a given user session.

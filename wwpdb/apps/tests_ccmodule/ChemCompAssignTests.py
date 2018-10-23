@@ -24,10 +24,16 @@ import sys, unittest, traceback
 
 from wwpdb.apps.ccmodule.webapp.WebRequest             import ChemCompInputRequest
 from wwpdb.apps.ccmodule.chem.ChemCompAssign           import ChemCompAssign
-from wwpdb.apps.ccmodule.chem.ChemCompAssignDepict    import ChemCompAssignDepict
+try:
+    from wwpdb.apps.ccmodule.chem.ChemCompAssignDepict    import ChemCompAssignDepict
+    skiptest = False
+except ImportError as e:
+    skiptest = False
 
+
+@unittest.skipIf(skiptest, "Could not import oedepict")
+@unittest.skip("Until can test if dp utils can run")
 class ChemCompAssignTests(unittest.TestCase):    
-
     def setUp(self):
         self.__verbose=True
         self.__lfh=sys.stderr

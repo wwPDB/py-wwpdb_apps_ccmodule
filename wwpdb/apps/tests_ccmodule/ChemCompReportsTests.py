@@ -22,6 +22,7 @@ from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport, ChemCom
 from wwpdb.apps.ccmodule.webapp.WebRequest        import ChemCompInputRequest
 
 
+@unittest.skip('until can test for tools being installed')
 class ChemCompReportsTests(unittest.TestCase):
     def setUp(self):
         self.__verbose=True

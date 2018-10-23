@@ -101,7 +101,7 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImpor
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
-from wwpdb.api.facade.DataReference                     import DataFileReference
+from wwpdb.wwpdb.utils.wf.DataReference                     import DataFileReference
 from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
 #
 from wwpdb.apps.entity_transform.utils.mmCIFUtil        import mmCIFUtil
@@ -2110,7 +2110,7 @@ class ChemCompWebAppLiteWorker(object):
                                     being submitted for an individual ligand ID.
                     
             :Helpers:
-                + wwpdb.api.facade.DataReference.DataFileReference
+                + wwpdb.wwpdb.utils.wf.DataReference.DataFileReference
                 + wwpdb.apps.ccmodule.chem.ChemCompAssign
                     
             :Returns:

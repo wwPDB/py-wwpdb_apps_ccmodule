@@ -100,9 +100,9 @@ from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExpor
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
-from wwpdb.api.facade.DataReference                     import DataFileReference
-from pdbx_v2.reader.PdbxReader                          import PdbxReader
-from wwpdb.apps.entity_transform.utils.mmCIFUtil        import mmCIFUtil
+from wwpdb.utils.wf.DataReference                       import DataFileReference
+from mmcif.io.PdbxReader                                import PdbxReader
+from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 
 
 class ChemCompAssign(object):
