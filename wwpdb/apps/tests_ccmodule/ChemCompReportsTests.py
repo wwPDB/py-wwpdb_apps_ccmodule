@@ -20,9 +20,10 @@ import time, os, os.path
 
 from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport, ChemCompCheckReport
 from wwpdb.apps.ccmodule.webapp.WebRequest        import ChemCompInputRequest
+from wwpdb.utils.testing.Features                      import Features
 
 
-@unittest.skip('until can test for tools being installed')
+@unittest.skipUnless(Features().haveToolsRuntime(), "Needs OneDep tools for testing")
 class ChemCompReportsTests(unittest.TestCase):
     def setUp(self):
         self.__verbose=True

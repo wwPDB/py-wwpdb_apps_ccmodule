@@ -21,9 +21,10 @@ import time, os, os.path
 from wwpdb.apps.ccmodule.view.ChemCompView  import ChemCompView
 from wwpdb.apps.ccmodule.view.ChemCompViewDepict  import ChemCompViewDepict
 from wwpdb.apps.ccmodule.webapp.WebRequest        import ChemCompInputRequest
+from wwpdb.utils.testing.Features                      import Features
 
 
-@unittest.skip("Until test for tools available")
+@unittest.skipUnless(Features().haveToolsRuntime(), "Needs OneDep tools for testing")
 class ChemCompViewTests(unittest.TestCase):
     def setUp(self):
         self.__verbose=True

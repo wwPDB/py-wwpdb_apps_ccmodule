@@ -20,9 +20,10 @@ import time, os, os.path
 
 from wwpdb.apps.ccmodule.chem.ChemCompAnnotate     import ChemCompAnnotate
 from wwpdb.apps.ccmodule.webapp.WebRequest         import ChemCompInputRequest
+from wwpdb.utils.testing.Features                      import Features
 
 
-@unittest.skip('until can test for tools being installed')
+@unittest.skipUnless(Features().haveToolsRuntime(), "Needs OneDep tools for testing")
 class ChemCompAnnotateTests(unittest.TestCase):
     def setUp(self):
         self.__verbose=True

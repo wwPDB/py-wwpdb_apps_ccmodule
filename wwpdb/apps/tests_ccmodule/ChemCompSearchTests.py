@@ -22,7 +22,9 @@ import sys, unittest, traceback
 from wwpdb.apps.ccmodule.webapp.WebRequest             import ChemCompInputRequest
 from wwpdb.apps.ccmodule.search.ChemCompSearch         import ChemCompSearch
 from wwpdb.apps.ccmodule.search.ChemCompSearchDepict   import ChemCompSearchDepict
+from wwpdb.utils.testing.Features                      import Features
 
+@unittest.skipUnless(Features().haveToolsRuntime(), "Needs OneDep tools for testing")
 class ChemCompSearchTests(unittest.TestCase):    
         
     def setUp(self):

@@ -22,6 +22,7 @@ __version__   = "V0.01"
 import time, os, os.path
 import sys, unittest, traceback
 
+from wwpdb.utils.testing.Features                      import Features
 from wwpdb.apps.ccmodule.webapp.WebRequest             import ChemCompInputRequest
 from wwpdb.apps.ccmodule.chem.ChemCompAssign           import ChemCompAssign
 try:
@@ -32,7 +33,7 @@ except ImportError as e:
 
 
 @unittest.skipIf(skiptest, "Could not import oedepict")
-@unittest.skip("Until can test if dp utils can run")
+@unittest.skipUnless(Features().haveToolsRuntime(), "Needs OneDep tools for testing")
 class ChemCompAssignTests(unittest.TestCase):    
     def setUp(self):
         self.__verbose=True
