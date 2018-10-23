@@ -1,0 +1,1838 @@
+##
+# File:  ChemCompAssignDepictLite.py
+# Date:  22-Aug-2012
+# Updates:
+#
+# 2012-08-22    RPS    Created based on ChemCompAssignDepict
+# 2013-02-21    RPS    Updates for ChemComp "Lite" processing --> use of "exact match" searching now replacing "id match" testing
+# 2013-03-01    RPS    doRender_ResultFilesPage() added for convenience when unit testing
+# 2013-03-19    RPS    corrected error in logic in doRender_ResultFilesPage() method
+# 2013-04-01    RPS    corrected bug in rendering screen elements in cases where no exact match IDs found.
+# 2013-04-02    RPS    Updates for improved provision of visual cues signaling update in state as depositor addresses mismatches in UI.
+# 2013-04-03    RPS    Corrected handling of display of warning messages in case of ligand instance vs. case of ligand group
+# 2013-04-30    RPS    Updated so that choices to turn on/off 3D and 2D visualization are not provided for ligand instances consisting of only a single atom.
+# 2013-06-13    RPS    Updates for improved behavior of "Commit" button when user chooses to accept exact match ID over originally provided ID.
+# 2013-06-25    RPS    doRender_InstanceProfile() updated to ensure server-side path exists for generation of instance profile html.
+# 2013-07-16    RPS    doRender_HandleLigndMsmtchSection() updated to display empty string instead of default cif value of "?"
+# 2013-07-22    RPS    Support for providing confirmation list of files uploaded by depositor.
+# 2013-10-10    RPS    Addressed changes in 2D image generation, so that need to reference "noh" version of gif for "no hydrogens" version.
+# 2013-10-15    RPS    Improved verbiage for instructions to depositors.
+# 2013-11-19    RPS    Removed obsolete logic for handling of invalid author-assigned ChemComp IDs. Previously used "invalidLigId" flag 
+#                        to help determine how to render UI when there was *perfect* match or not. But slightly less rigorous matching criteria
+#                        used now so can eliminate use of this flag and instead simply check whether there was a best hit or not.
+# 2013-12-09    RPS    Updated for display of 2D images that are now aligned.
+# 2013-11-12    RPS    Introduced changes for non-applet visualization.
+# 2014-01-22    RPS    Updated doRender_InstanceBrwsr() to provide navigation buttons at bottom of screen in instance level view
+# 2014-03-19    RPS    Instituted workaround to allow handling of service URLs with custom prefixes.
+# 2014-05-21    RPS    Fix for confusing use of "exact_match_ccid" when some instances of given Ligand match while others don't
+# 2014-06-10    RPS    Updated setting of default for hndle_msmtch_tophit_id.
+# 2014-06-23    RPS    Updates in support of providing more elaborate choices for choosing an alternate Ligand ID(originally proposed ID vs. 
+#                        one of the possible exact match IDs for cases where some ligand instances have differing matches).
+# 2014-10-31    RPS    Support for providing 2D image of author proposed Ligand ID in "handle mismatch" section of UI, on hover over of the ID.
+# 2016-06-28    RPS    Synchronizing front end with list of accepted file types for uploaded chemical image and definition files.
+# 2017-02-03    RPS    Updated to support capture of data for ligands as "focus of research"
+# 2017-02-07    RPS    Tweaks to support capture of data for ligands as "focus of research"
+# 2017-02-08    RPS    Tweaks to button labels/behavior for ligands as "focus of research"
+# 2017-02-13    RPS    Updates to distinguish between ligandIDs that were simply selected as focus of research vs those for which data was actually provided.
+#                        Obtaining dropdown options for binding assay measurement type from pdbx_binding_assay.assay_value_type via cif dictionary
+# 2017-02-14    RPS    Tweak for behavior of checkbox used to select HOH for research focus
+# 2017-02-15    RPS    Removing "Save (and come back later) button which has become obsolete.
+# 2017-02-16    RPS    doRender_ResearchDataCapture() updated to support enabling of controls in two phases
+# 2017-02-17    RPS    doRender_ResearchDataCapture() updated to remove chem comp ID placeholder in details field. "Undo" replaced with "Edit" for button labels.
+# 2017-03-27    RPS    Disabling recent updates related to capturing binding assay data for ligands of research interest (until requirements refined).
+# 2017-06-14    RPS    doRender_LigSummaryContent() updated so that no longer generating "All" checkbox used to select all ligands for focus of research.  
+##
+"""
+Create HTML depiction chemical component assignment files.
+
+"""
+__docformat__ = "restructuredtext en"
+__author__    = "Raul Sala"
+__email__     = "rsala@rcsb.rutgers.edu"
+__license__   = "Creative Commons Attribution 3.0 Unported"
+__version__   = "V0.01"
+
+import os, sys
+from wwpdb.apps.ccmodule.depict.ChemCompDepict import ChemCompDepict
+from wwpdb.apps.ccmodule.chem.ChemCompAssign   import ChemCompAssign
+from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
+from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
+from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport
+from wwpdb.apps.ccmodule.view.ChemCompView              import ChemCompView
+from wwpdb.apps.ccmodule.sketch.ChemCompSketch          import ChemCompSketch
+from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict    import ChemCompSketchDepict
+from wwpdb.api.facade.ConfigInfo                        import ConfigInfo
+#from pdbx_v2.persist.PdbxDictionaryInfo             import PdbxDictionaryInfo
+
+class ChemCompAssignDepictLite(ChemCompDepict):
+    """ Class responsible for generating HTML depictions of 
+        chemical component search results for the Common Tool Deposition UI.
+
+    """
+    def __init__(self,p_reqObj,verbose=False,log=sys.stderr):
+        """
+
+         :param `verbose`:  boolean flag to activate verbose logging.
+         :param `log`:      stream for logging.
+          
+        """
+        super(ChemCompAssignDepictLite,self).__init__(verbose,log)
+        self.__verbose=verbose
+        self.__lfh=log
+        self.__debug=False
+        self.__reqObj=p_reqObj
+        #
+        self.__cDict=PdbxCategoryDefinition._cDict
+        #
+        self.__noDisplayList=['']
+        #
+        self.__pathGlblVwTmplts="templates/workflow_ui/global_view"
+        self.__pathInstncsVwTmplts="templates/workflow_ui/instances_view"
+        self.__pathSnglInstcTmplts=self.__pathInstncsVwTmplts+"/single_instance"
+        self.__pathSnglInstcCmprTmplts=self.__pathSnglInstcTmplts+"/comparison_view"
+        self.__pathSnglInstcJmolTmplts=self.__pathSnglInstcCmprTmplts+"/jmol"
+        #
+        self.__pathAllInstcs="templates/workflow_ui/instances_view/all_instances"
+        self.__pathAllInstncsCmprTmplts=self.__pathAllInstcs+"/comparison_view"
+        self.__pathAllInstncsJmolTmplts=self.__pathAllInstncsCmprTmplts+"/jmol"
+        # paths to templates used for the ccmodule_lite UI
+        self.__pathCCliteGlblVwTmplts="templates/workflow_ui/global_view"
+        self.__pathCCliteInstncsVwTmplts="templates/workflow_ui/instances_view"
+        self.__pathCCliteSnglInstcTmplts=self.__pathCCliteInstncsVwTmplts+"/single_instance"
+        self.__pathCCliteSnglInstcCmprTmplts=self.__pathCCliteSnglInstcTmplts+"/comparison_view"
+        self.__pathCCliteSnglInstcJmolTmplts=self.__pathCCliteSnglInstcCmprTmplts+"/jmol"
+        #
+        self.__pathCCliteAllInstcs="templates/workflow_ui/instances_view/all_instances"
+        self.__pathCCliteAllInstncsCmprTmplts=self.__pathCCliteAllInstcs+"/comparison_view"
+        self.__pathCCliteAllInstncsJmolTmplts=self.__pathCCliteAllInstncsCmprTmplts+"/jmol"
+        #
+        self.__siteId  = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__cI=ConfigInfo(self.__siteId)
+        self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
+        self.__pathPdbxDictFile  = self.__cI.get("SITE_MMCIF_DICT_FILE_PATH")
+        self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX')
+        self.__workingRltvAssgnSessionPath=''
+        
+        self.__alternateTopHitMarkup='''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''
+        '''
+        self.__measurementTypes = []
+        try:
+            pda=PdbxDictionaryInfo(dictPath=self.__pathPdbxDictFile,verbose=self.__verbose,log=self.__lfh)
+            dInfo=pda.assembleByAttribute()
+            #
+            self.__measurementTypes = dInfo['pdbx_binding_assay']['COLUMN_ENUMS']['assay_value_type']
+            self.__measurementTypes.sort()
+            #
+            if( self.__verbose ):
+                self.__lfh.write("+%s.%s() -- self.__measurementTypes is %r\n" % (self.__class__.__name__,
+                                                       sys._getframe().f_code.co_name,
+                                                       self.__measurementTypes) )
+
+        except:
+            traceback.print_exc(file=self.__lfh)
+        '''
+        
+    ################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------
+    #      Top-level methods
+    # ------------------------------------------------------------------------------------------------------------
+    #
+
+    def doRender_LigSrchSummary(self,p_reqObj,p_bIsWorkflow):
+        ''' Render HTML used as starter page/container for the Deposition UI's Ligand Search Results Summary
+            Once this content is in the browser, an AJAX call is made to populate the page
+            with the actual assignment results content.
+            
+            :Params:
+            
+                + ``p_reqObj``: Web Request object
+                + ``p_bIsWorkflow``: boolean indicating whether or not operating in Workflow Manager environment
+                    
+            :Returns:
+                ``oL``: output list consisting of HTML markup
+        '''
+        oL=[]
+        #
+        sessionId   =p_reqObj.getSessionId()
+        siteId      =str(p_reqObj.getValue("WWPDB_SITE_ID"))
+        wfInstId    =str(p_reqObj.getValue("instance")).upper()
+        depId       =str(p_reqObj.getValue("identifier"))
+        classId     =str(p_reqObj.getValue("classID")).lower()
+        fileSource  =str(p_reqObj.getValue("filesource")).lower()
+        dataFile = str( p_reqObj.getValue("datafile") )
+        tmpltPath   =p_reqObj.getValue("TemplatePath")
+        #
+        depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)
+        #
+        self.__workingRltvAssgnSessionPath=self.__siteSrvcUrlPathPrefix+self.rltvAssgnSessionPath
+        #
+        if (self.__verbose):
+            self.__lfh.write("--------------------------------------------\n")
+            self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId) )
+            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId) )
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource) )
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )
+            self.__lfh.write("+%s.%s() self.__siteSrvcUrlPathPrefix  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__siteSrvcUrlPathPrefix) )       
+            self.__lfh.write("+%s.%s() self.__workingRltvAssgnSessionPath  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__workingRltvAssgnSessionPath) )
+            self.__lfh.flush()
+        #
+        ############################################################################
+        # create dictionary of content that will be used to populate HTML template
+        ############################################################################
+        myD={}
+        myD['siteid'] = siteId
+        myD['sessionid'] = sessionId
+        myD['instance']   = wfInstId        
+        myD['classid']    = classId
+        myD['filesource'] = fileSource
+        # following params only for rcsb stand-alone version
+        myD['caller'] = p_reqObj.getValue("caller")
+        myD['filepath'] = p_reqObj.getValue('filePath')
+        myD['filetype'] = p_reqObj.getValue('fileType')
+        myD['datafile'] = dataFile
+        #
+        if( p_bIsWorkflow ):
+            myD['identifier'] = depId
+        
+        else:
+            (pth,fileName)=os.path.split(p_reqObj.getValue('filePath'))
+            (fN,fileExt)=os.path.splitext(fileName)
+            if (fN.upper().startswith("D_")):
+                depDataSetId=fN.upper()
+            elif (fN.lower().startswith("rcsb")):
+                depDataSetId=fN.lower()
+            else:
+                depDataSetId="TMP_ID"
+            myD['identifier'] = depDataSetId
+        #
+        myD['session_url_prefix'] = self.__workingRltvAssgnSessionPath
+        myD['service_url_prefix'] = self.__siteSrvcUrlPathPrefix
+        #
+        contentTypeDict = self.__cI.get('CONTENT_TYPE_DICTIONARY')
+        acceptedImgFileTypes = (contentTypeDict['component-image'][0])[:]
+        acceptedDefFileTypes = (contentTypeDict['component-definition'][0])[:]
+        acceptedDefFileTypes.append('cif') # appending "cif" as a possible extension that is equivalent to "pdbx"
+        myD['accepted_img_file_types'] = "['"+"','".join(acceptedImgFileTypes)+"']"
+        myD['accepted_def_file_types'] = "['"+"','".join(acceptedDefFileTypes)+"']"
+        
+        ###############################TIME CHECK TRACE#######################################################################################################################################
+        #if (self.__verbose):
+        #    now = strftime("%H:%M:%S", localtime())
+        #    self.__lfh.write("+%s.%s() ----TIMECHECK------------------------------------------ time before calling __processTemplate() is %s\n" % now)
+        ######################################################################################################################################################################################
+        oL.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_ligand_smmry_tmplt.html", parameterDict=myD) )
+        ###############################TIME CHECK TRACE#######################################################################################################################################
+        #if (self.__verbose):
+        #    now = strftime("%H:%M:%S", localtime())
+        #    self.__lfh.write("+%s.%s() ----TIMECHECK------------------------------------------ time after calling __processTemplate() is %s\n" % now)
+        ######################################################################################################################################################################################
+        #
+        return oL
+
+    def doRender_LigSummaryContent(self,p_ccAssgnDataStr,p_reqObj):
+        ''' Render Summary of Ligand Inventory Results
+            Function generates HTML markup used for displaying results of chem comp assign inventory
+            for the deposition data set. The resulting HTML markup is loaded via AJAX into an already
+            existing web page "container".
+            
+            :Params:
+                ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                    
+            :Returns:
+                ``oL``: output list consisting of HTML markup
+        '''
+        self.__reqObj = p_reqObj
+        #
+        oL=[]
+        grpLst = []
+        srtdGrpLst = []
+        msmtchlist = ''
+        rslvdlist = ''
+        separator_m = ''
+        separator_r = ''
+        #
+        ligGrpDict = self.__generateLigGroupSummaryDict(p_ccAssgnDataStr)
+        grpLst = ligGrpDict.keys()
+        srtdGrpLst = sorted(grpLst)
+        #
+        iRow=0
+        oL.append('<table id="ligand_inventory_tbl" class="">')
+        oL.append('<tr><th>Ligand ID</th><th>Number of Instances</th><th><span id="resolve_status" class="target resolve_status">Status</span></th><th>Select for Inspection<input id="selectall" name="selectall" type="checkbox" class="selectall" ><label for="selectall">All</label></th><th id="hdrfcsrsrch">Focus of Research?</th>')
+        #
+        grpsSelectedForResearch = p_ccAssgnDataStr.getRsrchSelectedLst()
+        grpsHavingRsrchDataSubmitted = p_ccAssgnDataStr.getRsrchDataAcqurdLst()
+        
+        if( "HOH" in grpsSelectedForResearch):
+            HOH_checked = 'checked="checked"'
+            HOH_check_disabled = 'disabled="disabled"' if "HOH" in grpsHavingRsrchDataSubmitted else ''
+        else:
+            HOH_checked = ''
+            HOH_check_disabled = ''
+        
+        
+        for ccId in srtdGrpLst:
+            checked = ''
+            checked_rsrch = ''
+            check_rsrch_disabled = ''
+            cssHighlightClass = ''
+            if( ligGrpDict[ccId]['bGrpRequiresAttention'] == True ):
+                checked = 'checked="checked"'
+                 # check to see if ccId represents group that has been resolved by user in previous session
+                if( ligGrpDict[ccId]['bGrpMismatchAddressed'] == True ):
+                    resolveStatus = 'Mismatch(es) Addressed'
+                    cssHighlightClass = 'beenrslved'
+                    if len(rslvdlist) > 0:
+                        separator_r = ','
+                    rslvdlist += separator_r + ccId
+                else:
+                    resolveStatus = 'Mismatch(es) Require Attention'
+                    cssHighlightClass = 'warn'
+                    if len(msmtchlist) > 0:
+                        separator_m = ','
+                    msmtchlist += separator_m + ccId
+            else:
+                resolveStatus = 'OK'
+            #
+            if( ccId in grpsSelectedForResearch):
+                check_rsrch_disabled = 'disabled="disabled"' if ccId in grpsHavingRsrchDataSubmitted else ''
+                checked_rsrch = 'checked="checked"'
+                # DISABLING UNTIL BINDING ASSAY DATA CAPTURE REQUIREMENTS ARE SORTED OUT:   checked = 'checked="checked"'
+            #
+            oL.append('<tr class="%s c_%s">' % (self.__rowClass(iRow),ccId))
+            #
+            oL.append('<td>%s</td>' % ccId)
+            #
+            oL.append('<td>%s</td>' % ligGrpDict[ccId]['totlInstncsInGrp'])
+            #
+            oL.append('<td class="resolve_status '+cssHighlightClass+'">%s</td>' % (resolveStatus))
+            #
+            oL.append('<td><input name="%s" type="checkbox" class="selectinstnc" %s></td>' % (ccId, checked))
+            #                  
+            oL.append('<td><input name="%s_rsrch" id="%s_rsrch" type="checkbox" class="selectinstnc_rsrch" %s %s></td>' % (ccId, ccId, checked_rsrch, check_rsrch_disabled))
+            #                  
+            oL.append('</tr>')
+            #
+            iRow+=1
+        '''
+        # creating artificial row to allow depositor to select "water" as "focus of research"
+        oL.append('<tr class="%s c_HOH">' % self.__rowClass(iRow) )
+        #
+        oL.append('<td class="">HOH</td>') # Ligand ID column
+        #
+        oL.append('<td class="HOH_plchldr"></td>') # number of instances column
+        #
+        oL.append('<td class="HOH_plchldr"></td>') # status column
+        #
+        oL.append('<td class="HOH_plchldr"></td>' ) # select for inspection column
+        #                  
+        oL.append('<td><input name="HOH" id="HOH_rsrch" type="checkbox" class="selectinstnc_rsrch" %s %s></td>' % (HOH_checked, HOH_check_disabled) )
+        #                  
+        oL.append('</tr>')
+        '''
+        
+        oL.append('</table>')
+        oL.append('<span id="mismatchlist" class="displaynone">'+msmtchlist+'</span>')
+        oL.append('<span id="rslvdlist" class="displaynone">'+rslvdlist+'</span>')
+                        
+        return oL
+
+    def doRender_InstanceBrswrLaunchForm(self,p_reqObj):
+        ''' Generate html for instance browser button and form in deposition UI
+            
+            :Params:
+            
+                + ``p_reqObj``: Web Request Object
+        '''
+        bIsWorkflow     = self.isWorkflow(self.__reqObj)
+        sessionId   =p_reqObj.getSessionId()
+        siteId      =str(p_reqObj.getValue("WWPDB_SITE_ID"))
+        wfInstId    =str(p_reqObj.getValue("instance")).upper()
+        depId       =str(p_reqObj.getValue("identifier"))
+        classId     =str(p_reqObj.getValue("classID")).lower()
+        fileSource  =str(p_reqObj.getValue("filesource")).lower()
+        dataFile = str( p_reqObj.getValue("datafile") )
+        tmpltPath   =p_reqObj.getValue("TemplatePath")
+        #
+        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+        
+        rtrnLst = []
+        
+        if (self.__verbose):
+            self.__lfh.write("--------------------------------------------\n")
+            self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId) )
+            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId) )
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource) )
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )
+            self.__lfh.flush()
+        #
+        ############################################################################
+        # create dictionary of content that will be used to populate HTML template
+        ############################################################################
+        myD={}
+        myD['siteid'] = siteId
+        myD['sessionid'] = sessionId
+        myD['instance']   = wfInstId        
+        myD['classid']    = classId
+        myD['filesource'] = fileSource
+        #
+        if( bIsWorkflow ):
+            myD['identifier'] = depId
+        
+        else:
+            (pth,fileName)=os.path.split(p_reqObj.getValue('filePath'))
+            (fN,fileExt)=os.path.splitext(fileName)
+            if (fN.upper().startswith("D_")):
+                depDataSetId=fN.upper()
+            elif (fN.lower().startswith("rcsb")):
+                depDataSetId=fN.lower()
+            else:
+                depDataSetId="TMP_ID"
+            myD['identifier'] = depDataSetId
+        #
+
+        rtrnLst.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_launch_instnc_brwsr_frm_tmplt.html", parameterDict=myD) )
+        return rtrnLst
+
+
+    def doRender_InstanceBrwsr(self,p_ligIdLst,p_ligIdRsrchLst, p_ccAssgnDataStr,p_reqObj):
+        ''' Render HTML markup for the ccmodule_lite UI Instance Browser
+            The Instance Browser provides navigation of sections devoted to each ligand group (one ligand group viewed at a time)
+            identified within a deposition dataset.
+            A given ligand group section is itself broken down into:
+                - a "single-instance" section, providing perspective/actions on a single ligand instance within the group
+            
+            :Params:
+            
+                + ``p_ligIdLst``: list of Ligand IDs which had been selected for processing via the Entity Browser
+                + ``p_ligIdRsrchLst``: list of Ligand IDs which had been selected for "focus of research"
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_reqObj``: Web Request object
+                    
+            :Returns:
+                ``oL``: output list consisting of HTML markup
+        '''
+        self.__reqObj = p_reqObj
+        self.__lfh.write("+%s.%s() self.__reqObj is: %r\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj) )
+        
+        bIsWorkflow     = self.isWorkflow(self.__reqObj)
+        depId           = str(self.__reqObj.getValue("identifier"))
+        wfInstId        = str(self.__reqObj.getValue("instance")).upper()
+        sessionId       = self.__reqObj.getSessionId()
+        fileSource      = str(self.__reqObj.getValue("filesource")).lower()
+        htmlTmpltPth    = self.__reqObj.getValue("TemplatePath")
+        browser         = self.__reqObj.getValue("browser")
+        #
+        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+        #
+        # Establish helper dictionary of elements used to populate html templates
+        #
+        hlprDict={}
+        hlprDict['sessionid']    = sessionId
+        hlprDict['depositionid'] = depId
+        hlprDict['filesource'] = fileSource
+        hlprDict['instance'] = wfInstId #i.e. workflow instance ID 
+        hlprDict['identifier'] = depId
+        hlprDict['html_template_path'] = htmlTmpltPth
+        hlprDict['jmol_code_base'] = self.jmolCodeBase
+        hlprDict['browser'] = browser
+        hlprDict['service_url_prefix'] = self.__siteSrvcUrlPathPrefix
+        hlprDict['hndle_msmtch_tophit_id'] = ''
+        hlprDict['hndle_msmtch_tophit_id_list'] = {}
+        #
+        oL=[]
+        #
+        oL.append('<div id="cc_instance_browser">\n<h4>Browse Chem Components by Ligand Group</h4>\n<div id="pagi" class="noprint fltlft"></div>\n<br class="clearfloat" />\n')
+        oL.append('<div id="cc_instance_browse_content">\n') 
+        #
+        bGrpRequiresAttention = False
+        #
+        if (self.__verbose):
+            for k in p_ligIdLst:
+                self.__lfh.write("+%s.%s() ccID key in p_ligIdLst: %30s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, k) )
+            for id in p_ligIdRsrchLst:
+                self.__lfh.write("+%s.%s() ligid in p_ligIdRsrchLst: %30s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, id) )
+                
+        #
+        ligGrpDict = self.__generateLigGroupSummaryDict(p_ccAssgnDataStr)
+        #
+        for grpIndx, ligId in enumerate(p_ligIdLst, start=1):
+            # first determine some data items about the current ligand ID/group
+            # that we need to know for display purposes
+            totlInstncsInGrp = 0
+            bGrpRequiresAttention = False
+            #
+            totlInstncsInGrp = ligGrpDict[ligId]['totlInstncsInGrp']
+            bGrpRequiresAttention = ligGrpDict[ligId]['bGrpRequiresAttention']
+            bGrpMsmtchsAddressed = ligGrpDict[ligId]['bGrpMismatchAddressed']
+            #
+            hlprDict['auth_assgnd_grp'] = ligId
+            ccName = ligGrpDict[ligId]['ccName']
+            hlprDict['auth_assgnd_ccname']   =(ccName and len(ccName) or [''])[0]
+            hlprDict['auth_assgnd_ccname_displ']  = self.truncateForDisplay(hlprDict['auth_assgnd_ccname'])
+            hlprDict['auth_assgnd_ccformula']   = ligGrpDict[ligId]['ccFormula']
+            hlprDict['auth_assgnd_ccformula_displ'] = self.truncateForDisplay(hlprDict['auth_assgnd_ccformula'])
+            hlprDict['tot_inst_cnt'] = totlInstncsInGrp
+            #
+            tabStyle="displaynone"
+            if grpIndx==1:
+                tabStyle="_current"
+            #
+            ##########################################################################################
+            # will need to generate the below output for each encounter of new group ID,
+            # because this serves as start of "page" for the given ligand group
+            ##########################################################################################
+            oL.append('<div id="p%s" class="%s tabscount">'% (str(grpIndx),tabStyle))
+            oL.append('<div class="cmpnt_grp displaynone">%s</div>' % ligId)
+            oL.append('<div class="inneraccordion" id="%s_inneraccordion">' % ligId)
+            #
+            if( bGrpRequiresAttention ):
+                text1 = "there is at least one instance for which " if totlInstncsInGrp > 1 else ""
+                text2 = "sections below for those instances that require  " if totlInstncsInGrp > 1 else "section below for the instance that requires "
+                            
+                hlprDict['mismatch_msg'] = '<br /><br />However, '+text1+'there is a discrepancy between the coordinates for '+ligId+' and the possible match in the CCD. ' + \
+                                            'Please see '+text2+'attention. Clicking on section headers labelled "instance" will expand/collapse content. ' + \
+                                            'Both 2D and 3D comparison views are provided.<br /><br />' + \
+                                            'The section "address mismatched instances of: '+ligId+'" allows you to provide more information about this ligand. Please provide at least one of the following: ' + \
+                                            'an alternative ligand ID, a chemical diagram by file upload of image file or a descriptor string in SMILES/InChI format. When you have finished with this ligand, ' + \
+                                            'press the "Save" button at the bottom of the page.'
+            else:
+                hlprDict['mismatch_msg'] = ""
+            #
+            ligCount = ["Zero","One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight","Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+                     "Sixteen", "Seventeen", "Eighteen", "Nineteen","Twenty"]
+            #
+            if totlInstncsInGrp < 21:
+                hlprDict['tot_inst_cnt'] = ligCount[totlInstncsInGrp]
+            #
+            hlprDict['copy_ies'] = "copies" if totlInstncsInGrp > 1 else "copy"
+            hlprDict['has_have'] = "have" if totlInstncsInGrp > 1 else "has"  
+            oL.append('<div><h3>%(tot_inst_cnt)s %(copy_ies)s of %(auth_assgnd_grp)s %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s) %(has_have)s been identified in your coordinates.%(mismatch_msg)s<!--  end of class="all_instances" div--></h3></div>' % hlprDict)
+            #
+            # then render html markup that serves as search result content for those instances in the current ligand group
+            for instId in ligGrpDict[ligId]['instIdLst']:
+                    
+                # rendering markup for chem component instances in the current group 
+                                    
+                hlprDict['instanceid']   = instId
+                # if this particular instance is NOT one of the instances with mismatch issue, then can hide "attention required" notice
+                if( instId not in ligGrpDict[ligId]['mismatchLst'] ):
+                    hlprDict['attn_reqd_display'] = 'displaynone'
+                else:
+                    # else this instId does have mismatch issue but we show "attention required" notice only if depositor has yet to address the issue 
+                    if( bGrpMsmtchsAddressed ):
+                        hlprDict['attn_reqd_display'] = 'displaynone'
+                    else:                    
+                        hlprDict['attn_reqd_display'] = ''
+                #
+                ###################################################################################################
+                # Call method below to generate html content for "Single Instance" profile, content is in form of html  
+                # fragments stored in files on the server. The files are then recruited by AJAX calls made by the front end
+                ###################################################################################################
+                self.doRender_InstanceProfile(p_ccAssgnDataStr,hlprDict)
+                #
+                oL.append( self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcTmplts),fn="cc_lite_instnc_disp_tmplt.html",parameterDict=hlprDict) )
+                # end of interating through instances for current ligand group/ID
+                
+            # if necessary generate "describe new ligand for all-instances" section
+            if( bGrpRequiresAttention ):
+                oL.extend( self.doRender_HandleLigndMsmtchSection(ligId,p_ccAssgnDataStr,ligGrpDict,hlprDict,p_reqObj) )
+            '''    
+            if( ligId in p_ligIdRsrchLst ):
+                oL.extend( self.doRender_ResearchDataCapture(ligId,p_ccAssgnDataStr,hlprDict,p_reqObj) )
+            '''
+            navButtons='''<br /><br /><div id="" class="nav_buttons">
+        <div title="" class="fltrgt savedone" style="padding-left: 0px;"><input id="" name="savedone" value="Finish (all issues are addressed)" title="" class="fltrgt savedone" type="button" disabled="disabled"></div>
+        <input style="margin-right: 10px;" id="" name="back_to_summary_vw" value="Back to Summary View" class="fltrgt displaynone back_to_summary_vw" type="button" disabled="disabled">
+        <input style="margin-right: 10px;" id="" name="instance_browser_ui" value="Inspect Selected Ligands" type="button" class="fltrgt instance_browser_ui" disabled="disabled" >
+    </div>'''
+            oL.append(navButtons+'</div></div>') #one terminal div for inneraccordion then another terminal div for p<N>
+            
+        #end of iterating through all chem components
+            
+        oL.append('</div>\n')
+        #above is end of cc_entity_browse_content div
+        oL.append('</div>\n')
+        oL.append('</div>\n')
+        #above needed to seal off last chem cmpnt_grp div
+        oL.append('</div>\n')
+        #above is end tag for <div id="cc_entity_browser">
+        return oL    
+
+    def doRender_ResearchDataCapture(self,p_authAssignedGrp,p_ccAssgnDataStr,p_hlprDict,p_reqObj):
+        ''' Generate html "Provide data for given ligand as focus of research" content for deposition UI
+            
+            :Params:
+            
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
+                + ``p_reqObj``: Web Request Object
+        '''
+        rtrnLst = []
+        assayTypesList = ['competitive_binding','functional_antagonist','saturation_binding','fluorescence_polarization','fluorescence_resonance_energy_transfer','surface_plasmon_resonance']
+        # we are making a local copy of the p_hlprDict dictionary because while we reuse some of the key/value pairs 
+        # we redefine some of the key/value pairings differently for specific use in the describe-new-ligand view 
+        lclDict = p_hlprDict.copy()
+        #
+        htmlTmpltPth = os.path.join(lclDict['html_template_path'],self.__pathCCliteAllInstcs)
+        #
+        if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- starting for %s research section\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp ) )
+        #
+        p_ccAssgnDataStr.dumpData(self.__lfh);
+        
+        bRsrchDataProvided = (p_authAssignedGrp in p_ccAssgnDataStr.getRsrchDataAcqurdLst())
+        #NOTE: 2013-04-02: In Lite LigModule, lig groups are always resolved/addressed as a group (i.e. never done per instance as in annotation version of ligmodule 
+        
+        ############################## BEGIN creating "capture research data" view ##############################
+
+        if( not bRsrchDataProvided ):
+            # allow depositor to provide data
+            inputDisabled_1 = '' # primary gate for enabling rest of data input, currently the assay type field
+            inputDisabled_2 = 'disabled="disabled"'
+            doneBtnLabel = 'Save Ligand Binding Data'
+            doneBtnDisabled = 'disabled="disabled"' # locked until valid data entered into input feild(s)
+            
+                
+        else:
+            # data already saved so display in locked state (they can undo if desired)
+            inputDisabled_1 = 'disabled="disabled"'
+            inputDisabled_2 = 'disabled="disabled"'
+            doneBtnLabel = 'Edit Ligand Binding Data'
+            doneBtnDisabled = ''
+
+        #
+        lclDict['disabled_1'] = inputDisabled_1
+        lclDict['disabled_2'] = inputDisabled_2
+        lclDict['donebtnlabel'] = doneBtnLabel
+        lclDict['donebtndisabled'] = doneBtnDisabled
+        #
+        rsrchDataDict = p_ccAssgnDataStr.getResearchData(p_authAssignedGrp)
+        
+        if rsrchDataDict is None or ( len(rsrchDataDict.keys()) < 1 ):
+            # no data stored for the ligand yet
+            # so just supply default non-values for dataset 0
+            for type in assayTypesList:
+                lclDict[type+'_selected_0_'] = ''
+            #lclDict['assaytype_unspecified_0_'] = ''
+            lclDict['target_sequence_0_'] = ''
+            lclDict['smiles_selected_0_'] = ''
+            lclDict['inchi_selected_0_'] = ''
+            lclDict['rsrch_dscrptr_str_0_'] = ''
+            lclDict['ph_0_'] = ''
+            lclDict['assay_temp_0_'] = ''
+            lclDict['measurement_type_0_'] = ''
+            lclDict['measured_value_0_'] = ''
+            lclDict['details_0_'] = ''
+            lclDict['multi_binding_datasets'] = ''
+            lclDict['data_acqurd'] = 'no_data_acqurd'
+            lclDict['datasubmitted_display'] = 'displaynone'
+            lclDict['no_datasubmitted_display'] = ''
+            
+            lclDict['measurement_type_options_0_'] = self.__genMeasurementTypeOptions('')
+            
+        else:
+            for type in assayTypesList:
+                lclDict[type+'_selected_0_'] = ''
+            assayType = self.__getNormalizedCifValue(rsrchDataDict[0]['assay_type'])
+            lclDict[assayType+'_selected_0_'] = 'selected="selected"'
+            lclDict['target_sequence_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['target_sequence'])
+            rsrchDscrptrType = self.__getNormalizedCifValue(rsrchDataDict[0]['rsrch_dscrptr_type'])
+            if rsrchDscrptrType == 'smiles':
+                lclDict['smiles_selected_0_'] = 'selected="selected"'
+                lclDict['inchi_selected_0_'] = ''
+            elif rsrchDscrptrType == 'inchi':
+                lclDict['smiles_selected_0_'] = ''
+                lclDict['inchi_selected_0_'] = 'selected="selected"'
+            else:
+                lclDict['smiles_selected_0_'] = ''
+                lclDict['inchi_selected_0_'] = ''
+                
+            lclDict['rsrch_dscrptr_str_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['rsrch_dscrptr_str'])
+            lclDict['ph_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['ph'])
+            lclDict['assay_temp_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['assay_temp'])
+            lclDict['measurement_type_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['measurement_type'])
+            lclDict['measurement_type_options_0_'] = self.__genMeasurementTypeOptions(lclDict['measurement_type_0_'])
+            lclDict['measured_value_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['measured_value'])
+            lclDict['details_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['details'])
+            
+            lclDict['data_acqurd'] = 'data_acqurd'
+            lclDict['datasubmitted_display'] = ''
+            lclDict['no_datasubmitted_display'] = 'displaynone'
+                        
+            oL = []
+            strSubstDict = lclDict.copy()
+            #for key in rsrchDataDict:
+                #self.__lfh.write("+%s.%s() rsrchDataDict[%s] is: %r\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, key, rsrchDataDict[key]) )
+            
+            for index in range(1,10):
+                if index in rsrchDataDict:
+                    strSubstDict['index'] = index
+                    strSubstDict['dataset_disply_index'] = str(index+1)
+                    for type in assayTypesList:
+                        strSubstDict[type+'_selected'] = ''
+                    assayType = self.__getNormalizedCifValue(rsrchDataDict[index]['assay_type'])
+                    strSubstDict[assayType+'_selected'] = 'selected="selected"'
+                    strSubstDict['target_sequence'] = self.__getNormalizedCifValue(rsrchDataDict[index]['target_sequence'])
+                    rsrchDscrptrType = self.__getNormalizedCifValue(rsrchDataDict[index]['rsrch_dscrptr_type'])
+                    if rsrchDscrptrType == 'smiles':
+                        strSubstDict['smiles_selected'] = 'selected="selected"'
+                        strSubstDict['inchi_selected'] = ''
+                    elif rsrchDscrptrType == 'inchi':
+                        strSubstDict['smiles_selected'] = ''
+                        strSubstDict['inchi_selected'] = 'selected="selected"'
+                    else:
+                        strSubstDict['smiles_selected'] = ''
+                        strSubstDict['inchi_selected'] = ''
+                    strSubstDict['rsrch_dscrptr_str'] = self.__getNormalizedCifValue(rsrchDataDict[index]['rsrch_dscrptr_str'])
+                    strSubstDict['ph'] = self.__getNormalizedCifValue(rsrchDataDict[index]['ph'])
+                    strSubstDict['assay_temp'] = self.__getNormalizedCifValue(rsrchDataDict[index]['assay_temp'])
+                    strSubstDict['measurement_type'] = self.__getNormalizedCifValue(rsrchDataDict[index]['measurement_type'])
+                    strSubstDict['measurement_type_options'] = self.__genMeasurementTypeOptions(strSubstDict['measurement_type'])
+                    strSubstDict['measured_value'] = self.__getNormalizedCifValue(rsrchDataDict[index]['measured_value'])
+                    strSubstDict['details'] = self.__getNormalizedCifValue(rsrchDataDict[index]['details'])
+                    
+                    oL.append( self.processTemplate( tmpltPth=htmlTmpltPth,fn="cc_lite_binding_data_clone_tmplt.html",parameterDict=strSubstDict ) )
+                    
+            lclDict['multi_binding_datasets'] = '\n'.join( oL )
+        
+        
+        templateFile = "cc_lite_rsrch_data_capture_tmplt.html"
+        rtrnLst.append( self.processTemplate( tmpltPth=htmlTmpltPth,fn=templateFile,parameterDict=lclDict ) )
+        
+        ############################## END creating "capture research data" view ##############################
+        if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- reached end of %s research section\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp ) )
+        
+        
+        return rtrnLst
+    
+    def __genMeasurementTypeOptions(self,selectedVal):
+        if (self.__verbose):
+            self.__lfh.write("+%s.%s() ----- STARTING\n" %(self.__class__.__name__, sys._getframe().f_code.co_name ) )
+            self.__lfh.write("+%s.%s() ----- selectedVal is: '%s'\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, selectedVal ) )
+        
+        tmplt='<option value="%(type)s" %(selected)s>%(type)s</option>'
+        outputStr = ''
+        
+        for typ in self.__measurementTypes:
+            strReplDict={}
+            strReplDict['type'] = typ
+            strReplDict['selected'] = 'selected="selected"' if( typ == selectedVal and len(selectedVal) > 0 ) else ''
+            outputStr += tmplt%strReplDict
+            
+        return outputStr            
+                            
+    
+    def __getNormalizedCifValue(self,fieldToEval):
+        return fieldToEval if fieldToEval != "?" else ""
+    
+    def doRender_WaterRsrchCaptureContent(self,p_ccAssgnDataStr,p_reqObj):
+        ''' Generate html "Provide data for HOH as focus of research" content for deposition UI
+            
+            :Params:
+            
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_reqObj``: Web Request Object
+        '''
+        bIsWorkflow     = self.isWorkflow(self.__reqObj)
+        sessionId   =p_reqObj.getSessionId()
+        siteId      =str(p_reqObj.getValue("WWPDB_SITE_ID"))
+        wfInstId    =str(p_reqObj.getValue("instance")).upper()
+        depId       =str(p_reqObj.getValue("identifier"))
+        classId     =str(p_reqObj.getValue("classID")).lower()
+        fileSource  =str(p_reqObj.getValue("filesource")).lower()
+        dataFile = str( p_reqObj.getValue("datafile") )
+        tmpltPath   =p_reqObj.getValue("TemplatePath")
+        #
+        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+        
+        rtrnLst = []
+        
+        if (self.__verbose):
+            self.__lfh.write("--------------------------------------------\n")
+            self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId) )
+            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId) )
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource) )
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )
+            self.__lfh.flush()
+        #
+        ############################################################################
+        # create dictionary of content that will be used to populate HTML template
+        ############################################################################
+        myD={}
+        myD['siteid'] = siteId
+        myD['sessionid'] = sessionId
+        myD['instance']   = wfInstId        
+        myD['classid']    = classId
+        myD['filesource'] = fileSource
+        # following params only for rcsb stand-alone version
+        myD['caller'] = p_reqObj.getValue("caller")
+        myD['filepath'] = p_reqObj.getValue('filePath')
+        myD['filetype'] = p_reqObj.getValue('fileType')
+        myD['datafile'] = dataFile
+        #
+        if( bIsWorkflow ):
+            myD['identifier'] = depId
+        
+        else:
+            (pth,fileName)=os.path.split(p_reqObj.getValue('filePath'))
+            (fN,fileExt)=os.path.splitext(fileName)
+            if (fN.upper().startswith("D_")):
+                depDataSetId=fN.upper()
+            elif (fN.lower().startswith("rcsb")):
+                depDataSetId=fN.lower()
+            else:
+                depDataSetId="TMP_ID"
+            myD['identifier'] = depDataSetId
+        #
+        p_ccAssgnDataStr.dumpData(self.__lfh);
+        
+        bWaterInfoProvided = ("HOH" in p_ccAssgnDataStr.getRsrchDataAcqurdLst())
+        
+        ############################## BEGIN creating "capture HOH research data" view ##############################
+        if( not bWaterInfoProvided ):
+            # allow depositor to provide data
+            inputDisabled = ''
+            doneBtnLabel = 'Save'
+            doneBtnDisabled = 'disabled="disabled"' # locked until valid data entered into input feild(s)
+                
+        else:
+            # data already saved so display in locked state (they can undo if desired)
+            inputDisabled = 'disabled="disabled"'
+            doneBtnLabel = 'Edit'
+            doneBtnDisabled = '' # undo button is enabled to allow them to undo
+            
+        #
+        myD['disabled'] = inputDisabled
+        myD['donebtnlabel'] = doneBtnLabel
+        myD['donebtndisabled'] = doneBtnDisabled
+        #
+        markedForResearchLst = p_ccAssgnDataStr.getRsrchSelectedLst()
+        bHOHmarkedForResearch = True if "HOH" in markedForResearchLst else False
+        
+        if bHOHmarkedForResearch:
+            myD['hide_HOH_section'] = ''
+        else:
+            myD['hide_HOH_section'] = 'displaynone'
+            
+        rsrchDataDict = p_ccAssgnDataStr.getResearchData("HOH")
+        
+        if rsrchDataDict is None or ( len(rsrchDataDict.keys()) < 1 ):
+            # no data stored for the HOH yet
+            # so just supply default non-values for dataset 0
+            myD['residuenum_0_'] = ''
+            myD['chain_id_0_'] = ''
+            myD['multi_datasets'] = ''
+            #
+            myD['data_acqurd'] = 'no_data_acqurd'
+            myD['datasubmitted_display'] = 'displaynone'
+            myD['no_datasubmitted_display'] = ''
+            
+        else:
+            myD['residuenum_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['residuenum'])
+            myD['chain_id_0_'] = self.__getNormalizedCifValue(rsrchDataDict[0]['chain_id'])
+            #
+            myD['data_acqurd'] = 'data_acqurd'
+            myD['datasubmitted_display'] = ''
+            myD['no_datasubmitted_display'] = 'displaynone'
+                        
+            oL = []
+            strSubstDict = myD.copy()
+            for key in rsrchDataDict:
+                self.__lfh.write("+%s.%s() rsrchDataDict[%s] is: %r\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, key, rsrchDataDict[key]) )
+            
+            for index in range(1,10):
+                if index in rsrchDataDict:
+                    strSubstDict['index'] = index
+                    strSubstDict['dataset_disply_index'] = str(index+1)
+                    #
+                    strSubstDict['residuenum'] = self.__getNormalizedCifValue(rsrchDataDict[index]['residuenum'])
+                    strSubstDict['chain_id'] = self.__getNormalizedCifValue(rsrchDataDict[index]['chain_id'])
+                    
+                    oL.append( self.processTemplate( tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_hoh_rsrch_data_clone_tmplt.html", parameterDict=strSubstDict ) )
+                    
+            myD['multi_datasets'] = '\n'.join( oL )
+        
+        
+        rtrnLst.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_hoh_rsrch_data_init_tmplt.html", parameterDict=myD) )
+        return rtrnLst
+    
+
+        
+    def doRender_HandleLigndMsmtchSection(self,p_authAssignedGrp,p_ccAssgnDataStr,p_ligGrpDict,p_hlprDict,p_reqObj):
+        ''' Generate html "Handle Mismatched Instances" content for deposition UI
+            
+            :Params:
+            
+                + ``p_authAssignedGrp``: Chem Comp ID used by the depositor to the given entity/ligand group 
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
+                + ``p_oL``: output list being updated with HTML markup content
+        '''
+        rtrnLst = []
+        # we are making a local copy of the p_hlprDict dictionary because while we reuse some of the key/value pairs 
+        # we redefine some of the key/value pairings differently for specific use in the describe-new-ligand view 
+        lclDict = p_hlprDict.copy()
+        #
+        htmlTmpltPth = os.path.join(lclDict['html_template_path'],self.__pathCCliteAllInstcs)
+        #
+        if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- starting for author assigned entityID: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp) )
+        #
+        #bGrpRequiresAttention = (p_authAssignedGrp in p_ccAssgnDataStr.getGlblAttentionReqdLst())
+        
+        #if lclDict['browser'] == "chrome":
+        if lclDict['browser'] == "noApplets":
+            useApplet = False
+        else:
+            useApplet = True
+        
+        bGrpHasBeenResolved = (p_authAssignedGrp in p_ccAssgnDataStr.getGlbllyRslvdGrpList())
+        #NOTE: 2013-04-02: In Lite LigModule, lig groups are always resolved/addressed as a group (i.e. never done per instance as in annotation version of ligmodule 
+        
+        ############################## BEGIN creating "handle ligand mismatch" view ##############################
+        grpInstIdCnt = p_ligGrpDict[p_authAssignedGrp]['totlInstncsInGrp']
+        grpMismatchCnt = p_ligGrpDict[p_authAssignedGrp]['grpMismatchCnt']
+        #
+        grpIsResolved = ''
+        if( not bGrpHasBeenResolved ):
+            grpMismtchRslvdDsply= 'displaynone'
+            grpIsResolved = ''
+            grpDisabled = ''
+            doneBtnLabel = 'Save Verification for Ligand Mismatch'
+            exctMtchBtnDisabled = 'disabled="disabled"'
+            if( p_ccAssgnDataStr.minReqsMetForDescrNwLgnd(p_authAssignedGrp) == True ):
+                doneBtnDisabled = ''
+            else:
+                doneBtnDisabled = 'disabled="disabled"'
+        else:
+            grpMismtchRslvdDsply= ''
+            grpIsResolved = 'is_rslvd'
+            grpDisabled = 'disabled="disabled"'
+            doneBtnLabel = 'Edit Verification for Ligand Mismatch'
+            doneBtnDisabled = ''
+            exctMtchBtnDisabled = ''
+        #
+        lclDict['inst_cnt'] = grpInstIdCnt
+        lclDict['mismtch_rslvd_display'] = grpMismtchRslvdDsply
+        lclDict['disabled'] = grpDisabled
+        lclDict['donebtnlabel'] = doneBtnLabel
+        lclDict['donebtndisabled'] = doneBtnDisabled
+        lclDict['is_rslvd'] = grpIsResolved
+        #
+        lclDict['dsply_addrss_msmtch_opts'] = 'displaynone'
+        lclDict['dsply_no_match_instrctns'] = 'displaynone'
+        lclDict['dsply_dscrnwlgnd'] = 'displaynone'
+        lclDict['displaynextreqdset'] = 'displaynone'
+        #
+        lclDict['dsply_exct_mtch_sv_btn'] = ''
+        lclDict['exct_mtch_sv_btn_label'] = 'Save Verification for Ligand Mismatch'
+        lclDict['exct_mtch_btn_disabled'] = exctMtchBtnDisabled 
+        lclDict['use_exact_mtch_id_checked'] = ''
+        lclDict['use_orig_proposed_id_checked'] = ''
+        lclDict['dscr_nw_lgnd_checked'] = ''
+        #
+        lclDict['peptide_like_checked'] = ''
+        lclDict['carbohydrate_checked'] = ''
+        lclDict['lipid_checked'] = ''
+        lclDict['heterogen_checked'] = ''
+        lclDict['none_of_abv_checked'] = ''
+        #
+        lclDict['alt_ccid'] = ''
+        lclDict['dscrptr_type'] = ''
+        lclDict['dscrptr_str'] = ''
+        lclDict['inchi_selected'] = ''
+        lclDict['smiles_selected'] = ''
+        lclDict['sbmt_choice_dscrptrstr_slctd']='selected="selected"'
+        lclDict['sbmt_choice_sketch_slctd']=''
+        #
+        lclDict['chem_name'] = ''
+        lclDict['chem_frmla'] = ''
+        lclDict['comments'] = ''
+        
+        exactMatchId = p_ccAssgnDataStr.getDpstrExactMtchCcId(p_authAssignedGrp)
+        
+        ligType = p_ccAssgnDataStr.getDpstrCcType(p_authAssignedGrp)
+        ligAltId = p_ccAssgnDataStr.getDpstrAltCcId(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrAltCcId(p_authAssignedGrp) != '?' else ""
+        ligDscrptrType = p_ccAssgnDataStr.getDpstrCcDscrptrType(p_authAssignedGrp)
+        ligDscrptrStr  = p_ccAssgnDataStr.getDpstrCcDscrptrStr(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrCcDscrptrStr(p_authAssignedGrp) != '?' else ""
+        dpstrSubmitChoice = p_ccAssgnDataStr.getDpstrSubmitChoice(p_authAssignedGrp)
+        ligName = p_ccAssgnDataStr.getDpstrCcName(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrCcName(p_authAssignedGrp) != '?' else ""
+        ligFrmla = p_ccAssgnDataStr.getDpstrCcFrmla(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrCcFrmla(p_authAssignedGrp) != '?' else ""
+        ligComments = p_ccAssgnDataStr.getDpstrComments(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrComments(p_authAssignedGrp) != '?' else ""
+        
+        
+        #if( p_hlprDict['have_top_hit'] ):
+        if( p_authAssignedGrp in p_hlprDict['hndle_msmtch_tophit_id_list'] and len(p_hlprDict['hndle_msmtch_tophit_id_list'][p_authAssignedGrp]) > 0 ):
+            lclDict['dsply_addrss_msmtch_opts'] = ''
+        else:
+            bHaveTopHit = False
+            lclDict['dsply_no_match_instrctns'] = ''
+            lclDict['dsply_dscrnwlgnd'] = ''
+        
+        if (self.__verbose and self.__debug):
+            self.__lfh.write("+%s.%s() ----- ligComments: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, ligComments) )
+        
+        if( ligType is not None and len(ligType) > 1 ):
+            # if ligType is specified then indicates that user had chosen to open describe new ligand section
+            lclDict[ligType+'_checked'] = 'checked="checked"'
+            lclDict['displaynextreqdset'] = ''
+            lclDict['use_exact_mtch_id_checked'] = '' #uncheck opposing radio button options
+            lclDict['use_orig_proposed_id_checked'] = '' #uncheck opposing radio button options
+            lclDict['dscr_nw_lgnd_checked'] = 'checked="checked"' #show radio button as clicked
+            lclDict['dsply_exct_mtch_sv_btn'] = 'displaynone'
+            lclDict['dsply_dscrnwlgnd'] = '' #display sections on describing a ligand
+            if( ligDscrptrType is not None and len(ligDscrptrType) > 0 ):                
+                if ligDscrptrType == 'smiles':
+                    lclDict['smiles_selected'] = 'selected="selected"'
+                    lclDict['inchi_selected'] = ''
+                elif ligDscrptrType == 'inchi':
+                    lclDict['smiles_selected'] = ''
+                    lclDict['inchi_selected'] = 'selected="selected"'
+                
+            if( ligAltId is not None and len(ligAltId) > 0 ):
+                lclDict['alt_ccid'] = ligAltId #repopulate chosen value
+            if( ligDscrptrStr is not None and len(ligDscrptrStr) > 0 ):
+                lclDict['dscrptr_str'] = ligDscrptrStr    
+            if( dpstrSubmitChoice is not None and len(dpstrSubmitChoice) > 0 ):
+                if( dpstrSubmitChoice == 'sketch' ):
+                    lclDict['sbmt_choice_sketch_slctd']='selected="selected"'           
+                    lclDict['sbmt_choice_dscrptrstr_slctd'] = ''
+            if( ligName is not None and len(ligName) > 0 ):
+                lclDict['chem_name'] = ligName
+            if( ligFrmla is not None and len(ligFrmla) > 0 ):
+                lclDict['chem_frmla'] = ligFrmla
+            if( ligComments is not None and len(ligComments) > 0 ):
+                lclDict['comments'] = ligComments
+                
+        else:
+            if( bGrpHasBeenResolved ):
+                lclDict['dsply_exct_mtch_sv_btn'] = ''
+                lclDict['exct_mtch_btn_disabled'] = ''
+                lclDict['exct_mtch_sv_btn_label'] = 'Edit Verification for Ligand Mismatch'
+                lclDict['dscr_nw_lgnd_checked'] = '' #uncheck opposite radio button option
+                lclDict['dsply_dscrnwlgnd'] = 'displaynone' #don't display sections on describing a ligand
+                
+                if( exactMatchId is not None and len(exactMatchId) > 1 ):
+                    if (self.__verbose and self.__debug):
+                        self.__lfh.write("+%s.%s() ----- DEBUG ----- exactMatchId is: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, exactMatchId) )
+    
+                    # if exactMatchId is specified then indicates that user had chosen to just use the chem comp ID that our software found as an exact match
+                    lclDict['use_exact_mtch_id_checked'] = 'checked="checked"' #show radio button as clicked
+                else:
+                    # else user chose to use originally proposed ligand ID
+                    lclDict['use_orig_proposed_id_checked'] = 'checked="checked"' #show radio button as clicked
+        
+        absltPath2dAuthAssgndImg = os.path.join(p_reqObj.getValue("SessionsPath"),p_hlprDict['sessionid'],"assign",p_authAssignedGrp+'.svg')
+        if( os.access(absltPath2dAuthAssgndImg,os.R_OK) ):
+            path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,p_authAssignedGrp+'.svg')
+            if( self.__verbose and self.__debug ):
+                self.__lfh.write("+%s.%s() ----- successful access to absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
+                self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
+        else:
+            if( self.__verbose and self.__debug ):
+                self.__lfh.write("+%s.%s() ----- could not access absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
+            #path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,"rfrnc_reports",p_authAssignedGrp,p_authAssignedGrp+'-300.gif')
+            path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,"rfrnc_reports",p_authAssignedGrp,p_authAssignedGrp+'-noh.gif')
+            if( self.__verbose and self.__debug ):
+                self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
+            
+            
+        lclDict['2dpath_auth_assgnd_id'] = path2dAuthAssgndImg
+        lclDict['use_exact_match_id_list'] = self.__generateExactMatchAssignMarkup(lclDict,exactMatchId)
+        #
+        contentTypeDict = self.__cI.get('CONTENT_TYPE_DICTIONARY')
+        acceptedImgFileTypes = (contentTypeDict['component-image'][0])[:]
+        acceptedDefFileTypes = (contentTypeDict['component-definition'][0])[:]
+        acceptedDefFileTypes.append('cif') # appending "cif" as a possible extension that is equivalent to "pdbx"
+        lclDict['accepted_img_file_types'] = "'"+"','".join(acceptedImgFileTypes)+"'"
+        lclDict['accepted_def_file_types'] = "'"+"','".join(acceptedDefFileTypes)+"'"
+        ##
+        if useApplet:
+            templateFile = "cc_lite_handle_lgnd_msmtch_tmplt.html"
+        else:
+            templateFile = "cc_lite_handle_lgnd_msmtch_noapplet_tmplt.html"
+        ############################################################
+        instIdLst=p_ligGrpDict[p_authAssignedGrp]['instIdLst']
+        lclDict['cc_lite_srch_rslts_tbl'] = ''.join( self.doRender_BatchRslts( p_authAssignedGrp,p_ccAssgnDataStr,instIdLst,htmlTmpltPth ) )
+        #lclDict['marvin_sketch'] = ''.join( self.doRender_MarvinSketch( p_authAssignedGrp,htmlTmpltPth ) )
+        lclDict['marvin_sketch'] = ''
+        self.doRender_MarvinSketch( p_authAssignedGrp,htmlTmpltPth )
+        rtrnLst.append( self.processTemplate( tmpltPth=htmlTmpltPth,fn=templateFile,parameterDict=lclDict ) )
+        ############################## END creating "describe new ligand" view ##############################
+        if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- reached end for author assigned entityID: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp) )
+        
+        
+        return rtrnLst
+    
+    def __generateExactMatchAssignMarkup(self,p_hlprDict,p_exactMatchId):
+        markup=[]
+        authAssgndGrp = p_hlprDict['auth_assgnd_grp']
+        if( authAssgndGrp in p_hlprDict['hndle_msmtch_tophit_id_list'] ):
+            for ccId in p_hlprDict['hndle_msmtch_tophit_id_list'][authAssgndGrp]:
+                p_hlprDict['tophit_id'] = ccId
+                if( p_exactMatchId is not None and ccId == p_exactMatchId ):
+                    p_hlprDict['use_exact_mtch_id_checked'] = 'checked="checked"'
+                else:
+                    p_hlprDict['use_exact_mtch_id_checked'] = ''
+                markup.append( self.__alternateTopHitMarkup % p_hlprDict )
+            
+        return '\n'.join(markup) if len(markup) > 0 else ""
+    
+    def doRender_MarvinSketch(self,p_authAssignedGrp,p_htmlTmpltPth):
+        if (self.__verbose):
+            self.__lfh.write("+%s.%s() ----- STARTING FOR : %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp) )
+        oL=[]
+        '''
+        ccSk=ChemCompSketch(reqObj=p_reqOb,verbose=self.__verbose,log=self.__lfh)
+        ccSk.setCcId(p_authAssignedGrp)
+
+        rD=ccSk.doSketch()
+        if len(rD) > 0:
+            self.__lfh.write("+%s.%s() ----- MARVIN SKETCH MARKUP : %r\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, rD) )
+            oL.append( self.processTemplate( tmpltPth=p_htmlTmpltPth,fn="marvin_sketch_tmplt.html",parameterDict=rD ) )
+            self.__lfh.write("+%s.%s() ----- MARVIN SKETCH MARKUP oL : %r\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, oL) )
+            fp=open(self.absltAssgnSessionPath+'/testMarvinSketch_'+p_authAssignedGrp+'.html','w')
+            fp.write("%s" % self.processTemplate( tmpltPth=p_htmlTmpltPth,fn="marvin_sketch_tmplt.html",parameterDict=rD ) )
+            fp.close()
+        '''
+        rD={}
+        rD['ccid']=p_authAssignedGrp
+        oL.append( self.processTemplate( tmpltPth=p_htmlTmpltPth,fn="marvin_sketch_tmplt.html",parameterDict=rD ) )
+        
+        # exporting html to file for debug purposes
+        fp=open(self.absltAssgnSessionPath+'/'+p_authAssignedGrp+'_mrvnsktch.html','w')
+        fp.write("%s" % '\n'.join( oL ) )
+        fp.close()
+        
+        return oL
+            
+            
+    def doRender_InstanceProfile(self,p_ccAssgnDataStr,p_hlprDict):
+        ''' Generate html "single-instance" profile content for given ligand instance
+                       
+            :Params:
+            
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
+        '''
+        ##
+        instId          = p_hlprDict['instanceid']
+        sessionId       = p_hlprDict['sessionid']
+        depId           = p_hlprDict['depositionid']
+        wfInstId        = p_hlprDict['instance']
+        htmlTmpltPth    = os.path.join(p_hlprDict['html_template_path'],self.__pathCCliteSnglInstcTmplts)
+        browser         = p_hlprDict['browser']
+        ##
+        self.__workingRltvAssgnSessionPath=self.__siteSrvcUrlPathPrefix+self.rltvAssgnSessionPath
+        #
+        if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- starting for instId: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
+                    
+        ## interrogate ChemCompAssign DataStore for necessary data items
+        authAssignedGrp = p_ccAssgnDataStr.getAuthAssignment(instId)
+        topHitCcId = p_ccAssgnDataStr.getBatchBestHitId(instId)
+        bGrpHasBeenResolved = (authAssignedGrp in p_ccAssgnDataStr.getGlbllyRslvdGrpList())
+        
+        ## determine whether or not a top candidate hit has been found for this instance 
+        if topHitCcId.lower() == "none":
+            bHaveTopHit = False
+            p_hlprDict['have_top_hit'] = False
+            if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- instId %s has no top hit\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
+        else:
+            bHaveTopHit = True
+            p_hlprDict['have_top_hit'] = True
+            
+        ## determine whether or not to use applets based on browser detected
+        #if browser == "chrome":
+        if browser == "noApplets":
+            useApplet = False
+        else:
+            useApplet = True
+        
+        #######################################################################################################################################################
+        #######################################################################################################################################################
+        ##
+        ##    Establish dictionary of elements used to populate html template for instance profile
+        ##
+        #######################################################################################################################################################
+        #######################################################################################################################################################
+        
+        if( authAssignedGrp.upper() != topHitCcId.upper() ):
+            p_hlprDict['attn_reqd'] = 'attn_reqd'
+        else:
+            p_hlprDict['attn_reqd'] = ''
+            
+        if( bGrpHasBeenResolved ):
+            p_hlprDict['is_rslvd'] = 'is_rslvd'
+            bIsResolved = True
+        else:
+            p_hlprDict['is_rslvd'] = 'not_rslvd'
+            bIsResolved = False
+        
+        #
+        p_hlprDict['auth_assgnd_grp'] = authAssignedGrp
+        p_hlprDict['status']       = p_ccAssgnDataStr.getBatchBestHitStatus(instId)
+        p_hlprDict['name']         = p_ccAssgnDataStr.getCcName(instId)
+        p_hlprDict['formula']      = p_ccAssgnDataStr.getCcFormula(instId)
+        p_hlprDict['formula_displ'] = self.truncateForDisplay(p_hlprDict['formula'])
+        p_hlprDict['fmlcharge']    = p_ccAssgnDataStr.getCcFormalChrg(instId)
+        p_hlprDict['exact_match_ccid'] = ''
+        #
+        if( self.__debug ):
+            self.__lfh.write("+%s.%s() ----- single atomflag for instId '%s' is: '%s'.\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId, p_ccAssgnDataStr.getCcSingleAtomFlag(instId)) )
+        p_hlprDict['dsplyvizopt'] = "" if( str(p_ccAssgnDataStr.getCcSingleAtomFlag(instId) ).lower() == 'n') else "displaynone"
+        #
+        if( bHaveTopHit ):
+            p_hlprDict['exact_match_ccid'] = topHitCcId
+            topHitsList = p_ccAssgnDataStr.getTopHitsList(instId)
+            p_hlprDict['exact_match_ccname']   = (len(topHitsList) and [topHitsList[0][3]] or [''])[0]
+            p_hlprDict['exact_match_ccname_displ']  = self.truncateForDisplay(p_hlprDict['exact_match_ccname'])
+            p_hlprDict['exact_match_ccformula']   = (len(topHitsList) and [topHitsList[0][4]] or [''])[0]
+            p_hlprDict['exact_match_ccformula_displ'] = self.truncateForDisplay(p_hlprDict['exact_match_ccformula'])
+            #
+            if( topHitCcId.lower() != authAssignedGrp.lower() ):
+                p_hlprDict['msmtch_explain'] = 'There is a discrepancy between your coordinates of <span class="strong">'+authAssignedGrp+'</span> and the match found in the CCD: <span style="color: #F00;">'+topHitCcId+'</span>'
+                p_hlprDict['hndle_msmtch_tophit_id'] = topHitCcId
+                if authAssignedGrp not in p_hlprDict['hndle_msmtch_tophit_id_list']:
+                    p_hlprDict['hndle_msmtch_tophit_id_list'][authAssignedGrp] = []
+                if topHitCcId not in p_hlprDict['hndle_msmtch_tophit_id_list'][authAssignedGrp]:
+                    p_hlprDict['hndle_msmtch_tophit_id_list'][authAssignedGrp].append(topHitCcId)
+            else:
+                p_hlprDict['msmtch_explain'] = ''
+        
+        ## setting relative paths to 2D visualization resources that are used by webpage to load on demand via AJAX
+        p_hlprDict['2dpath']               = os.path.join(self.__workingRltvAssgnSessionPath,instId+'.svg')
+        '''
+        if( bHaveTopHit ):
+            p_hlprDict['2dpath']               = os.path.join(self.__workingRltvAssgnSessionPath,instId+'.svg')
+        else:
+            p_hlprDict['2dpath']               = os.path.join(self.__workingRltvAssgnSessionPath,instId,'report',authAssignedGrp+'-noh.gif')
+        '''
+                    
+        if( bHaveTopHit ):
+            #p_hlprDict['2dpath_top_hit']       = os.path.join(self.__workingRltvAssgnSessionPath,'rfrnc_reports',topHitCcId,topHitCcId+'-noh.gif')
+            p_hlprDict['2dpath_top_hit']       = os.path.join(self.__workingRltvAssgnSessionPath,topHitCcId+'.svg')
+        
+        
+        ############################################################################################################################################################
+        ## if the assign search yielded top hit(s) we need to generate tabular display of match results  ###########################################################
+        #if bHaveTopHit:
+        if( bHaveTopHit ):
+            p_hlprDict['assgn_sess_path_rel'] = self.__workingRltvAssgnSessionPath #this key/value is used in private renderInstanceMatchResults function for cc_viz_cmp_li_tmplt.html
+            p_hlprDict['cc_instnc_match_rslts_tbl'] = ''.join(self.__renderInstanceMatchRslts(p_ccAssgnDataStr,p_hlprDict))
+        ##
+        ############################################################################################################################################################
+                
+        
+        instncProfileLbl = "instnc_profile.html"
+        
+        # establishing values for RELATIVE path used by FRONT end for locating file that serves as instance profile markup and is called by front end on-demand 
+        htmlFilePathRel=os.path.join(self.__workingRltvAssgnSessionPath,instId,instId+instncProfileLbl)
+        ############################################################################################################################################################
+        ## NOTE: 'instnc_profile_path" key/value below is used in cc_lite_instnc_disp_tmplt template 
+        ## which is populated NOT by this by function but by code that has called this function
+        p_hlprDict['instnc_profile_path'] = htmlFilePathRel
+        ############################################################################################################################################################
+        
+        # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
+        htmlDirPathAbs = os.path.join(self.absltAssgnSessionPath,instId)
+        if not os.path.exists(htmlDirPathAbs):
+            os.makedirs(htmlDirPathAbs)
+        htmlFilePathAbs = os.path.join(self.absltAssgnSessionPath,instId,instId+instncProfileLbl)
+        #
+        fp=open(htmlFilePathAbs,'w')
+        #
+        if( bHaveTopHit ):
+            if( useApplet ):
+                instncProfileTmpltName = "cc_lite_instnc_profile_tmplt.html"
+            else:
+                instncProfileTmpltName = "cc_lite_instnc_profile_noapplet_tmplt.html"
+        else:
+            p_hlprDict['msmtch_explain'] = 'No match was found in the CCD.'
+            if( useApplet ):
+                instncProfileTmpltName = "cc_lite_instnc_profile_nomatch_tmplt.html"
+            else:
+                instncProfileTmpltName = "cc_lite_instnc_profile_nomatch_noapplet_tmplt.html"
+        #
+        
+        fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth,fn=instncProfileTmpltName,parameterDict=p_hlprDict) )
+        fp.close()
+        
+        ############################################################################################################################################################
+        ## 3D JMOL renderings
+        ############################################################################################################################################################
+        if( useApplet ):
+            self.__renderInstance3dViews(p_ccAssgnDataStr,p_hlprDict)
+        ##
+        
+        ############################################################################################################################################################
+        ###################################                     END creating "single instance" view                                 ##############################
+        ############################################################################################################################################################
+        ##
+        if (self.__verbose):
+                    self.__lfh.write("+%s.%s() ----- reached end for instId: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
+
+    def doRender_BatchRslts(self,p_entityId,p_ccAssgnDataStr,p_instIdLst,p_tmpltPth):
+        ''' Render "Condensed Batch Search Report"
+            An abbreviated version of the Batch Chem Comp Assign search results used for
+             display within the "describe new ligand" section of the entity browser.
+            
+            :Params:
+            
+                + ``p_entityId``: ID of ligand group for which profile is being generated
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_tmpltPth``: path to repository of HTML templates on the server
+                    
+            :Returns:
+                ``oL``: output list consisting of HTML markup        
+        '''
+        myD={}
+        oL=[]
+        matchStatus = ''
+        #
+        for instId in p_instIdLst:
+            #
+            #    populate dictionary of elements to populate html template
+            #
+            matchStatus = p_ccAssgnDataStr.getBatchBestHitStatus(instId)
+            if( matchStatus != 'passed' and matchStatus != 'close match'):
+                myD['instanceid']       = instId
+                myD['auth_assgnd_grp']  = p_entityId
+                myD['status'] = matchStatus
+                #
+                oL.append( self.processTemplate(tmpltPth=p_tmpltPth,fn="cc_lite_entity_batch_rslts_tmplt.html",parameterDict=myD) )
+            
+        #end of iterating through all ligand instances
+        
+        return oL
+
+    """
+    def doRender_AtmMpList(self,p_ccAssgnDataStr,p_hlprDict,p_atmMpHtmlPathAbs,p_ccId=None):
+        ''' Generate file containing html fragment that represents atom listing for the given reference chem component
+        
+            :Params:
+            
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
+                + ``p_atmMpHtmlPathAbs``: path to be used for writing out HTML fragment file on the server
+                + ``p_ccId``: ChemComp ID, if present indicates that HTML being generated for a dictionary reference
+
+        '''
+        ##
+        instId          = p_hlprDict['instanceid']
+        tmpltPth        = p_hlprDict['html_template_path']
+        ##
+        atmMpLst=[]
+        tmpltFile=''
+        #
+        oL=[]
+        #
+        if( p_ccId is None ):
+            #atmMpLst = (p_ccAssgnDataStr.getAtomMapDict(p_instId))[( (p_ccAssgnDataStr.getAtomMapDict(p_instId)).keys() )[0]]
+            atomMapDict = p_ccAssgnDataStr.getAtomMapDict(instId)
+            if atomMapDict:
+                listOfTopHitsForInstId = (p_ccAssgnDataStr.getAtomMapDict(instId)).keys()
+                if len(listOfTopHitsForInstId) > 0:
+                    topHitForInstId = listOfTopHitsForInstId[0]
+                    atmMpLst = atomMapDict[topHitForInstId]
+            tmpltFile = "cc_instnc_atm_mp_li_tmplt.html"
+        else:
+            atmMpLst = (p_ccAssgnDataStr.getAtomMapDict(instId))[p_ccId]
+            tmpltFile = "cc_ref_atm_mp_li_tmplt.html"
+        #            
+        if (self.__verbose):
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_AtmMpList() starting for instId %s and candidate ccid %s\n" % (instId,p_ccId) )
+        #
+        atm=''
+        for instAtm, refAtm in atmMpLst:
+            #
+            if( p_ccId is None ):
+                atm = instAtm
+            else:
+                atm = refAtm
+            #
+            p_hlprDict['atom'] = atm
+            #
+            oL.append( self.processTemplate(tmpltPth=os.path.join(tmpltPth,self.__pathInstncsVwTmplts),fn=tmpltFile,parameterDict=p_hlprDict) )
+        #end of iterating through all atm map entries for the ref ccId
+        #
+        fp=open(p_atmMpHtmlPathAbs,'w')
+        fp.write("%s" % ('\n'.join(oL)) )
+        fp.close
+    """
+
+    def doRender_UploadedFilesList(self,p_ccid,p_filesLst,p_reqObj):
+        """ 
+        """
+        #
+        sessionId   = p_reqObj.getSessionId()
+        tmpltPath   = p_reqObj.getValue("TemplatePath")
+        #
+        replDict = {}
+        fileUpldsMrkp = []
+        #
+        if (self.__verbose):
+            self.__lfh.write("--------------------------------------------\n")
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_UploadedFilesList() starting\n")
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_UploadedFilesList() sessionId  %s\n" % sessionId)       
+            self.__lfh.flush()
+ 
+        #
+        replDict['sessionid'] = sessionId
+        #
+        if( len(p_filesLst) > 0 ):
+            fileUpldsMrkp.append('<div id="upload_inventory" ><br /><p>Each item listed links to respective file.</p><ul>')
+            replDict['ccid'] = p_ccid
+            for fileName in p_filesLst:
+                if (self.__verbose):
+                    self.__lfh.write("+ChemCompAssignDepictLite.doRender_UploadedFilesList() listing includes file: %s\n" % fileName) 
+                replDict['filename'] = fileName
+                fileListing = ('<li><a href="/sessions/%(sessionid)s/%(filename)s" target="_blank">%(filename)s</a><input id="%(ccid)s" name="%(filename)s" type="button" value="Remove" title="Remove file from deposition dataset" class="remove_file" style="margin-left:10px;"/></li>' % replDict)
+                fileUpldsMrkp.append(fileListing)
+            fileUpldsMrkp.append("</ul></div>")
+        else:
+            fileUpldsMrkp = '<div id="upload_inventory" ><br /><span>Currently no files on record.</span></div>'
+        
+        return fileUpldsMrkp
+
+
+
+    def doRender_ResultFilesPage(self,p_reqObj,p_bIsWorkflow):
+        """ 
+        """
+        #
+        sessionId   = p_reqObj.getSessionId()
+        depId       = str(p_reqObj.getValue("identifier")).upper()
+        fileSource  = str(p_reqObj.getValue("filesource")).lower()
+        tmpltPath   = p_reqObj.getValue("TemplatePath")
+        #
+        myD = {}
+        #
+        depId = self.__formatDepositionDataId(depId, p_bIsWorkflow)
+        #
+            
+        #
+        # Local path details - i.e. for processing within given session
+        #
+        #
+        #dpstrInfoDirPath       =   os.path.join(self.__sessionPath,'assign')
+        dpstrInfoFile = depId+'-cc-dpstr-info.cif'
+        dpstrUpdtdPdbxFile = depId+'-cc-model-w-dpstr-info.cif'
+        #
+        if (self.__verbose):
+            self.__lfh.write("--------------------------------------------\n")
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_ResultFilesPage() starting\n")
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_ResultFilesPage() identifier   %s\n" % depId)
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_ResultFilesPage() file source  %s\n" % fileSource)
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_ResultFilesPage() sessionId  %s\n" % sessionId)       
+            self.__lfh.flush()
+ 
+        #
+        # create dictionary of content that will be used to populate HTML template
+        #
+        myD['sessionid'] = sessionId
+        myD['identifier'] = depId
+        myD['dpstrInfoFile'] = dpstrInfoFile
+        myD['dpstrUpdtdPdbxFile'] = dpstrUpdtdPdbxFile
+        #
+        fileUpldsLst = []
+        fileListing = ''
+        replDict = {}
+        replDict['sessionid'] = sessionId
+        
+        ccADS=ChemCompAssignDataStore(p_reqObj,verbose=True,log=self.__lfh)
+        for ligId in ccADS.getGlbllyRslvdGrpList():
+            replDict['ligid'] = ligId
+            dpstrUploadFilesDict = ccADS.getDpstrUploadFilesDict()
+            
+            if( ligId in dpstrUploadFilesDict ):
+                
+                for fileType in dpstrUploadFilesDict[ligId]:
+                    for fileName in dpstrUploadFilesDict[ligId][fileType].keys():
+                        
+                        replDict['filename'] = fileName
+                        
+                        fileListing = ('<li><a href="/sessions/%(sessionid)s/%(filename)s">%(filename)s uploaded for %(ligid)s</a></li>' % replDict)
+                        fileUpldsLst.append(fileListing)
+                
+            sbmttdStrctrData = ccADS.getDpstrSubmitChoice(ligId)
+            if (self.__verbose):
+                self.__lfh.write("+%s.%s() sbmttdStrctrData is: %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, sbmttdStrctrData) )
+            if( sbmttdStrctrData is not None and sbmttdStrctrData == 'sketch' ):
+                replDict['filename'] = ligId+'-sketch.sdf'
+                fileListing = ('<li><a href="/sessions/%(sessionid)s/assign/%(filename)s">%(filename)s structure sketch data submitted for %(ligid)s</a></li>' % replDict)
+                fileUpldsLst.append(fileListing)
+        
+        
+        myD['fileuploadslist'] = '\n'.join(fileUpldsLst)
+        
+        resultFilePathaAbs = os.path.join(self.absltSessionPath,"results.html")
+        #
+        fp=open(resultFilePathaAbs,'w')
+        fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(tmpltPath,"templates"),fn="cc_lite_result_files_tmplt.html",parameterDict=myD) )
+        fp.close()
+        
+        if os.access(resultFilePathaAbs,os.R_OK):
+            if self.__verbose:
+                self.__lfh.write("+%s.%s() - results.html file created at: %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, resultFilePathaAbs ) )
+        else:
+            if self.__verbose:
+                self.__lfh.write("+%s.%s() - NO results.html file created at: %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, resultFilePathaAbs ) )
+        
+
+
+    def doRender_3dEnvironView(self,p_reqObj,p_bIsWorkflow):
+        """ Within instance search view of chem comp assign interface
+            launch 3D viewer of experimental chem component within
+            author's entire structure (in separate browser window/tab)
+            
+            :Params:
+            
+                + ``p_reqObj``: Web Request object
+                + ``p_bIsWorkflow``: boolean indicating whether or not operating in Workflow Manager environment
+                    
+            :Returns:
+                ``oL``: output list consisting of HTML markup
+        """
+        #
+        sessionId   = p_reqObj.getSessionId()
+        instId      = str(p_reqObj.getValue("instanceid")).upper()
+        wfInstnc    = str(p_reqObj.getValue("instance")).upper()
+        depId       = str(p_reqObj.getValue("identifier")).upper()
+        fileSource  = str(p_reqObj.getValue("filesource")).lower()
+        tmpltPath   = p_reqObj.getValue("TemplatePath")
+        #
+        oL = []
+        myD = {}
+        instIdPieces = instId.split('_')
+        chainId = instIdPieces[1]
+        residueNum = instIdPieces[3]
+        #
+        depId = self.__formatDepositionDataId(depId, p_bIsWorkflow)
+        #
+        if (self.__verbose):
+            self.__lfh.write("--------------------------------------------\n")
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_3dEnvironView() starting\n")
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_3dEnvironView() identifier   %s\n" % depId)
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_3dEnvironView() instance     %s\n" % instId)
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_3dEnvironView() file source  %s\n" % fileSource)
+            self.__lfh.write("+ChemCompAssignDepictLite.doRender_3dEnvironView() sessionId  %s\n" % sessionId)       
+            self.__lfh.flush()
+ 
+        #
+        # create dictionary of content that will be used to populate HTML template
+        #
+        myD['instanceid'] = instId
+        myD['sessionid'] = sessionId
+        myD['instance']   = wfInstnc        
+        myD['filesource'] = fileSource
+        myD['identifier'] = depId
+        myD['3dpath'] = os.path.join(self.rltvSessionPath,depId+'-jmol-mdl')
+        myD['residue_num'] = residueNum
+        myD['chain_id'] = chainId
+        myD['jmol_code_base'] = self.jmolCodeBase
+        #
+        oL.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathSnglInstcJmolTmplts),fn="cc_instnc_environ_vw_jmol_tmplt.html", parameterDict=myD) )
+        
+        return oL
+
+    ################################################################################################################
+    # ------------------------------------------------------------------------------------------------------------
+    #      Private helper methods
+    # ------------------------------------------------------------------------------------------------------------
+    #
+    def __generateLigGroupSummaryDict(self,p_ccAssgnDataStr):
+        ''' generate utility dictionary to hold info for chem comp groups indicated in depositor's data
+        
+            :Returns:
+            Currently returning two-tier dictionary with primary key of chem comp ID and following secondary keys:
+            
+                ``totlInstncsInGrp``:  total number of chem component instances with same ligand ID as given ID
+                ``bGrpRequiresAttention``:  boolean indicating whether or not the given ligand ID group has any instances
+                                        for which top hit does not match author provided ligand ID
+                ``grpMismatchCnt``:  total number of chem component instances where mismatch detected
+                ``instidLst``:  list of instanceIds for all instances of the chem component found in the depositor data 
+        '''
+        rtrnDict = {}
+        instncIdLst=p_ccAssgnDataStr.getAuthAssignmentKeys()
+        ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+        
+        for indx, instnc in enumerate(instncIdLst):
+            authAssgndLigID = p_ccAssgnDataStr.getAuthAssignment(instnc)
+            if authAssgndLigID not in rtrnDict:
+                rtrnDict[authAssgndLigID] = {}
+                rtrnDict[authAssgndLigID]['totlInstncsInGrp'] = 0
+                rtrnDict[authAssgndLigID]['bGrpRequiresAttention'] = False
+                rtrnDict[authAssgndLigID]['bGrpMismatchAddressed'] = False
+                rtrnDict[authAssgndLigID]['grpMismatchCnt'] = 0
+                rtrnDict[authAssgndLigID]['mismatchLst'] = []
+                rtrnDict[authAssgndLigID]['instIdLst'] = []
+                rtrnDict[authAssgndLigID]['ccName'] = p_ccAssgnDataStr.getCcName(instnc) #assuming can use chem comp name for first instance for purposes of the group
+                rtrnDict[authAssgndLigID]['ccFormula'] = p_ccAssgnDataStr.getCcFormula(instnc) #assuming can use chem comp formula for first instance for purposes of the group
+                
+                if( ccA.validCcId(authAssgndLigID) == 1 ):
+                    p_ccAssgnDataStr.addLigIdToInvalidLst(authAssgndLigID)
+                
+            rtrnDict[authAssgndLigID]['totlInstncsInGrp'] += 1
+            rtrnDict[authAssgndLigID]['instIdLst'].append(instnc)
+            rtrnDict[authAssgndLigID]['instIdLst'].sort
+            curTopHitId = p_ccAssgnDataStr.getBatchBestHitId(instnc)
+            if( curTopHitId.upper() != authAssgndLigID.upper() ):  # i.e. mismatch detected
+                rtrnDict[authAssgndLigID]['bGrpRequiresAttention'] = True
+                rtrnDict[authAssgndLigID]['grpMismatchCnt'] += 1
+                rtrnDict[authAssgndLigID]['mismatchLst'].append(instnc)
+                rtrnDict[authAssgndLigID]['mismatchLst'].sort
+            if( authAssgndLigID in p_ccAssgnDataStr.getGlbllyRslvdGrpList() ):
+                rtrnDict[authAssgndLigID]['bGrpMismatchAddressed'] = True
+                
+                
+                    
+        return rtrnDict
+    
+    
+    def __renderInstance3dViews(self,p_ccAssgnDataStr,p_hlprDict):
+        ''' For given ligand instance id, generates html fragments used for 3D jmol viewing in the "single-instance view"
+            comparison panels-->these are written to files on server to be used on demand
+                
+            :Params:
+            
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of an HTML template
+        '''
+        ##
+        instId          = p_hlprDict['instanceid']
+        depId           = p_hlprDict['depositionid']
+        htmlTmpltPth    = p_hlprDict['html_template_path']
+        htmlTmpltPth_SnglInstnc = os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcJmolTmplts)
+        htmlTmpltPth_AllInstnc = os.path.join(htmlTmpltPth,self.__pathCCliteAllInstncsJmolTmplts)
+        ##
+        #
+        ## interrogate ChemCompAssign DataStore for necessary data items
+        authAssignedGrp = p_ccAssgnDataStr.getAuthAssignment(instId)
+        topHitCcId = p_ccAssgnDataStr.getBatchBestHitId(instId)
+        
+        ## determine whether or not a top candidate hit has been found for this instance 
+        if topHitCcId == "None":
+            bHaveTopHit = False
+        else:
+            bHaveTopHit = True
+        ##
+        sPathRel = self.__workingRltvAssgnSessionPath
+        s3dpathEnviron = self.rltvSessionPath
+        ##
+        instIdPieces = instId.split('_')
+        chainId = instIdPieces[1]
+        residueNum = instIdPieces[3]
+        ##
+        p_hlprDict['3dpath'] = os.path.join(sPathRel,instId,'report',authAssignedGrp)
+        p_hlprDict['3dpath_environ'] = os.path.join(s3dpathEnviron,depId+'-jmol-mdl')
+        p_hlprDict['residue_num'] = residueNum
+        p_hlprDict['chain_id'] = chainId
+        # establishing values for ABSOLUTE paths used by BACK end for writing to files that serve as additional resources that may be called by front end on-demand
+        jmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_jmol_instVw.html")
+        environJmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_environ_jmol_instVw.html")
+        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_stndaln_jmol_instVw.html")
+        jmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_jmol_allInstVw.html")
+        environJmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_environ_jmol_allInstVw.html")
+        stndalnJmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_stndaln_jmol_allInstVw.html")
+        #
+        #if bHaveTopHit:
+        if True:
+            # set default templates to be used
+            instncJmolTmplt = "cc_instnc_jmol_tmplt.html"
+            instncJmolAivwTmplt = "cc_instnc_jmol_aivw_tmplt.html"
+            ################################################################################
+            # when there is a top hit, we also need to generate "ready-made" html markup 
+            # for option to view author's instance within the structure environment
+            # (this was found necessary due to Java security access 
+            # restrictions encountered in Mac/Firefox scenarios)
+            #    ===    single instance environ view    ===
+            fp=open(environJmolFilePathAbs_SnglInstVw,'w')
+            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_SnglInstnc,fn="cc_instnc_environ_jmol_tmplt.html",parameterDict=p_hlprDict) )
+            fp.close()
+            #    ===    all instance environ view    ===
+            fp=open(environJmolFilePathAbs_AllInstVw,'w')
+            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn="cc_instnc_environ_jmol_aivw_tmplt.html",parameterDict=p_hlprDict) )
+            fp.close()
+            ################################################################################
+        else:
+            # set default templates to be used
+            instncJmolTmplt = "cc_instnc_jmol_nomatch_tmplt.html"
+            instncJmolAivwTmplt = "cc_instnc_jmol_aivw_nomatch_tmplt.html"
+            ################################################################################
+            # when there is no top hit, we also need to generate "ready-made" html markup 
+            # for option to view author's instance in "standalone" mode if the user so chooses
+            # (this was found necessary due to Java security access 
+            # restrictions encountered in Mac/Firefox scenarios)
+            #    ===    single instance stndaln view    ===
+            fp=open(stndalnJmolFilePathAbs_SnglInstVw,'w')
+            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_SnglInstnc,fn="cc_instnc_stndaln_jmol_nomatch_tmplt.html",parameterDict=p_hlprDict) )
+            fp.close()
+            #    ===    all instance stndaln view    ===
+            fp=open(stndalnJmolFilePathAbs_AllInstVw,'w')
+            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn="cc_instnc_stndaln_jmol_aivw_nomatch_tmplt.html",parameterDict=p_hlprDict) )
+            fp.close()
+            ################################################################################
+        #
+        ####################################################################################################
+        # generate default "single-instance view"
+        ####################################################################################################
+        fp=open(jmolFilePathAbs_SnglInstVw,'w')
+        fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_SnglInstnc,fn=instncJmolTmplt,parameterDict=p_hlprDict) )
+        fp.close()
+        #
+        #####################################################################################################
+        # generate default html fragment file for 3D jmol viewing in the "all-instances view" comparison panel
+        #####################################################################################################
+        fp=open(jmolFilePathAbs_AllInstVw,'w')
+        fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn=instncJmolAivwTmplt,parameterDict=p_hlprDict) )
+        fp.close()
+        #
+        
+    def __renderInstanceMatchRslts(self,p_ccAssgnDataStr,p_hlprDict):
+        ''' For given ligand instance id, generates:
+
+                + html fragments used for representing top chem comp reference hits in the viz compare grid-->these are written to files on server to be used on demand
+                
+            :Params:
+            
+                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of an HTML template
+                    
+            :Helpers:
+                wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
+                
+            :Returns:
+                ``oL``: output list representing HTMl markup
+        '''
+        oL=[]
+        instId          = p_hlprDict['instanceid']
+        htmlTmpltPth    = p_hlprDict['html_template_path']
+        #
+        ccid = p_ccAssgnDataStr.getBatchBestHitId(instId)
+        p_hlprDict['ccid'] = ccid
+        p_hlprDict['3dpath_ref'] = os.path.join(self.__workingRltvAssgnSessionPath,'rfrnc_reports',ccid,ccid)
+        
+        #################OBSOLETE?############################
+        #
+        #
+        cnt = 0
+        checked = ''
+        assgnChecked = ''
+        assgndCcId = p_ccAssgnDataStr.getAnnotAssignment(instId)
+        assgnChecked = 'checked="checked"'
+        #
+        # using p_hlprDict to supply text substitution content for both cc_instnc_match_rslts_tbl_tmplt.html and cc_viz_cmp_li_tmplt.html in this loop
+        p_hlprDict['assgn_checked'] = assgnChecked
+        #
+        matchWarning = ''
+        retD = self.__processWarningMsg(matchWarning)
+        p_hlprDict['score_warn_class'] = retD['warn_class']
+        scorePrefix = retD['prefix']
+        scoreSuffix = retD['suffix']
+        #
+        #p_hlprDict['score'] = scorePrefix+cmpstscore+scoreSuffix
+        p_hlprDict['score'] = ''
+        p_hlprDict['cc_name'] = p_ccAssgnDataStr.getCcName(instId)
+        p_hlprDict['cc_name_displ'] = self.truncateForDisplay(p_hlprDict['cc_name'])
+        p_hlprDict['cc_formula'] = p_ccAssgnDataStr.getCcFormula(instId)
+        p_hlprDict['cc_formula_displ'] = self.truncateForDisplay(p_hlprDict['cc_formula'])
+        p_hlprDict['checked'] = checked
+        p_hlprDict['index'] = cnt
+        #
+        p_hlprDict['a'] = '%a'
+        #
+        ################################################
+        
+        
+        
+        #################################################################################################
+        # while we're iterating through the candidate assignments for the given instance, we will
+        # also populate templates used for displaying chem comp references in viz compare grid
+        #################################################################################################
+        htmlPathAbs = os.path.join(self.absltAssgnSessionPath,instId)
+        jmolPathAbs = os.path.join(self.absltAssgnSessionPath,instId)
+        htmlFilePathAbs = os.path.join(htmlPathAbs,ccid+'_viz_cmp_li.html')
+        atmMpFilePathAbs = os.path.join(htmlPathAbs,ccid+'_ref_atm_mp_li.html')
+        jmolFilePathAbs = os.path.join(jmolPathAbs,ccid+'_ref_jmol.html')
+        #
+        #################################################################################################
+        # populate "cc_viz_cmp_li_tmplt.html"
+        #    which contains placeholders for "instanceid", "ccid",and "assgn_sess_path_rel"
+        #################################################################################################
+        #
+        #
+        if not os.path.exists(htmlPathAbs):
+            os.makedirs(htmlPathAbs)
+        fp=open(htmlFilePathAbs,'w')
+        fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcCmprTmplts),fn="cc_lite_viz_cmp_li_tmplt.html",parameterDict=p_hlprDict) )
+        fp.close()
+        #
+       
+        #################################################################################################
+        #
+        #################################################################################################
+        # populate "cc_ref_jmol_tmplt.html"
+        #    which contains placeholders for "pct", "index", "a", and "3dpath_ref"
+        #################################################################################################
+        #
+        #
+        if not os.path.exists(jmolPathAbs):
+            os.makedirs(jmolPathAbs)
+        fp=open(jmolFilePathAbs,'w')
+        
+        fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcJmolTmplts),fn="cc_lite_ref_jmol_tmplt.html",parameterDict=p_hlprDict) )
+        fp.close()
+        #
+        #################################################################################################
+        
+        return oL        
+    
+    def __processWarningMsg(self,p_wrningMsg):
+        rtrnD = {}
+        rtrnD['warn_class'] = ""
+        rtrnD['prefix'] = ""
+        rtrnD['suffix'] = ""
+        # 
+        if( p_wrningMsg != 'n.a.'):
+            rtrnD['warn_class'] = "warninfo"
+            rtrnD['prefix'] = '<a href="#" title="SUPPLEMENTAL INFO:<br />'+p_wrningMsg+'" onclick="return false">'
+            rtrnD['suffix'] = '</a>'        
+        #
+        return rtrnD
+        
+    def __formatDepositionDataId(self,p_depid,p_bIsWorkflow):
+        if( p_bIsWorkflow or ( p_depid.upper() == 'TMP_ID' ) ):
+            depId = p_depid.upper()
+        else:
+            depId = p_depid.lower()
+        return depId
+    
+    def __rowClass(self,iRow):
+        return (iRow % 2 and "odd" or 'even')
+
+    def __categoryPart(self, name):
+        tname=""
+        if name.startswith("_"):
+            tname=name[1:]
+        else:
+            tname=name
+
+        i = tname.find(".")
+        if i == -1:
+            return tname
+        else:
+            return tname[:i]
+
+    def __attributePart(self, name):
+        i = name.find(".")
+        if i == -1:
+            return None
+        else:
+            return name[i+1:]
