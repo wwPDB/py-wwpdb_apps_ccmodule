@@ -19,9 +19,13 @@ __version__   = "V0.01"
 import time, os, os.path
 import sys, unittest, traceback
 
-from wwpdb.apps.ccmodule.webapp.WebRequest              import ChemCompInputRequest
-from wwpdb.apps.ccmodule.extract.ChemCompExtract        import ChemCompExtract
-from wwpdb.apps.ccmodule.extract.ChemCompExtractDepict  import ChemCompExtractDepict
+try:
+    from wwpdb.apps.ccmodule.webapp.WebRequest              import ChemCompInputRequest
+    from wwpdb.apps.ccmodule.extract.ChemCompExtract        import ChemCompExtract
+    from wwpdb.apps.ccmodule.extract.ChemCompExtractDepict  import ChemCompExtractDepict
+    skiptest = False
+except ImportError as e:
+    skiptest = True
 
 class ChemCompExtractTests(object):
 #
@@ -104,6 +108,9 @@ class ChemCompExtractTests(object):
             #self.fail()
 
 if __name__ == '__main__':
-    ex=ChemCompExtractTests()
-    ex.testCifOne()
-    ex.testPdbOne()    
+    if not skiptest:
+        ex=ChemCompExtractTests()
+        ex.testCifOne()
+        ex.testPdbOne()
+    else:
+        print("Test skipped as openeye not available")

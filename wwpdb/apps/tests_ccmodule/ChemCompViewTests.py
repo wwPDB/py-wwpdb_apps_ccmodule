@@ -23,6 +23,7 @@ from wwpdb.apps.ccmodule.view.ChemCompViewDepict  import ChemCompViewDepict
 from wwpdb.apps.ccmodule.webapp.WebRequest        import ChemCompInputRequest
 
 
+@unittest.skip("Until test for tools available")
 class ChemCompViewTests(unittest.TestCase):
     def setUp(self):
         self.__verbose=True

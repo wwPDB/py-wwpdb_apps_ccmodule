@@ -25,7 +25,7 @@ __version__   = "V0.01"
 
 import sys,time,os,traceback
 from mmcif.io.PdbxReader import PdbxReader
-from pdbx.writer.PdbxWriter import PdbxWriter
+from mmcif.io.PdbxWriter import PdbxWriter
 from mmcif.api.PdbxContainers import *
 
 

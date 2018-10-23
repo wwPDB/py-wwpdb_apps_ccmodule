@@ -18,9 +18,13 @@ __version__   = "V0.01"
 import sys, unittest, traceback
 import time, os, os.path
 
-from wwpdb.apps.ccmodule.sketch.ChemCompSketch        import ChemCompSketch
-from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict  import ChemCompSketchDepict
-from wwpdb.apps.ccmodule.webapp.WebRequest            import ChemCompInputRequest
+try:
+    from wwpdb.apps.ccmodule.sketch.ChemCompSketch        import ChemCompSketch
+    from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict  import ChemCompSketchDepict
+    from wwpdb.apps.ccmodule.webapp.WebRequest            import ChemCompInputRequest
+    skiptest = False
+except ImportError as e:
+    skiptest = True
 
 class ChemCompSketchTests(object):
     # class ChemCompSketchTests(unittest.TestCase):
@@ -101,8 +105,13 @@ class ChemCompSketchTests(object):
 #    return unittest.makeSuite(ChemCompSketchTests,'test')
 
 if __name__ == '__main__':
-    # unittest.main()
-    cT=ChemCompSketchTests()
-    cT.testSketchtIdOne()
-    cT.testSketchFileOne()    
+
+    if not skiptest:
+        # unittest.main()
+        cT=ChemCompSketchTests()
+        cT.testSketchtIdOne()
+        cT.testSketchFileOne()
+    else:
+        print("openeye import not available")
+
 

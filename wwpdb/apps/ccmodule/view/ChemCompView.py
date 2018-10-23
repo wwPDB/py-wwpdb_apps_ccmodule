@@ -26,7 +26,7 @@ from wwpdb.apps.ccmodule.webapp.WebRequest        import ChemCompInputRequest,Re
 from wwpdb.apps.ccmodule.utils.ChemCompConfig     import ChemCompConfig
 from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport
 from wwpdb.apps.ccmodule.view.ChemCompViewDepict  import ChemCompViewDepict
-from mmcif_utils.chemcomp.PdbxChemComp                     import PdbxChemCompReader
+from mmcif_utils.chemcomp.PdbxChemCompIo          import PdbxChemCompIo
 from wwpdb.apps.ccmodule.io.ChemCompIo            import ChemCompReader
 
 class ChemCompView(object):
@@ -126,14 +126,14 @@ class ChemCompView(object):
                 + ``ccId`` : ID for chemical component for which info is being requested
                     
             :Helpers:
-                mmcif_utils.chemcomp.PdbxChemComp.PdbxChemCompReader
+                mmcif_utils.chemcomp.PdbxChemCompIo.PdbxChemCompIo
                 
             :Returns:
                 ``ccDict``: dictionary of chem comp fields to be displayed for the given ccId
         """
         ccDict={}
         if os.path.exists(cifPath):
-            ccf=PdbxChemCompReader(verbose=self.__verbose,log=self.__lfh)
+            ccf=PdbxChemCompIo(verbose=self.__verbose,log=self.__lfh)
             ccf.setFilePath(cifPath,compId=ccId)
             ccf.getComp()
             ccDL=ccf.getChemCompDict()

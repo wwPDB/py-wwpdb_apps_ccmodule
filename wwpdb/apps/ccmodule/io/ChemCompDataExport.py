@@ -22,7 +22,7 @@ __version__   = "V0.01"
 
 import sys, os, os.path, traceback
 
-from wwpdb.api.facade.DataReference  import DataFileReference
+from wwpdb.utils.wf.DataReference  import DataFileReference
 
 class ChemCompDataExport(object):
     """ Controlling class for data export operations
