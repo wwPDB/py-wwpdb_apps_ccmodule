@@ -20,9 +20,9 @@ __version__   = "V0.01"
 
 
 import sys,time,os,traceback
-from pdbx.reader.PdbxReader import PdbxReader
+from mmcif.io.PdbxReader import PdbxReader
 from pdbx.writer.PdbxWriter import PdbxWriter
-from pdbx.reader.PdbxContainers import *
+from mmcif.api.PdbxContainers import *
 
 class ChemCompReader(object):
     ''' Accessor methods chemical component definition data files.

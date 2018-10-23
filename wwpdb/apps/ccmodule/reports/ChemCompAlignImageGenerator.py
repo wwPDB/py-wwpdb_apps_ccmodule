@@ -25,7 +25,7 @@ import os, sys, time, string, traceback, signal, datetime
 from subprocess                       import call,Popen,PIPE
 from oe_util.oedepict.OeDepict        import OeDepict
 from oe_util.build.OeChemCompIoUtils  import OeChemCompIoUtils
-from wwpdb.api.facade.ConfigInfo      import ConfigInfo
+from wwpdb.utils.config.ConfigInfo      import ConfigInfo
 #
 
 class ChemCompAlignImageGenerator(object):

@@ -102,7 +102,7 @@ mysql> describe pdb_entry;
 
 import os, sys 
 import wwpdb.apps.ccmodule.search.DbSession as DbSession
-from wwpdb.api.facade.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
 
 class ChemCompSearchDb(object):
     def __init__(self, reqObj, verbose=False, log=sys.stderr):

@@ -92,7 +92,7 @@ from operator                                           import itemgetter
 from wwpdb.apps.ccmodule.depict.ChemCompDepict          import ChemCompDepict
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
-from wwpdb.api.facade.ConfigInfo                        import ConfigInfo
+from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
 from oe_util.oedepict.OeDepict                          import OeDepict
 from oe_util.build.OeBuildMol                           import OeBuildMol
 

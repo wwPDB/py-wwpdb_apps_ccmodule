@@ -46,7 +46,10 @@ setup(
         'console_scripts': []
     },
     #
-    install_requires=[],
+    # Also depends on 'openeye.oechem' but cannot install by pypi
+    install_requires=['mmcif', 'mmcif.utils', 'wwpdb.utils.config',
+                      'wwpdb.utils.dp >= "0.11"', 'rcsb.utils.multiproc',
+                      'mysqlclient'],
     packages=find_packages(exclude=['wwpdb.apps.tests_ccmodule']),
     package_data={
         # If any package contains *.md or *.rst ...  files, include them:

@@ -61,7 +61,7 @@ from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport
 from wwpdb.apps.ccmodule.view.ChemCompView              import ChemCompView
 from wwpdb.apps.ccmodule.sketch.ChemCompSketch          import ChemCompSketch
 from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict    import ChemCompSketchDepict
-from wwpdb.api.facade.ConfigInfo                        import ConfigInfo
+from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
 #from pdbx_v2.persist.PdbxDictionaryInfo             import PdbxDictionaryInfo
 
 class ChemCompAssignDepictLite(ChemCompDepict):

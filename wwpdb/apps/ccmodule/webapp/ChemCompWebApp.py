@@ -168,15 +168,15 @@ from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExpor
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
 from wwpdb.api.facade.DataReference                     import DataFileReference
-from wwpdb.api.facade.ConfigInfo                        import ConfigInfo
+from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
 #
 from wwpdb.apps.entity_transform.utils.mmCIFUtil        import mmCIFUtil
 #
 from oe_util.oedepict.OeDepict                          import OeDepict
 from oe_util.build.OeBuildMol                           import OeBuildMol
 #
-from wwpdb.utils.rcsb.PathInfo                          import PathInfo
-from wwpdb.utils.rcsb.RcsbDpUtility                     import RcsbDpUtility
+from wwpdb.io.locator.Pathinfo                          import PathInfo
+from wwpdb.utils.dp.RcsbDpUtility                     import RcsbDpUtility
 
 
 class ChemCompWebApp(object):

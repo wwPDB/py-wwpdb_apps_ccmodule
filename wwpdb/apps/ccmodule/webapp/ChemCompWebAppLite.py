@@ -102,7 +102,7 @@ from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExpor
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
 from wwpdb.api.facade.DataReference                     import DataFileReference
-from wwpdb.api.facade.ConfigInfo                        import ConfigInfo
+from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
 #
 from wwpdb.apps.entity_transform.utils.mmCIFUtil        import mmCIFUtil
 #

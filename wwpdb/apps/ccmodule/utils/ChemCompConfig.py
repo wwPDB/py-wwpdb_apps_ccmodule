@@ -18,7 +18,7 @@ Maintain configuration and path information for chemical component module applic
 """
 
 import sys, os, os.path
-from wwpdb.api.facade.ConfigInfo    import ConfigInfo
+from wwpdb.utils.config.ConfigInfo    import ConfigInfo
 
 class ChemCompConfig(object):
     """ Accessors for configuration and path information for chemical component module applications.

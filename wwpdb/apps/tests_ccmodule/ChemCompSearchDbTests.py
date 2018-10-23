@@ -39,7 +39,7 @@ class ChemCompSearchDbTests(unittest.TestCase):
         self.__reqObj.setValue("TopPath",        self.__topPath)
         self.__reqObj.setDefaultReturnFormat(return_format="html")
         self.__sobj=self.__reqObj.newSessionObj()
-        self.__sessionPath=self.__sobj.getPath()s
+        self.__sessionPath=self.__sobj.getPath()
         #
         self.__idList=['atp','gtp']
         #
