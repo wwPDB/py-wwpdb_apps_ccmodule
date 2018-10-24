@@ -22,7 +22,6 @@ __version__   = "V0.01"
 import os, sys, time, types, string, traceback
 
 
-from wwpdb.apps.ccmodule.webapp.WebRequest        import ChemCompInputRequest,ResponseContent
 from wwpdb.apps.ccmodule.utils.ChemCompConfig     import ChemCompConfig
 from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport
 from wwpdb.apps.ccmodule.view.ChemCompViewDepict  import ChemCompViewDepict

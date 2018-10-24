@@ -20,7 +20,7 @@ import time, os, os.path
 import sys, unittest, traceback
 
 try:
-    from wwpdb.apps.ccmodule.webapp.WebRequest              import ChemCompInputRequest
+    from wwpdb.utils.session.WebRequest              import InputRequest
     from wwpdb.apps.ccmodule.extract.ChemCompExtract        import ChemCompExtract
     from wwpdb.apps.ccmodule.extract.ChemCompExtractDepict  import ChemCompExtractDepict
     skiptest = False
@@ -43,7 +43,7 @@ class ChemCompExtractTests(object):
         #
         # Create a request object and session directories for test cases
         #
-        self.__reqObj=ChemCompInputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath",        self.__topPath)
         self.__reqObj.setDefaultReturnFormat(return_format="html")

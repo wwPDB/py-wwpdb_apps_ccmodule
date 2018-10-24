@@ -19,7 +19,7 @@ __version__   = "V0.01"
 import time, os, os.path
 import sys, unittest, traceback
 
-from wwpdb.apps.ccmodule.webapp.WebRequest             import ChemCompInputRequest
+from wwpdb.utils.session.WebRequest             import InputRequest
 from wwpdb.apps.ccmodule.search.ChemCompSearchDb       import ChemCompSearchDb
 from wwpdb.apps.ccmodule.search.ChemCompSearchDbDepict import ChemCompSearchDbDepict
 from wwpdb.utils.testing.Features                      import Features
@@ -36,7 +36,7 @@ class ChemCompSearchDbTests(unittest.TestCase):
         #
         # Create a request object and session directories for test cases
         #
-        self.__reqObj=ChemCompInputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("WWPDB_SITE_ID",  self.__siteId)        
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath",        self.__topPath)

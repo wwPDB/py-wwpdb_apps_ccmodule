@@ -90,7 +90,6 @@ import multiprocessing, os, sys, time, types, string, shutil, traceback, threadi
 
 #from openeye.oechem import *
 #
-from wwpdb.apps.ccmodule.webapp.WebRequest              import ChemCompInputRequest,ResponseContent
 from rcsb.utils.multiproc.MultiProcUtil                     import MultiProcUtil
 from wwpdb.utils.dp.RcsbDpUtility                     import RcsbDpUtility
 from wwpdb.utils.config.ConfigInfo                        import ConfigInfo

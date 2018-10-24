@@ -23,7 +23,6 @@ from openeye.oechem import *
 from wwpdb.apps.ccmodule.io.ccIo                 import ccIo
 from wwpdb.apps.ccmodule.extract.ccOps           import ccOps
 
-from wwpdb.apps.ccmodule.webapp.WebRequest       import ChemCompInputRequest,ResponseContent
 from wwpdb.apps.ccmodule.utils.ChemCompConfig    import ChemCompConfig
 #from wwpdb.apps.ccmodule.io.ChemCompIo           import ChemCompReader
 #from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport

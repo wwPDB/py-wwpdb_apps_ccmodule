@@ -21,7 +21,7 @@ import time, os, os.path
 try:
     from wwpdb.apps.ccmodule.sketch.ChemCompSketch        import ChemCompSketch
     from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict  import ChemCompSketchDepict
-    from wwpdb.apps.ccmodule.webapp.WebRequest            import ChemCompInputRequest
+    from wwpdb.utils.session.WebRequest            import InputRequest
     skiptest = False
 except ImportError as e:
     skiptest = True
@@ -38,7 +38,7 @@ class ChemCompSketchTests(object):
         #
         # Create a request object and session directories for test cases
         #
-        self.__reqObj=ChemCompInputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath",        self.__topPath)
         self.__reqObj.setDefaultReturnFormat(return_format="html")

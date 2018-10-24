@@ -20,7 +20,7 @@ import sys, unittest, traceback
 import time, os, os.path
 
 from wwpdb.apps.ccmodule.io.ChemCompEditStore   import ChemCompEditStore, ChemCompEdit
-from wwpdb.apps.ccmodule.webapp.WebRequest      import ChemCompInputRequest
+from wwpdb.utils.session.WebRequest      import InputRequest
 
 
 class ChemCompEditStoreTests(unittest.TestCase):
@@ -33,7 +33,7 @@ class ChemCompEditStoreTests(unittest.TestCase):
         HERE = os.path.abspath(os.path.dirname(__file__))
         sessionPath = os.path.join(HERE, 'test-output')
         self.__topPath = sessionPath
-        self.__reqObj=ChemCompInputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath",        self.__topPath)
         self.__sobj=self.__reqObj.newSessionObj()

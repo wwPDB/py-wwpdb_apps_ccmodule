@@ -81,7 +81,7 @@ import os, sys, time, types, string, traceback, ntpath, threading, signal, shuti
 from json import loads, dumps
 from time import localtime, strftime
 
-from wwpdb.apps.ccmodule.webapp.WebRequest              import ChemCompInputRequest,ResponseContent
+from wwpdb.utils.session.WebRequest              import InputRequest,ResponseContent
 #
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
@@ -151,7 +151,7 @@ class ChemCompWebAppLite(object):
             self.__lfh.write("+%s.%s() - dumping input parameter dictionary \n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )                        
             self.__lfh.write("%s" % (''.join(self.__dumpRequest())))
             
-        self.__reqObj=ChemCompInputRequest(self.__myParameterDict,verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj=InputRequest(self.__myParameterDict,verbose=self.__verbose,log=self.__lfh)
         #
         self.__reqObj.setValue("TopSessionPath", self.__topSessionPath)
         self.__reqObj.setValue("SessionsPath",   self.__sessionsPath)
