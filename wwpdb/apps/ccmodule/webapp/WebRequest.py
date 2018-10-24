@@ -21,7 +21,7 @@ __version__   = "V0.07"
 import sys
 from json import loads, dumps
 
-from wwpdb.apps.ccmodule.io.SessionManager import SessionManager
+from wwpdb.utils.session.SessionManager import SessionManager
 
 class WebRequest(object):
     """ Base container and accessors for input and output parameters and control information. 
