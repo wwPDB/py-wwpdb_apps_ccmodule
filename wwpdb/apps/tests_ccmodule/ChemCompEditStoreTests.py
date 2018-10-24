@@ -30,7 +30,9 @@ class ChemCompEditStoreTests(unittest.TestCase):
         #
         # Create a request object and session directories for test cases
         #
-        self.__topPath=os.getenv('WWPDB_CCMODULE_TOP_PATH')        
+        HERE = os.path.abspath(os.path.dirname(__file__))
+        sessionPath = os.path.join(HERE, 'test-output')
+        self.__topPath = sessionPath
         self.__reqObj=ChemCompInputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath",        self.__topPath)
