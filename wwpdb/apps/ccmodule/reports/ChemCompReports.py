@@ -175,13 +175,13 @@ class ChemCompReport(object):
         return htmlData
 
     def getReportFilePaths(self):
-	"""
-	    Returns a dictionary containing path information for file produced by report generator.
-
+        """
+            Returns a dictionary containing path information for file produced by report generator.
+        
         The the following keys are used:
         gifPathRel, sdfModelPathRel, sdfIdealPathRel, cifPathRel reportPathRel
-
-    """
+        
+        """
         ##
         relPath = os.path.join(self.__sessionRelativePath,self.__definitionId,'report')
         absPath = os.path.join(self.__sessionPath,self.__definitionId,'report')
@@ -283,7 +283,7 @@ class ChemCompCheckReport(object):
         return self.__reportFilePath
     
     def getReportHtml(self):
-	"""
+        """
         """
         htmlData=""
         try:
@@ -295,7 +295,7 @@ class ChemCompCheckReport(object):
         return htmlData
 
     def getReportFilePaths(self):
-	"""
+        """
           Returns a dictionary containing path information for file produced by check report generator.
 
           The the following keys are used:  logfile

@@ -114,7 +114,7 @@ class ChemCompSketch(object):
                 self.__lfh.flush()				
         #
         self.__ccFileName=fileName
-	logPath= os.path.join(dirPath,"sketch.log")
+        logPath= os.path.join(dirPath,"sketch.log")
 
         operation   = self.__reqObj.getValue("operation")
         sizeXy      = self.__reqObj.getValue("sizexy")

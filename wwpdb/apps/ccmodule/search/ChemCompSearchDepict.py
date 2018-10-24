@@ -163,8 +163,8 @@ class ChemCompSearchDepict(ChemCompDepict):
             oL.append('<th class="rs1">Atom Mapping</th>')
             oL.append('<th class="rs1">Report</th>')
             oL.append('<th class="rs1">Formula</th>')
-	    oL.append('<th class="rs1">Name</th>')
-	    oL.append('</tr>')
+            oL.append('<th class="rs1">Name</th>')
+            oL.append('</tr>')
             i=0
             for result in d['resultlist']:
                 # start for loop

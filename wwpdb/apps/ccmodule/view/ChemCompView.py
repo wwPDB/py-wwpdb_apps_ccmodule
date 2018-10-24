@@ -164,7 +164,7 @@ class ChemCompView(object):
             for k,v in ccDict.items():
                 self.__lfh.write("+ChemCompView.getChemCompInfo() key %20s  value %s\n" % (k,v))
                 
-	return ccDict
+        return ccDict
 
 
     def __addWordBreakAtHyphen(self,iString):

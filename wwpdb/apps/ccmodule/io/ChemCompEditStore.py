@@ -18,7 +18,13 @@ __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
 
-import sys, cPickle, time, os.path
+import sys
+import time
+import os.path
+try:
+    import cPickle as pickle
+except ImportError as e:
+    import pickle
 
 
 
@@ -199,7 +205,7 @@ class ChemCompEditStore(object):
         self.__editDirPath = os.path.join(self.__sessionPath,'edit')
         self.__filePath = os.path.join(self.__sessionPath,'edit',self.__fileName)        
 
-        #self.__pickleProtocol = cPickle.HIGHEST_PROTOCOL
+        #self.__pickleProtocol = pickle.HIGHEST_PROTOCOL
         self.__pickleProtocol=0        
         
         self.__setup()
@@ -235,7 +241,7 @@ class ChemCompEditStore(object):
     def serialize(self):
         try:
             fb=open(self.__filePath,'wb')
-            cPickle.dump(self.__editList,fb,self.__pickleProtocol)
+            pickle.dump(self.__editList,fb,self.__pickleProtocol)
             fb.close()
         except:
             self.__lfh.write("+ChemCompEditStore.__serialize - failed for session %s edit store file path%s\n" %
@@ -245,7 +251,7 @@ class ChemCompEditStore(object):
     def deserialize(self):
         try:
             fb=open(self.__filePath,'rb')            
-            self.__editList=cPickle.load(fb)
+            self.__editList=pickle.load(fb)
             fb.close()
         except:
             pass

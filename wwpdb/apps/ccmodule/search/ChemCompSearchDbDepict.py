@@ -88,9 +88,9 @@ class ChemCompSearchDbDepict(ChemCompDepict):
         for result in d['resultlist']:
             i+=1
             if (i % 2) == 0:
-		trcls = "rs1-even"
+                trcls = "rs1-even"
             else:
-		trcls = "rs1-odd"
+                trcls = "rs1-odd"
 
             oL.append('<tr class="%s">' % trcls)
             oL.append('          <td class="rs1" nowrap="nowrap">%s ( <a target="_blank" href="https://www.ebi.ac.uk/pdbe-srv/view/entry/%s/summary.html" title="View at PDBe">E</a> | <a target="_blank" href="http://service.pdbj.org/mine/Detail?PDBID=%s&PAGEID=Summary" title="View at PDBj">J</a> | <a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=%s" title="View at RCSB PDB">R</a> )</td>' % (result['pdbId'],result['pdbId'],result['pdbId'],result['pdbId']))
@@ -128,9 +128,9 @@ class ChemCompSearchDbDepict(ChemCompDepict):
         for result in d['resultotherlist']:
             i+=1
             if (i % 2) == 0:
-		trcls = "rs1-even"
+                trcls = "rs1-even"
             else:
-		trcls = "rs1-odd"
+                trcls = "rs1-odd"
 
             oL.append('<tr class="%s">' % trcls)
             #oL.append('          <td class="rs1"><a target="_blank" href="http://www.rcsb.org/pdb/explore/explore.do?structureId=%s">%s</a></td>' % (result['pdbId'],result['pdbId']))

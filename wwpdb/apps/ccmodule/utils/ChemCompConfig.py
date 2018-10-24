@@ -146,19 +146,19 @@ class ChemCompConfig(object):
         #elif (type == "sandboxPathV2"):
         #    return os.path.join("/data/components/ligand-dict-v1")
         #
-    	elif (type == "sandboxPathV3" or type == "chemCompCachePath"):
+        elif (type == "sandboxPathV3" or type == "chemCompCachePath"):
                 return os.path.join(self.__ccCvsPath)
-    	elif (type == "fpPatternPath"):
+        elif (type == "fpPatternPath"):
                 return os.path.join(self.__ccDictPath,"fp_patterns.txt")
-    	elif (type == "serializedCcDictPath"):
+        elif (type == "serializedCcDictPath"):
                 return os.path.join(self.__ccDictPath,"Components-all-v3.sdb")
-    	elif (type == "serializedCcIndexPath"):
+        elif (type == "serializedCcIndexPath"):
                 return os.path.join(self.__ccDictPath,"Components-all-v3-r4.idx")
-    	elif (type == "ccIdList"):
+        elif (type == "ccIdList"):
                 return os.path.join(self.__ccDictPath,"IDLIST-v3")
         elif (type == "oeLicenseFilePath"):
             return self.__oeLicenseFilePath
         elif ( type == "oeDirectoryPath"):
             return self.__oeDirPath
-    	else:
+        else:
                 return "unknown"

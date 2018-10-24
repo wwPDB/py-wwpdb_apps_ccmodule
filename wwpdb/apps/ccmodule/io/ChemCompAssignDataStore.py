@@ -76,7 +76,17 @@ __email__     = "rsala@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-import sys, cPickle, time, traceback, shutil, os.path
+import sys
+import time
+import traceback
+import shutil
+import os.path
+try:
+    import cPickle as pickle
+except ImportError as e:
+    import pickle
+
+
 from mmcif.io.PdbxWriter     import PdbxWriter
 from mmcif.api.PdbxContainers import *
 from mmcif.api.DataCategory   import DataCategory

@@ -124,7 +124,7 @@ class ChemCompAnnotate(object):
                 self.__lfh.flush()				
         #
         #
-	logPath= os.path.join(dirPath,"annotate.log")
+        logPath= os.path.join(dirPath,"annotate.log")
         outFile= self.__annotatedFileName
         #
         if str(swap).upper() == "SWAP":
@@ -150,7 +150,7 @@ class ChemCompAnnotate(object):
             self.__annotatedFilePath=outPath
             self.__annotatedRelativeFilePath=os.path.join(dirRelativePath,self.__annotatedFileName)
             return True
-	else:
+        else:
             return False
     ##
     
