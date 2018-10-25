@@ -18,7 +18,7 @@ __version__   = "V0.01"
 
 import os, sys, time, types, string, shutil, traceback
 from wwpdb.apps.ccmodule.utils.ChemCompConfig    import ChemCompConfig
-from pdbx.cc.PdbxChemComp                    import PdbxChemCompReader,PdbxChemCompUpdater,PdbxChemCompCategoryDefinition
+from mmcif_utils.chemcomp.PdbxChemCompUtils      import PdbxChemCompReader,PdbxChemCompUpdater,PdbxChemCompCategoryDefinition
 #
 from wwpdb.apps.ccmodule.io.ChemCompEditStore    import ChemCompEditStore,ChemCompEdit
 #

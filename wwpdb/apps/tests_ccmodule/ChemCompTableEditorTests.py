@@ -19,9 +19,11 @@ import time, os, os.path
 
 from wwpdb.apps.ccmodule.edit.ChemCompTableEditor       import ChemCompTableEditor
 from wwpdb.apps.ccmodule.edit.ChemCompTableEditorDepict import ChemCompTableEditorDepict
-from wwpdb.apps.ccmodule.webapp.WebRequest              import ChemCompInputRequest
+from wwpdb.utils.session.WebRequest                     import InputRequest
+from wwpdb.utils.testing.Features                      import Features
 
 
+@unittest.skipUnless(Features().haveToolsRuntime(), "Needs OneDep tools for testing")
 class ChemCompTableEditorTests(unittest.TestCase):
     def setUp(self):
         self.__verbose=True
@@ -30,7 +32,7 @@ class ChemCompTableEditorTests(unittest.TestCase):
         #
         # Create a request object and session directories for test cases
         #
-        self.__reqObj=ChemCompInputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath",        self.__topPath)
         self.__reqObj.setDefaultReturnFormat(return_format="text")

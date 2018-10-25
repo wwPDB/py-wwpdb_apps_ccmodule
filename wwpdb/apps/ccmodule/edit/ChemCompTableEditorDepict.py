@@ -18,7 +18,7 @@ __version__   = "V0.01"
 
 import os, sys
 from wwpdb.apps.ccmodule.depict.ChemCompDepict import ChemCompDepict
-from mmcif_utils.chemcomp.PdbxChemComp         import PdbxChemCompCategoryDefinition
+from mmcif_utils.chemcomp.PdbxChemCompUtils    import PdbxChemCompCategoryDefinition
 
 class ChemCompTableEditorDepict(ChemCompDepict):
     """Create HTML depiction for chemical component text editor. 
