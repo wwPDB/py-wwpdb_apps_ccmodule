@@ -49,7 +49,7 @@ setup(
     # Also depends on 'openeye.oechem' but cannot install by pypi
     install_requires=['mmcif', 'mmcif.utils', 'wwpdb.utils.config',
                       'wwpdb.utils.dp >= "0.11"', 'rcsb.utils.multiproc',
-                      'wwpdb.utils.wf', 'wwpdb.utils.oe_util',
+                      'wwpdb.utils.wf', 'wwpdb.utils.oe_util >= "0.2"',
                       'wwpdb.utils.session >= "0.2"',
                       'mysqlclient'],
     packages=find_packages(exclude=['wwpdb.apps.tests_ccmodule']),
