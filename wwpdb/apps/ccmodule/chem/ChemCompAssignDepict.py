@@ -92,9 +92,9 @@ from operator                                           import itemgetter
 from wwpdb.apps.ccmodule.depict.ChemCompDepict          import ChemCompDepict
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
-from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
-from oe_util.oedepict.OeDepict                          import OeDepict
-from oe_util.build.OeBuildMol                           import OeBuildMol
+from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
+from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
+from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 
 class ChemCompAssignDepict(ChemCompDepict):
     """ Class responsible for generating HTML depictions of 
