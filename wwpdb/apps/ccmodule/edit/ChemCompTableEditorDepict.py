@@ -74,7 +74,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
                 oL.append('  <a class="sectionbar1" href="" id="toggle_section_%s">Edit</a> Category: %s' % (catName,catName))
                 oL.append('</div>')
 
-		oL.append('<div style="display: block;" id="d_%s" class="displaynone">' % catName)
+                oL.append('<div style="display: block;" id="d_%s" class="displaynone">' % catName)
                 oL.append('<table id="%s">' % catName)
                 self.__renderTableColumnWise(catName,cD[catName][0],oL)
                 oL.append('</table>')
@@ -89,7 +89,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
                 oL.append('<a class="sectionbar1" href="" id="toggle_section_%s">Edit</a> Category: %s' % (catName,catName))
                 oL.append('</div>')
                 
-		oL.append('<div style="display: block;" id="d_%s" class="displaynone">' % catName)                
+                oL.append('<div style="display: block;" id="d_%s" class="displaynone">' % catName)                
                 oL.append('<table id="%s">' % catName)
                 self.__renderTableRowWise(catName,cD[catName],oL)
                 oL.append('</table>')
@@ -437,7 +437,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
             tS+="#toggle_section_%s, " % t
         tS+="#toggle_section_%s" % tableList[-1]
         
-	oL.append('$("%s").click(function() {' % tS)
+        oL.append('$("%s").click(function() {' % tS)
         oL.append('        console.log("TOGGLE VALUE "+$(this).text());')
         oL.append('        $(this).parents("div").filter(":first").next().toggle(400);')
         oL.append('        $(this).text($(this).text() == "Edit" ? "Hide" : "Edit");')
