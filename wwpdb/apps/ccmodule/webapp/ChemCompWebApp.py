@@ -159,7 +159,7 @@ from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict    import ChemCompSketchDep
 from wwpdb.apps.ccmodule.edit.ChemCompTableEditor       import ChemCompTableEditor
 from wwpdb.apps.ccmodule.edit.ChemCompTableEditorDepict import ChemCompTableEditorDepict
 #
-from wwpdb.api.status.dbapi.WfTracking                  import WfTracking
+from wwpdb.utils.wf.dbapi.WfTracking                    import WfTracking
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 #
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
@@ -167,15 +167,15 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImpor
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
-from wwpdb.wwpdb.utils.wf.DataReference                 import DataFileReference
+from wwpdb.utils.wf.DataReference                       import DataFileReference
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 #
-from wwpdb.apps.entity_transform.utils.mmCIFUtil        import mmCIFUtil
+from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 #
 from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
 from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 #
-from wwpdb.io.locator.Pathinfo                          import PathInfo
+from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 
 

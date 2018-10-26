@@ -23,7 +23,7 @@ __version__   = "V0.01"
 
 import os, sys, time, traceback
 #
-from oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
+from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
 
 class ChemCompBigAlignImages(object):
     def __init__(self, inputFile=None):
