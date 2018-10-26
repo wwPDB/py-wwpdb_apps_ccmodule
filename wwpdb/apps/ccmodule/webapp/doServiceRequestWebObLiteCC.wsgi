@@ -79,6 +79,21 @@ class MyRequestApp(object):
                     self._myParameterDict[name]=[]
                 self._myParameterDict[name].append(value)
             self._myParameterDict['request_path']=[myRequest.path.lower()]
+
+            # Generate a dictionary for image generation
+            # The allowed environment keys to set. Should be more limited over time XXX
+            allowedkeys = ['SITE_REFDATA_DB_PASSWORD', 'SITE_REFDATA_DB_USER', 'SITE_REFDATA_CVS_PASSWORD', 'SITE_REFDATA_CVS_USER', 'SITE_REFDATA_DB_SOCKET',
+                           'SITE_INSTANCE_DB_USER',
+                           'OE_LICENSE', 'OE_DIR', 'PYTHONPATH', 'PATH', 'LD_LIBRARY_PATH',
+                           'SITE_DA_INTERNAL_DB_PASSWORD', 'SITE_DA_INTERNAL_DB_USER', 'SITE_INSTANCE_DB_PASSWORD',
+                           'WWPDB_SITE_LOC', 'TOP_WWPDB_SITE_CONFIG_DIR', 'WWPDB_SITE_ID',
+                           'DJANGO_SETTINGS_MODULE']
+            envdict = {}
+            for key in allowedkeys:
+                if key in environment:
+                    envdict[key] = environment[key]
+            self._myParameterDict['script_env'] = [envdict]
+
         except:
             traceback.print_exc(file=self.__lfh)            
             self.__lfh.write("+MyRequestApp.__call__() - contents of request data\n")

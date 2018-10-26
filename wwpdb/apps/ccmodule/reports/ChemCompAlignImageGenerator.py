@@ -44,14 +44,6 @@ class ChemCompAlignImageGenerator(object):
         #
 
     def generateImages(self, instId=None, instFile=None, hitList=[]):
-        # The allowed environment keys to set. Should be more limited over time XXX
-        allowedkeys = ['SITE_REFDATA_DB_PASSWORD', 'SITE_REFDATA_DB_USER', 'SITE_REFDATA_CVS_PASSWORD', 'SITE_REFDATA_CVS_USER', 'SITE_REFDATA_DB_SOCKET',
-                       'SITE_INSTANCE_DB_USER',
-                       'OE_LICENSE', 'OE_DIR', 'PYTHONPATH', 'PATH', 'LD_LIBRARY_PATH',
-                       'SITE_DA_INTERNAL_DB_PASSWORD', 'SITE_DA_INTERNAL_DB_USER', 'SITE_INSTANCE_DB_PASSWORD',
-                       'WWPDB_SITE_LOC', 'TOP_WWPDB_SITE_CONFIG_DIR', 'WWPDB_SITE_ID',
-                       'DJANGO_SETTINGS_MODULE']
-
         if (not instId) or (not instFile):
             return
         #
@@ -86,9 +78,11 @@ class ChemCompAlignImageGenerator(object):
             ofh=open(cmdfile, 'w')
             ofh.write('#!/bin/tcsh -f\n')
             ofh.write('#\n')
-            for param in os.environ.keys():
-                if param in allowedkeys:
-                    ofh.write('setenv ' + param + ' ' + os.environ[param] + '\n')
+            envdict = self.__reqObj.getRawValue("script_env")
+            if not envdict:
+                envdict = {}
+            for param in envdict:
+                ofh.write('setenv ' + param + ' ' + envdict[param] + '\n')
             #
             #ofh.write('source ' + self.__cI.get('SITE_DEPLOY_PATH') + '/scripts/env/runtime-environment.csh\n')
             ofh.write('cd ' + self.__imagePath + '\n')
