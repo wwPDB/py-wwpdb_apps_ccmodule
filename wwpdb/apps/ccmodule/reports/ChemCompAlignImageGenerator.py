@@ -23,8 +23,8 @@ __version__   = "V0.01"
 import os, sys, time, string, traceback, signal, datetime
 
 from subprocess                       import call,Popen,PIPE
-from oe_util.oedepict.OeDepict        import OeDepict
-from oe_util.build.OeChemCompIoUtils  import OeChemCompIoUtils
+from wwpdb.utils.oe_util.oedepict.OeDepict        import OeDepict
+from wwpdb.utils.oe_util.build.OeChemCompIoUtils  import OeChemCompIoUtils
 from wwpdb.utils.config.ConfigInfo      import ConfigInfo
 #
 
@@ -44,6 +44,14 @@ class ChemCompAlignImageGenerator(object):
         #
 
     def generateImages(self, instId=None, instFile=None, hitList=[]):
+        # The allowed environment keys to set. Should be more limited over time XXX
+        allowedkeys = ['SITE_REFDATA_DB_PASSWORD', 'SITE_REFDATA_DB_USER', 'SITE_REFDATA_CVS_PASSWORD', 'SITE_REFDATA_CVS_USER', 'SITE_REFDATA_DB_SOCKET',
+                       'SITE_INSTANCE_DB_USER',
+                       'OE_LICENSE', 'OE_DIR', 'PYTHONPATH', 'PATH', 'LD_LIBRARY_PATH',
+                       'SITE_DA_INTERNAL_DB_PASSWORD', 'SITE_DA_INTERNAL_DB_USER', 'SITE_INSTANCE_DB_PASSWORD',
+                       'WWPDB_SITE_LOC', 'TOP_WWPDB_SITE_CONFIG_DIR', 'WWPDB_SITE_ID',
+                       'DJANGO_SETTINGS_MODULE']
+
         if (not instId) or (not instFile):
             return
         #
@@ -79,7 +87,8 @@ class ChemCompAlignImageGenerator(object):
             ofh.write('#!/bin/tcsh -f\n')
             ofh.write('#\n')
             for param in os.environ.keys():
-                ofh.write('setenv ' + param + ' ' + os.environ[param] + '\n')
+                if param in allowedkeys:
+                    ofh.write('setenv ' + param + ' ' + os.environ[param] + '\n')
             #
             #ofh.write('source ' + self.__cI.get('SITE_DEPLOY_PATH') + '/scripts/env/runtime-environment.csh\n')
             ofh.write('cd ' + self.__imagePath + '\n')
