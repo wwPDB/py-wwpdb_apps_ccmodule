@@ -93,7 +93,7 @@ from wwpdb.apps.ccmodule.search.ChemCompSearchDbDepict  import ChemCompSearchDbD
 #
 from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport,ChemCompCheckReport
 #
-from wwpdb.apps.ccmodule.utils.WfTracking               import WfTracking
+from wwpdb.utils.wf.dbapi.WfTracking                    import WfTracking
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 #
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
@@ -101,14 +101,14 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImpor
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
-from wwpdb.wwpdb.utils.wf.DataReference                     import DataFileReference
-from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
+from wwpdb.utils.wf.DataReference                       import DataFileReference
+from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 #
-from wwpdb.apps.entity_transform.utils.mmCIFUtil        import mmCIFUtil
+from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 #
-from oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
-from oe_util.oedepict.OeDepict                          import OeDepict
-from oe_util.build.OeChemCompIoUtils                    import OeChemCompIoUtils
+from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
+from wwpdb.utils.oe_util.oedepict.OeDepict                          import OeDepict
+from wwpdb.utils.oe_util.build.OeChemCompIoUtils                    import OeChemCompIoUtils
 #
 import datetime, stat
 import socket, shlex
