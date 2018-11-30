@@ -791,7 +791,7 @@ class ChemCompAssign(object):
             self.__lfh.flush()
         #
         numProc = multiprocessing.cpu_count() / 2
-        mpu = MultiProcUtil(verbose = self.__verbose, log = self.__lfh)
+        mpu = MultiProcUtil(verbose = self.__verbose)
         mpu.set(workerObj = self, workerMethod = "runMultiAssignValidation")
         mpu.setWorkingDir(self.__sessionPath)
         ok,failList,retLists,diagList = mpu.runMulti(dataList = self.__ccValidateInstIdList.split(','), numProc = numProc, numResults = 1)
