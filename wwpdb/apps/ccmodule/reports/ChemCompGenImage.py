@@ -24,9 +24,9 @@ __version__   = "V0.01"
 
 import os, sys, getopt, time, traceback
 #
-from oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
-from oe_util.oedepict.OeDepict                          import OeDepict
-from oe_util.build.OeChemCompIoUtils                    import OeChemCompIoUtils
+from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils  import OeDepictMCSAlignSingle
+from wwpdb.utils.oe_util.oedepict.OeDepict            import OeDepict
+from wwpdb.utils.oe_util.build.OeChemCompIoUtils      import OeChemCompIoUtils
 
 def usage():
     sys.stderr.write("usage: %s -i <ccid> -f <filePath> -o <outputPath> -v (verbose)\n" % str(sys.argv[0]).split('/')[-1] )    
