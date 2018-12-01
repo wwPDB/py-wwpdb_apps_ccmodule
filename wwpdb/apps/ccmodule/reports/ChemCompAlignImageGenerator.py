@@ -90,7 +90,7 @@ class ChemCompAlignImageGenerator(object):
             ofh.write('#\n')
             ofh.close()
             st = os.stat(cmdfile)
-            os.chmod(cmdfile, 0777)
+            os.chmod(cmdfile, 0o777)
             #
             logfile = os.path.join(self.__imagePath, 'timeoutscript.log')
             returnCode = self.__runTimeout(cmdFile=cmdfile, logFile=logfile)
