@@ -796,8 +796,12 @@ class ChemCompWebAppWorker(object):
             self.__lfh.write("+%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
         pid = os.fork()
         if pid == 0:
-            # if here, means we are in the child process
-
+            os.setsid()
+            sub_pid = os.fork()
+            if sub_pid:
+                # Parent of second fork
+                os._exit(0)
+            
             # determine if currently operating in Workflow Managed environment
             bIsWorkflow = self.__isWorkflow()
             #
@@ -919,6 +923,10 @@ class ChemCompWebAppWorker(object):
         else:
             # we are in parent process and we will return status code to client to indicate that data processing is "running"
             self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
+
+            # Wait for first fork
+            os.waitpid(pid, 0)
+
             self.__reqObj.setReturnFormat(return_format="json")
             rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
             rC.setStatusCode('running')

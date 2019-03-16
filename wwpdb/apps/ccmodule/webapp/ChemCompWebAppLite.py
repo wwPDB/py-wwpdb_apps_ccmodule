@@ -537,9 +537,11 @@ class ChemCompWebAppLiteWorker(object):
         
         else:
             # we are in parent process and we will return status code to client to indicate that data processing is "running"
+            self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
+
             # Wait for first fork
             os.waitpid(pid, 0)
-            self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
+
             self.__reqObj.setReturnFormat(return_format="json")
             rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
             rC.setStatusCode('running')
