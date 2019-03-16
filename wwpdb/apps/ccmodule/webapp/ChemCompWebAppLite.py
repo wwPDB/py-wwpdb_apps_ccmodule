@@ -446,6 +446,11 @@ class ChemCompWebAppLiteWorker(object):
         pid = os.fork()
         if pid == 0:
             # if here, means we are in the child process
+            os.setsid()
+            sub_pid = os.fork()
+            if sub_pid:
+                # Parent of second fork
+                os._exit(0)
             
             # determine if currently operating in Workflow Managed environment
             bIsWorkflow = self.__isWorkflow()
@@ -472,7 +477,7 @@ class ChemCompWebAppLiteWorker(object):
                 # check if there was work already done by depositor in editing chem comp assignments
                 # if so, we generate a cc-assign data store based on these updates
                 ccAssignDataStore = self.__checkForExistingCcAssignments()
-                
+
                 if ccAssignDataStore is None: # i.e. no work had previously been done and saved by depositor
                     # if we don't have any data store then we need to generate a data store from scratch
                     # which requires that we fill it with data as parsed from the cc-assign results cif file 
@@ -507,7 +512,7 @@ class ChemCompWebAppLiteWorker(object):
                     # generate a datastore to serve as representation of chem component assignment results data required/updated by annotator during current session.
                     ccAssignDataStore = self.__genCcAssignDataStore(assignRsltsDict,ccA)
                     bReusingPriorDataStore=False
-                
+
                 if( ccAssignDataStore is None ): # if this is true here, then we have failed to create a ccAssignDataStore either from scratch or based on previous depositor efforts
                     self.__postSemaphore(sph,"FAIL")
                     self.__lfh.flush()
@@ -532,6 +537,8 @@ class ChemCompWebAppLiteWorker(object):
         
         else:
             # we are in parent process and we will return status code to client to indicate that data processing is "running"
+            # Wait for first fork
+            os.waitpid(pid, 0)
             self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
             self.__reqObj.setReturnFormat(return_format="json")
             rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
