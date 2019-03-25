@@ -585,7 +585,6 @@ class ChemCompAssignDataStore(object):
                 chemCompDescriptor = self.getDpstrCcDscrptrStr(ligId) 
                 chemCompDescriptorType = self.getDpstrCcDscrptrType(ligId)
                 chemCompDetails = self.getDpstrComments(ligId)
-                #outputFile.write( "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % ( indx, ligId, altLigId, ligType, chemCompName, chemCompFrmla, chemCompDescriptor, chemCompDescriptorType, chemCompDetails  ) )
                 aCat1.append(( indx, ligId, altLigId, ligType, chemCompName, chemCompFrmla, chemCompDescriptor, chemCompDescriptorType, chemCompDetails  ))
                 #
             curContainer.append(aCat1)
@@ -657,12 +656,10 @@ class ChemCompAssignDataStore(object):
                 aCat4.appendAttribute("details")
                 aCat4.appendAttribute("feature_type")
                 aCat4.appendAttribute("seq_num") 
-                
-                
-                
-                
+
+           
                 ordinalCat4 = 1
-                
+                            
                 for ligId in self.__rsrchSlctdGrpLst:
                     
                     if( ligId in self.__rsrchAcqurdGrpLst ):
@@ -671,7 +668,7 @@ class ChemCompAssignDataStore(object):
                         
                         if dataSetDict: # dataSetDict for given ligID has integer keys that map to a dictionary representing a single set of binding data
                             
-                            if( ligId != "HOH" ):
+                            if( ligId != "HOH" and ligId != "NONE%"):
                                 for dataSetIndx in range(0,10):
                                     if dataSetIndx in dataSetDict:
                                         targetSeq = dataSetDict[dataSetIndx]["target_sequence"]
@@ -710,7 +707,7 @@ class ChemCompAssignDataStore(object):
                                         aCat4.append(( ordinalCat4, asymId, authAsymId, ligId, authSeqNum, ligId, detailsCat4, featureType, seqNum ))
                                         ordinalCat4 += 1
                                         
-                    else: # no data acquired, ligid was simply selected to indicate as focus of research
+                    elif ligId != "NONE%": # no data acquired, ligid was simply selected to indicate as focus of research
                         
                         asymId = "?"
                         authAsymId = "?"
@@ -726,7 +723,22 @@ class ChemCompAssignDataStore(object):
                     curContainer.append(aCat3)
                 #
                 curContainer.append(aCat4)
-                    
+
+            # pdbx_entry_details - only output if we have real info
+            if len(self.__rsrchSlctdGrpLst) > 0:
+                # LOI - including NONE%
+                if "NONE%" in self.__rsrchSlctdGrpLst:
+                    val = 'N'
+                else:
+                    val = 'Y'
+
+                aCat5=DataCategory("pdbx_entry_details")
+                aCat5.appendAttribute("entry_id")
+                aCat5.appendAttribute("has_ligand_of_interest") 
+
+                aCat5.append((depDataSetId, val))
+                curContainer.append(aCat5)
+
             myDataList.append(curContainer)
             pdbxW=PdbxWriter(ofh)
             pdbxW.write(myDataList)
