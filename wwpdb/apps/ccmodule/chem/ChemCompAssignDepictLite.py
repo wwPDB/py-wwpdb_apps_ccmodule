@@ -62,7 +62,6 @@ from wwpdb.apps.ccmodule.view.ChemCompView              import ChemCompView
 from wwpdb.apps.ccmodule.sketch.ChemCompSketch          import ChemCompSketch
 from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict    import ChemCompSketchDepict
 from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
-#from pdbx_v2.persist.PdbxDictionaryInfo             import PdbxDictionaryInfo
 
 class ChemCompAssignDepictLite(ChemCompDepict):
     """ Class responsible for generating HTML depictions of 
@@ -263,13 +262,20 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         grpsSelectedForResearch = p_ccAssgnDataStr.getRsrchSelectedLst()
         grpsHavingRsrchDataSubmitted = p_ccAssgnDataStr.getRsrchDataAcqurdLst()
         
+        if( "NONE%" in grpsSelectedForResearch):
+            None_checked = 'checked="checked"'
+            None_check_disabled = ''
+        else:
+            None_checked = ''
+            None_check_disabled = ''
+
+
         if( "HOH" in grpsSelectedForResearch):
             HOH_checked = 'checked="checked"'
             HOH_check_disabled = 'disabled="disabled"' if "HOH" in grpsHavingRsrchDataSubmitted else ''
         else:
             HOH_checked = ''
             HOH_check_disabled = ''
-        
         
         for ccId in srtdGrpLst:
             checked = ''
@@ -309,11 +315,22 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             #
             oL.append('<td><input name="%s" type="checkbox" class="selectinstnc" %s></td>' % (ccId, checked))
             #                  
-            oL.append('<td><input name="%s_rsrch" id="%s_rsrch" type="checkbox" class="selectinstnc_rsrch" %s %s></td>' % (ccId, ccId, checked_rsrch, check_rsrch_disabled))
+            oL.append('<td class="selectinstnc_td"><input name="%s_rsrch" id="%s_rsrch" type="checkbox" class="selectinstnc_rsrch selectinst_stdgrp" %s %s></td>' % (ccId, ccId, checked_rsrch, check_rsrch_disabled))
             #                  
             oL.append('</tr>')
             #
             iRow+=1
+
+        # Artifical row to select "none" as "focus of research
+        oL.append('<tr class="%s c_NONE_special">' % self.__rowClass(iRow) )
+        oL.append('<td class="">None</td>') # Ligand ID column
+        oL.append('<td class="NONE_plchldr"></td>') # number of instances column
+        oL.append('<td class="NONE_plchldr"></td>') # status column
+        oL.append('<td class="NONE_plchldr"></td>' ) # select for inspection column
+        oL.append('<td class="selectinstnc_td"><input name="NONE%%" id="NONE_rsrch" type="checkbox" class="selectinstnc_rsrch selectinst_none" %s %s></td>' % (None_checked, None_check_disabled) )
+        oL.append('</tr>')
+        iRow+=1
+
         '''
         # creating artificial row to allow depositor to select "water" as "focus of research"
         oL.append('<tr class="%s c_HOH">' % self.__rowClass(iRow) )
