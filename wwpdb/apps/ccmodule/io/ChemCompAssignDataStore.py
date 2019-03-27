@@ -760,9 +760,18 @@ class ChemCompAssignDataStore(object):
         '''
         '''
         try:
-            numGrpsRqurngAttn = len( self.getAttnReqdLst() )
-            numGrpsAddrsd = len( self.getGlbllyRslvdGrpList() )
-            if( (p_mode == "completed") and ( int(numGrpsAddrsd) == int(numGrpsRqurngAttn) ) ) or (numGrpsRqurngAttn == 0):
+            numGrpsRqurngAttn = len(self.getAttnReqdLst())
+            numGrpsAddrsd = len(self.getGlbllyRslvdGrpList())
+            numRsrchSelectedLst = len(self.getRsrchSelectedLst())
+            numAuthAssignKeys = len(self.getAuthAssignmentKeys())
+
+            # Finished set if one of the following:
+            # a) mode = completed and # groups addressed = number needing attention
+            # b) # grps rquring attention = 0
+            # AND if # AuthAssignKeys != 0 and numRsrchSelectedLst != 0
+
+            loiflag = (numAuthAssignKeys == 0) or (numAuthAssignKeys and numRsrchSelectedLst)
+            if loiflag and ( ((p_mode == "completed") and ( int(numGrpsAddrsd) == int(numGrpsRqurngAttn))) or (numGrpsRqurngAttn == 0) ):
                 doneFlag = "Y"
             else:
                 doneFlag = "N"
