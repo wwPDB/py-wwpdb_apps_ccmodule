@@ -323,10 +323,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         # Artifical row to select "none" as "focus of research
         oL.append('<tr class="%s c_NONE_special">' % self.__rowClass(iRow) )
-        oL.append('<td class="">None</td>') # Ligand ID column
-        oL.append('<td class="NONE_plchldr"></td>') # number of instances column
-        oL.append('<td class="NONE_plchldr"></td>') # status column
-        oL.append('<td class="NONE_plchldr"></td>' ) # select for inspection column
+        oL.append('<td class="" colspan=4>No ligand as focus of research</td>') 
         oL.append('<td class="selectinstnc_td"><input name="NONE%%" id="NONE_rsrch" type="checkbox" class="selectinstnc_rsrch selectinst_none" %s %s></td>' % (None_checked, None_check_disabled) )
         oL.append('</tr>')
         iRow+=1
