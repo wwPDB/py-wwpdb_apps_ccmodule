@@ -144,7 +144,11 @@ class ChemCompReader(object):
             if (self.__verbose):
                 self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % self.__filePath)
             return False
-        
+
+    def getAtoms(self):
+        self.__getComp()
+        return self.__getDataList(catName='chem_comp_atom')
+
     def getBonds(self):
         self.__getComp()
         return self.__getDataList(catName='chem_comp_bond')
