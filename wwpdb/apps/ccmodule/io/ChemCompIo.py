@@ -126,7 +126,7 @@ class ChemCompReader(object):
         self.__filePath=os.path.join(self.__topCachePath,self.__ccU[0:1],self.__ccU,self.__ccU+'.cif')
         if (not os.access(self.__filePath,os.R_OK)):
             if (self.__verbose):
-                self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % filePath)
+                self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % self.__filePath)
             return False
         return True
 
@@ -137,12 +137,12 @@ class ChemCompReader(object):
             self.__filePath=filePath
             if (not os.access(self.__filePath,os.R_OK)):
                 if (self.__verbose):
-                    self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % filePath)
+                    self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % self.__filePath)
                 return False
             return True
         except:
             if (self.__verbose):
-                self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % filePath)
+                self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % self.__filePath)
             return False
         
     def getBonds(self):
