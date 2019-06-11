@@ -183,7 +183,6 @@ class ChemCompReader(object):
         """
         try:
             ifh=open(filePath,'r')
-            ifh = open(filePath, "r")
             myBlockList=[]
             pRd=PdbxReader(ifh)
             pRd.read(myBlockList)
