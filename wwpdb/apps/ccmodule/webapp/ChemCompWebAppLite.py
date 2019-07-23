@@ -1373,6 +1373,7 @@ class ChemCompWebAppLiteWorker(object):
         myD['instance'] = wfInstId
         #
         myD['session_url_prefix'] = os.path.join(self.__rltvSessionPath,"assign",instanceId)
+        myD['processing_site'] = self.__cI.get('SITE_NAME').upper()
         rC.setHtmlText(htmlText=self.__processTemplate(fn=os.path.join(self.__pathSnglInstcEditorTmplts,"cc_instnc_edit_tmplt.html"), parameterDict=myD))
         return rC
         

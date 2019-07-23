@@ -216,7 +216,6 @@ class ChemCompAssignDepict(ChemCompDepict):
             else:
                 depDataSetId="TMP_ID"
             myD['identifier'] = depDataSetId
-            myD['pdbid'] = "TESTid"
         #
         myD['session_url_prefix'] = self.rltvAssgnSessionPath
         #
