@@ -1226,7 +1226,7 @@ class ChemCompAssign(object):
             cifObj = mmCIFUtil(filePath=fpModel)
             list = cifObj.GetValue('pdbx_nonpoly_scheme')
             for dir in list:
-                if (not dir.has_key('pdb_mon_id')) or (not dir.has_key('auth_mon_id')):
+                if ('pdb_mon_id' not in dir) or ('auth_mon_id' not in dir):
                     continue
                 #
                 pdbWorkingCcid = dir['pdb_mon_id'].upper()
@@ -1259,7 +1259,7 @@ class ChemCompAssign(object):
         # parameterize for name of cif category representing assignment results for chemical components
         instncAssignCtgryName = 'pdbx_instance_assignment'
         #
-        if (p_dataDict.has_key(instncAssignCtgryName) and (len(p_dataDict[instncAssignCtgryName]) > 0)):
+        if (instncAssignCtgryName in p_dataDict) and (len(p_dataDict[instncAssignCtgryName]) > 0):
             
             #sorting assignment records by entity group for given instance record (i.e. het_id) and then by assignment status (i.e. "close match", "no match",  "passed")
             srtdAssignL = sorted(p_dataDict[instncAssignCtgryName], key=lambda row: row['_pdbx_instance_assignment.het_id'] );
@@ -1296,7 +1296,7 @@ class ChemCompAssign(object):
                 # candidateCcIdLst will be list for remembering which candidate CC IDs have been encountered
                 candidateCcIdLst=[]
                 #
-                if( row.has_key('_pdbx_instance_assignment.inst_id') ):
+                if '_pdbx_instance_assignment.inst_id' in row:
                     #instId = row['_pdbx_instance_assignment.inst_id'].upper()
                     instId = row['_pdbx_instance_assignment.inst_id']
                     #now have instance ID for chemical component, serves as primary key
@@ -1310,23 +1310,23 @@ class ChemCompAssign(object):
                         # this is the first time the data store is being created   
                         # for the deposition so need to capture author assigned ID (which may change value if annotator reruns ligModule and decides to update CC code)
                         # and we also caputre the "master" CCID originally submitted by depositor (which will remain unaltered througout all processing)
-                        if( row.has_key('_pdbx_instance_assignment.het_id') ):
+                        if '_pdbx_instance_assignment.het_id' in row:
                             #authAssgndId = (row['_pdbx_instance_assignment.het_id']).upper()
                             authAssgndId = (row['_pdbx_instance_assignment.het_id'])
                             
                             dpstrOrigCcid = origCcidDict.get(authAssgndId)
                             p_ccAssgnDataStore.setDpstrOrigCcIdMaster( instId, dpstrOrigCcid )
                     #
-                    if( row.has_key('_pdbx_instance_assignment.status')):
+                    if '_pdbx_instance_assignment.status' in row:
                         topMtchStatus=row['_pdbx_instance_assignment.status']
                     #
-                    if( row.has_key('_pdbx_instance_assignment.single_atom_flag')):
+                    if '_pdbx_instance_assignment.single_atom_flag' in row:
                         singleAtomFlag=row['_pdbx_instance_assignment.single_atom_flag']
                         if(self.__debug):
                             self.__lfh.write("+%s.%s() getting single_atom_flag for instid '%s' and it is: '%s'\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, instId, singleAtomFlag) )
                     #
                     if( p_exactOption == False ):
-                        if( row.has_key('_pdbx_instance_assignment.warning_message')):
+                        if '_pdbx_instance_assignment.warning_message' in row:
                             assgnmntWarning=row['_pdbx_instance_assignment.warning_message']
                             assgnmntWarning = assgnmntWarning.replace('?','n.a.')
                             assgnmntWarning = assgnmntWarning.replace('\n','<br />')
@@ -1337,7 +1337,7 @@ class ChemCompAssign(object):
                         ##    will cull this data from the 'pdbx_match_list' cif category
                         ##############################################################################
                         ##
-                        if( p_dataDict.has_key('pdbx_match_list') and (len(p_dataDict['pdbx_match_list']) > 0)):
+                        if ('pdbx_match_list' in p_dataDict) and (len(p_dataDict['pdbx_match_list']) > 0):
                             
                             glblAssignMtchList=p_dataDict['pdbx_match_list']
                             cnt = 0
@@ -1353,7 +1353,7 @@ class ChemCompAssign(object):
                                     cmpstScore = dict['_pdbx_match_list.heavy_atom_match_percent']+' / '+dict['_pdbx_match_list.chiral_center_match_percent']+' / '+dict['_pdbx_match_list.chiral_center_match_with_handness_percent']+' / '+dict['_pdbx_match_list.aromatic_match_flag']+' / '+dict['_pdbx_match_list.bond_order_match_percent']
                                     cmpstScore = cmpstScore.replace('?','n.a.')
                                     matchWarning = "n.a."
-                                    if( dict.has_key('_pdbx_match_list.warning_message') ):
+                                    if '_pdbx_match_list.warning_message' in dict:
                                         matchWarning = dict['_pdbx_match_list.warning_message']
                                         matchWarning = matchWarning.replace('?','n.a.')
                                         matchWarning = matchWarning.replace('\n','<br />')
@@ -1377,7 +1377,7 @@ class ChemCompAssign(object):
                         ##############################################################################
                         ##
                         atomMapDict = {}
-                        if( p_dataDict.has_key('pdbx_atom_mapping') and (len(p_dataDict['pdbx_atom_mapping']) > 0)):
+                        if ('pdbx_atom_mapping' in p_dataDict) and (len(p_dataDict['pdbx_atom_mapping']) > 0):
                             glblAtomMapLst=p_dataDict['pdbx_atom_mapping']
                             for ccId in candidateCcIdLst:
                                 atomMapDict[ccId]=[]

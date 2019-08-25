@@ -185,7 +185,7 @@ class ccIo:
 					ccD[dl[2]] = fValue
 				elif dl[1] == "cca":
 					row=dl[3]
-					if ccAtomD.has_key(row):
+					if row in ccAtomD:
 						ccAtomD[row][dl[2]]=fValue
 					else:
 						# new row dictionary
@@ -194,7 +194,7 @@ class ccIo:
 
 				elif dl[1] == "ccb":
 					row=dl[3]
-					if ccBondD.has_key(row):
+					if row in ccBondD:
 						ccBondD[row][dl[2]]=fValue
 					else:
 						# new row dictionary
@@ -244,25 +244,25 @@ class ccIo:
 			self.lf.write("++INFO -Row dictionary - key %s value %s\n" % (str(k),str(v)))
 		
 	def getIdCode(self):
-		if self.ccTable.has_key('id'):
+		if 'id' in self.ccTable:
 			return self.ccTable['id']
 		else:
 			return None
 
 	def getParentCC(self):
-		if self.ccTable.has_key('mon_nstd_parent_comp_id'):
+		if 'mon_nstd_parent_comp_id' in self.ccTable:
 			return self.ccTable['mon_nstd_parent_comp_id']
 		else:
 			return None
 
 	def getTypeCC(self):
-		if self.ccTable.has_key('type'):
+		if 'type' in self.ccTable:
 			return self.ccTable['type']
 		else:
 			return None
 
 	def getPdbxTypeCC(self):
-		if self.ccTable.has_key('pdbx_type'):
+		if 'pdbx_type' in self.ccTable:
 			return self.ccTable['pdbx_type']
 		else:
 			return None
@@ -348,7 +348,7 @@ class ccIo:
 			#if self.debug: 	self._printDict(row)							
 			cD={}
 			for cname in self.columns_cca:			
-				if row.has_key(cname):
+				if cname in row:
 					cD[cname] = row[cname]
 				else:
 					cD[cname] = '?'
@@ -362,7 +362,7 @@ class ccIo:
 		for row in self.cf[0]['chem_comp_bond'].iter_rows():
 			cD={}
 			for cname in self.columns_ccb:			
-				if row.has_key(cname):
+				if cname in row:
 					cD[cname] = row[cname]
 				else:
 					cD[cname] = '?'
@@ -383,7 +383,7 @@ class ccIo:
 			for row in self.cf[0]['pdbx_chem_comp_descriptor'].iter_rows():
 				cD={}
 				for cname in self.columns_ccd:
-					if row.has_key(cname):
+					if cname in row:
 						cD[cname] = row[cname]
 					else:
 						cD[cname] = '?'
@@ -399,7 +399,7 @@ class ccIo:
 		for row in self.cf[0]['pdbx_chem_comp_identifier'].iter_rows():
 			cD={}
 			for cname in self.columns_cci:
-				if row.has_key(cname):
+				if cname in row:
 					cD[cname] = row[cname]
 				else:
 					cD[cname] = '?'
@@ -414,7 +414,7 @@ class ccIo:
 		for row in self.cf[0]['pdbx_chem_comp_feature'].iter_rows():
 			cD={}
 			for cname in self.columns_ccf:
-				if row.has_key(cname):
+				if cname in row:
 					cD[cname] = row[cname]
 				else:
 					cD[cname] = '?'
@@ -429,7 +429,7 @@ class ccIo:
 		for row in self.cf[0]['pdbx_chem_comp_audit'].iter_rows():
 			cD={}
 			for cname in self.columns_ccau:
-				if row.has_key(cname):
+				if cname in row:
 					cD[cname] = row[cname]
 				else:
 					cD[cname] = '?'
@@ -601,7 +601,7 @@ class ccIo:
 			b2 = bond.GetEnd().GetName().strip()
 			if self.debug:
 				self.lf.write("++INFO - oe create bond %s %s order %s\n" % (b1,b2,oeOrder))				
-			if (iBondD.has_key(int(oeOrder)) and not self.isCifNull(b1) and not self.isCifNull(b2)):
+			if (int(oeOrder) in iBondD and not self.isCifNull(b1) and not self.isCifNull(b2)):
 				bndRow=self.initRowDict(self.columns_ccb)
 				bndRow['comp_id']     = idcode
 				bndRow['atom_id_1']   = b1
@@ -650,18 +650,18 @@ class ccIo:
 			if atom.GetAtomicNum() == 1:
 				name=atom.GetName().strip()
 				oldName= name
-				if nameDict.has_key(name) and (len(name) == 4):
+				if name in nameDict and (len(name) == 4):
 					for suffix in ['A','B','C','D','E','F','G','H','J']:
 						nameNew = name[:3] + suffix
-						if not nameDict.has_key(nameNew):
+						if nameNew not in nameDict:
 							name = nameNew
 							if (self.debug): self.lf.write("++INFO - rename %s to %s\n" % (oldName,nameNew))
 							atom.SetName(name)
 							break				
-				elif nameDict.has_key(name) and (len(name)<4):
+				elif name in nameDict and (len(name)<4):
 					for suffix in ['A','B','C','D','E','F','G','H','J']:
 						nameNew = name + suffix
-						if not nameDict.has_key(nameNew):
+						if nameNew not in nameDict:
 							if (self.debug): self.lf.write("++INFO - rename %s to %s\n" % (oldName,nameNew))
 							name = nameNew
 							atom.SetName(name)						
