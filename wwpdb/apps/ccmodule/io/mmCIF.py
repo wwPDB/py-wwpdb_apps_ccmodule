@@ -149,7 +149,7 @@ class mmCIFTable(list):
             except (IndexError, KeyError):
                 raise KeyError
 
-        raise TypeError, x
+        raise TypeError(x)
     
     def __setitem__(self, x, value):
         assert value is not None
@@ -349,9 +349,9 @@ class mmCIFData(list):
             for ctable in self:
                 if ctable.name.lower() == name:
                     return ctable
-            raise KeyError, x
+            raise KeyError(x)
 
-        raise TypeError, x
+        raise TypeError(x)
 
     def __setitem__(self, x, table):
         """
@@ -508,9 +508,9 @@ class mmCIFFile(list):
             for cdata in self:
                 if cdata.name.lower() == name:
                     return cdata
-            raise KeyError, x
+            raise KeyError(x)
 
-        raise TypeError, x
+        raise TypeError(x)
     
     def __delitem__(self, x):
         """Remove a mmCIFData by index or data name.  Raises IndexError
@@ -1178,7 +1178,7 @@ def test_module():
     try:
         path = sys.argv[1]
     except IndexError:
-        print "usage: mmCIF.py <mmCIF file path>"
+        print("usage: mmCIF.py <mmCIF file path>")
         raise SystemExit
     cif = mmCIFDictionary()
     cif.load_file(path)

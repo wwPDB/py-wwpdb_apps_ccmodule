@@ -490,7 +490,7 @@ class ChemCompAssignDataStore(object):
 
 
     def __generateUserSelectionFile(self,exprtFilePath):
-        outputFile = file( exprtFilePath, "w")
+        outputFile = open( exprtFilePath, "w")
         assignedId = ""
         for instId in self.getAuthAssignmentKeys():
             if self.getBatchBestHitStatus(instId) == 'passed':
@@ -516,7 +516,7 @@ class ChemCompAssignDataStore(object):
         all assignments have value other than 'None'
         '''
         try:
-            outputFile = file( updtedCcAssignFilePath, "w")
+            outputFile = open( updtedCcAssignFilePath, "w")
             assignedId = ""
             atomMappingInstanceData = []
             atomMappingOutput = []

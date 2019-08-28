@@ -981,5 +981,5 @@ if __name__ == '__main__':
 	cifPath="Test.cif"
 	myIo.readCif(cifPath)
 	id = myIo.getIdCode()
-	print id
+	print(id)
 	

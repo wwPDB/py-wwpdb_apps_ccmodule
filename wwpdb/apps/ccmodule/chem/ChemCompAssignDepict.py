@@ -959,7 +959,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             #atmMpLst = (p_ccAssgnDataStr.getAtomMapDict(p_instId))[( (p_ccAssgnDataStr.getAtomMapDict(p_instId)).keys() )[0]]
             atomMapDict = p_ccAssgnDataStr.getAtomMapDict(instId)
             if atomMapDict:
-                listOfTopHitsForInstId = (p_ccAssgnDataStr.getAtomMapDict(instId)).keys()
+                listOfTopHitsForInstId = list((p_ccAssgnDataStr.getAtomMapDict(instId)).keys())
                 if len(listOfTopHitsForInstId) > 0:
                     topHitForInstId = listOfTopHitsForInstId[0]
                     atmMpLst = atomMapDict[topHitForInstId]
