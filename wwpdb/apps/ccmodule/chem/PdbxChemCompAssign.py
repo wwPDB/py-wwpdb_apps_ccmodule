@@ -220,7 +220,7 @@ class PdbxChemCompAssignReader(object):
         colDict={}
         # 
         for ii,itTup in enumerate(itTupList):
-            if itDict.has_key(itTup[0]):
+            if itTup[0] in itDict:
                 colDict[itTup[0]] = itDict[itTup[0]]
         #
         rowList=catObj.getRowList()
@@ -253,7 +253,7 @@ class PdbxChemCompAssignReader(object):
         colTupList=[]
         # (column index of data or -1, type name, [default value]  )
         for ii,itTup in enumerate(itTupList):
-            if itDict.has_key(itTup[0]):
+            if itTup[0] in itDict:
                 colTupList.append( (itDict[itTup[0]], itTup[2], itTup[3] ))
             else:
                 colTupList.append( (-1, itTup[2], itTup[3]) )

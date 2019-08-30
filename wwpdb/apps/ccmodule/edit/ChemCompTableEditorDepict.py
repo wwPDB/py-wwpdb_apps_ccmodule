@@ -66,7 +66,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
         cD=eD['dataDict']
 
         for catName in ['chem_comp']:
-            if (cD.has_key(catName) and (len(cD[catName]) > 0)):
+            if catName in cD and (len(cD[catName]) > 0):
                 #oL.append('<h4>Category: %s</h4>' %  catName)                                
                 #oL.append('<h4><a href="" id="toggle_%s">Hide</a> Category: %s</h4>' % (catName,catName))                
 
@@ -81,7 +81,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
                 oL.append('</div>')                
                 
         for catName in ['chem_comp_atom','chem_comp_bond']:
-            if (cD.has_key(catName) and (len(cD[catName]) > 0)):
+            if catName in cD and (len(cD[catName]) > 0):
                 #oL.append('<h4>Category: %s</h4>' %  catName)                                                
                 #oL.append('<h4><a href="" id="toggle_%s">Hide</a> Category: %s</h4>' % (catName,catName))
 
@@ -118,10 +118,10 @@ class ChemCompTableEditorDepict(ChemCompDepict):
             else:
                 editClass='editinp'
 
-            if self.__itemEnumMap.has_key(itemName):
+            if itemName in self.__itemEnumMap:
                 editClass = 'editsel_%s' % self.__itemEnumMap[itemName]
             
-            if (rD.has_key(itemName)):
+            if itemName in rD:
                 itemValue=rD[itemName]
             else:
                 itemValue=itemDefault
@@ -169,12 +169,12 @@ class ChemCompTableEditorDepict(ChemCompDepict):
             else:
                 editClass='editinp'
                 
-            if self.__itemEnumMap.has_key(itemName):
+            if itemName in self.__itemEnumMap:
                 editClass = 'editsel_%s' % self.__itemEnumMap[itemName]
                     
-            if (insertDefault):
+            if insertDefault:
                 itemValue=itemDefault                
-            elif (row.has_key(itemName)):
+            elif itemName in row:
                 itemValue=row[itemName]
             else:
                 itemValue=itemDefault

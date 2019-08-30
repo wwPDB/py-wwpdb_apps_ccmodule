@@ -76,7 +76,7 @@ class InstanceDataGenerator(object):
         resultQueue = multiprocessing.Queue()
         #
         workers = [ MultiProcWorker(processLabel=str(i+1), taskQueue=taskQueue, resultQueue=resultQueue, \
-                    workerFunc=workerFunc, log=self.__lfh, verbose=self.__verbose) for i in xrange(numProc) ]
+                    workerFunc=workerFunc, log=self.__lfh, verbose=self.__verbose) for i in range(numProc) ]
         self.__lfh.write("workers=%d\n" % len(workers))
         for w in workers:
             w.start()
@@ -84,10 +84,10 @@ class InstanceDataGenerator(object):
         for subList in subLists:
             taskQueue.put(subList)
         #
-        for i in xrange(numProc):
+        for i in range(numProc):
             taskQueue.put(None)
         #
-        for i in xrange(len(subLists)):
+        for i in range(len(subLists)):
             msg = resultQueue.get()
         #
         try:

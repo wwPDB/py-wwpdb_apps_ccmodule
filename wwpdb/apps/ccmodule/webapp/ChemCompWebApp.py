@@ -204,7 +204,7 @@ class ChemCompWebApp(object):
         self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule")
         #
 
-        if type( parameterDict ) == types.DictType:
+        if isinstance(parameterDict, dict):
             self.__myParameterDict=parameterDict
         else:
             self.__myParameterDict={}
@@ -361,7 +361,7 @@ class ChemCompWebAppWorker(object):
         """
         #
         reqPath=self.__reqObj.getRequestPath()
-        if not self.__appPathD.has_key(reqPath):
+        if reqPath not in self.__appPathD:
             # bail out if operation is unknown -
             rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
             rC.setError(errMsg='Unknown operation')
@@ -381,7 +381,7 @@ class ChemCompWebAppWorker(object):
         #
         try:
             reqPath=self.__reqObj.getRequestPath()
-            if not self.__appPathD.has_key(reqPath):
+            if reqPath not in self.__appPathD:
                 # bail out if operation is unknown -
                 rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
                 rC.setError(errMsg='Unknown operation')
@@ -740,7 +740,7 @@ class ChemCompWebAppWorker(object):
             cifObj = mmCIFUtil(filePath=self.__modelFilePath)
             list = cifObj.GetValue('database_2')
             for dir in list:
-                if (not dir.has_key('database_id')) or (not dir.has_key('database_code')):
+                if ('database_id' not in dir) or ('database_code' not in dir):
                     continue
                 #
                 dbname = dir['database_id'].upper()
@@ -752,7 +752,7 @@ class ChemCompWebAppWorker(object):
             #
             list = cifObj.GetValue('struct')
             for dir in list:
-                if( not dir.has_key('title') ):
+                if 'title' not in dir:
                     continue
                 #
                 entryTitle = dir['title']
@@ -2381,8 +2381,13 @@ class ChemCompWebAppWorker(object):
         """ Generic check for the existence of request paramenter "file".
         """ 
         # Gracefully exit if no file is provide in the request object - 
+        try:
+            stringtypes = (unicode, str)
+        except NameError:
+            stringtypes = (str, bytes)
+
         fs=self.__reqObj.getRawValue(fileTag)
-        if ((fs is None) or (type(fs) == types.StringType) ):
+        if ( (fs is None) or isinstance(fs, stringtypes) ):
             return False
         return True
 

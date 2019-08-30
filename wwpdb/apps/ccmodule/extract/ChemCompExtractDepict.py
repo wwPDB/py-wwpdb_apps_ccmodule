@@ -68,16 +68,16 @@ class ChemCompExtractDepict(ChemCompDepict):
             else:
                 newGrp = False
             sessionid = cc['sessionid']
-            if cc.has_key("cifPathRel"):
+            if "cifPathRel" in cc:
                 (pth,cifFile) = os.path.split(cc['cifPathRel'])
-            if cc.has_key("cifExtractPathRel"):
+            if "cifExtractPathRel" in cc:
                 (pth,cifExtractFile) = os.path.split(cc['cifExtractPathRel'])
                 #cifExtractFile = id + "-extract.cif"
-            if cc.has_key("annCifPathRel"):
+            if "annCifPathRel" in cc:
                 (pth,annCifFile) = os.path.split(cc['annCifPathRel'])                            
                 #annCifFile = id + "-v3.cif"
 
-            if cc.has_key("reportPathRel"):
+            if "reportPathRel" in cc:
                 (pth,reportFile) = os.path.split(cc['reportPathRel'])                                            
                 # reportFile = id + "-v3.html"
                 # checkCifFile = id + "-check-v3.html"
@@ -145,7 +145,7 @@ class ChemCompExtractDepict(ChemCompDepict):
             oL.append('          <td>%s</td>' % cc['formal_charge'])
             oL.append('        </tr>')
 
-            if cc.has_key("cifExtractPathRel"):
+            if "cifExtractPathRel" in cc:
                 (pth,cifExtractFile) = os.path.split(cc['cifExtractPathRel'])
 
                 oL.append('        <tr>')
@@ -198,7 +198,7 @@ class ChemCompExtractDepict(ChemCompDepict):
                 oL.append('              </td>')
                 oL.append('                </tr>')
             # end if'
-            if cc.has_key("cifPathRel"):
+            if "cifPathRel" in cc:
                 (pth,cifFile) = os.path.split(cc['cifPathRel'])
 
                 oL.append('        <tr>')
@@ -264,7 +264,7 @@ class ChemCompExtractDepict(ChemCompDepict):
                 oL.append('              </td>')
                 oL.append('                </tr>')
                 # end if
-            if cc.has_key("annCifPathRel"):
+            if "annCifPathRel" in cc:
                 (pth,annCifFile) = os.path.split(cc['annCifPathRel'])
                 oL.append('        <tr>')
                 oL.append('             <td><b>V3 Annotated CC: </b> </td>')
@@ -357,7 +357,7 @@ class ChemCompExtractDepict(ChemCompDepict):
                 oL.append('                   </td>')
                 oL.append('        </tr>')
                 # end if
-            if cc.has_key("checkCifPathRel"):
+            if "checkCifPathRel" in cc:
                 (pth,annCifFile) = os.path.split(cc['annCifPathRel'])
                 oL.append('        <tr>')
                 oL.append('                    <td><b>V3 Check Report: </b> </td>')
@@ -380,7 +380,7 @@ class ChemCompExtractDepict(ChemCompDepict):
                 oL.append('                    <td>')
                 oL.append('                 </tr>')
                 # end if
-            if cc.has_key("reportPathRel"):
+            if "reportPathRel" in cc:
                 oL.append('        <tr>')
                 oL.append('                    <td><b>V3 Summary Report: </b> </td>')
                 oL.append('                    <td>')

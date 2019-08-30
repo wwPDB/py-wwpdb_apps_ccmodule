@@ -259,7 +259,7 @@ class ChemCompExtract(object):
                 if self.__verbose:
                     self.__lfh.write("++INFO - extracted residue  %s\n" % resKey)
                     self.__lfh.flush()
-                if not resDict.has_key(resKey):
+                if resKey not in resDict:
                     #Add new residue				
                     if (self.__verbose): self.__lfh.write("Added new residue %s\n" % resKey)				
                     resDict[resKey] = OEGraphMol()
@@ -327,7 +327,7 @@ class ChemCompExtract(object):
             fCharge += atom.GetFormalCharge()
             atChargeList.append(atom.GetFormalCharge())
             atNameList.append(atom.GetName())
-            if not dup.has_key(atom.GetName()):
+            if atom.GetName() not in dup:
                 dup[atom.GetName()] = None
             else:
                 if self.__verbose: self.__lfh.write("++ERROR - Duplicate atom name %s\n" % str(atom.GetName()))
@@ -478,7 +478,7 @@ class ChemCompExtract(object):
         fCharge = 0		
         for atom in mol.GetAtoms():
             fCharge += atom.GetFormalCharge()		
-            if not dup.has_key(atom.GetName()):
+            if atom.GetName() not in dup:
                 dup[atom.GetName()] = None
             else:
                 if self.__verbose: self.__lfh.write("++ERROR - Duplicate atom name %s\n" % str(atom.GetName()))
@@ -751,7 +751,7 @@ class ChemCompExtract(object):
         fCharge = 0		
         for atom in mol.GetAtoms():
             fCharge += atom.GetFormalCharge()		
-            if not dup.has_key(atom.GetName()):
+            if atom.GetName() not in dup:
                 dup[atom.GetName()] = None
             else:
                 if self.debug: self.lf.write("++ERROR - Duplicate atom name %s\n" % str(atom.GetName()))
@@ -955,7 +955,7 @@ class ChemCompExtract(object):
         fCharge = 0		
         for atom in mol.GetAtoms():
             fCharge += atom.GetFormalCharge()		
-            if not dup.has_key(atom.GetName()):
+            if atom.GetName() not in dup:
                 dup[atom.GetName()] = None
             else:
                 if self.debug: self.lf.write("++ERROR - Duplicate atom name %s\n" % str(atom.GetName()))

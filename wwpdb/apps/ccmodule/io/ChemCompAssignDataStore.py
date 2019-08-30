@@ -490,7 +490,7 @@ class ChemCompAssignDataStore(object):
 
 
     def __generateUserSelectionFile(self,exprtFilePath):
-        outputFile = file( exprtFilePath, "w")
+        outputFile = open( exprtFilePath, "w")
         assignedId = ""
         for instId in self.getAuthAssignmentKeys():
             if self.getBatchBestHitStatus(instId) == 'passed':
@@ -516,7 +516,7 @@ class ChemCompAssignDataStore(object):
         all assignments have value other than 'None'
         '''
         try:
-            outputFile = file( updtedCcAssignFilePath, "w")
+            outputFile = open( updtedCcAssignFilePath, "w")
             assignedId = ""
             atomMappingInstanceData = []
             atomMappingOutput = []
@@ -775,7 +775,7 @@ class ChemCompAssignDataStore(object):
                 doneFlag = "Y"
             else:
                 doneFlag = "N"
-            outputFile = file( dpstrPrgrssFilePath, "w")
+            outputFile = open(dpstrPrgrssFilePath, "w")
             outputFile.write( "deposit_ID\t%s\n" % depDataSetId.upper() )
             outputFile.write( "num_ligand_ids_requiring_attn\t%s\n" % numGrpsRqurngAttn )
             outputFile.write( "num_ligand_ids_addressed\t%s\n" % numGrpsAddrsd )
@@ -798,7 +798,7 @@ class ChemCompAssignDataStore(object):
     
     def getAuthAssignmentKeys(self):
         try:
-            keys = self.__authAssignment.keys()
+            keys = list(self.__authAssignment.keys())
             keys.sort()
             return keys
         except:
@@ -1503,7 +1503,7 @@ class ChemCompAssignDataStore(object):
         
     def getDpstrUploadFile(self,grpId,fileType):
         try:
-            return self.__dpstrUploadFiles[grpId][fileType].keys()
+            return list(self.__dpstrUploadFiles[grpId][fileType].keys())
         except:
             return None
         
@@ -1561,7 +1561,7 @@ class ChemCompAssignDataStore(object):
         
     def getDpstrSketchFile(self,grpId,fileType='sdf'):
         try:
-            return self.__dpstrSketchFiles[grpId][fileType].keys()
+            return list(self.__dpstrSketchFiles[grpId][fileType].keys())
         except:
             return None
         
@@ -1653,25 +1653,26 @@ class ChemCompAssignDataStore(object):
              
         """
         ofh.write("\nKeys in authAssignment dict ----------------------------- \n")
-        keys = self.__authAssignment.keys()
+        # python3 dict_keys cannot be sorted
+        keys = list(self.__authAssignment.keys())
         keys.sort()
         for instId in keys:  
             ofh.write("Instance id: %s\n" % instId )
             
         ofh.write("\nKeys in batchBestHitAssignment dict ----------------------------- \n")
-        keys = self.__batchBestHitAssignment.keys()
+        keys = list(self.__batchBestHitAssignment.keys())
         keys.sort()
         for instId in keys:  
             ofh.write("Instance id: %s\n" % instId )
 
         ofh.write("\nKeys in topHitsList dict ----------------------------- \n")
-        keys = self.__topHitsList.keys()
+        keys = list(self.__topHitsList.keys())
         keys.sort()
         for instId in keys:  
             ofh.write("Instance id: %s\n" % instId )
             
         ofh.write("\nKeys in annotAssignment dict ----------------------------- \n")   
-        keys = self.__annotAssignment.keys()
+        keys = list(self.__annotAssignment.keys())
         keys.sort()
         for instId in keys:  
             ofh.write("Instance id: %s\n" % instId )
@@ -1710,7 +1711,7 @@ class ChemCompAssignDataStore(object):
     def dumpData(self,ofh):
         ofh.write("+ChemCompAssignStore.dumpData -- starting\n")
         
-        keys = self.__dpstrOrigCcIdMaster.keys()
+        keys = list(self.__dpstrOrigCcIdMaster.keys())
         keys.sort()
         for instId in keys:
             ofh.write("Original depositor ccID for instID, %s, is : %s\n" % (instId,self.__dpstrOrigCcIdMaster[instId]) )
@@ -1718,60 +1719,60 @@ class ChemCompAssignDataStore(object):
         for ligid in self.__rsrchSlctdGrpLst:
             ofh.write("List of IDs selected for research includes: %s \n" % (ligid) )
         
-        keys = self.__dpstrCcRsrchInfo.keys()
+        keys = list(self.__dpstrCcRsrchInfo.keys())
         keys.sort()
         for ligid in keys:
             ofh.write("Research data for LigID, %s, is : %r\n" % (ligid,self.__dpstrCcRsrchInfo[ligid]) )
          
-        keys = self.__authAssignment.keys()
+        keys = list(self.__authAssignment.keys())
         keys.sort()
         for instId in keys:
             ofh.write("Author assigned ccID for instID, %s, is : %s\n" % (instId,self.__authAssignment[instId]) )
             
-        keys = self.__batchBestHitAssignment.keys()
+        keys = list(self.__batchBestHitAssignment.keys())
         keys.sort()
         for instId in keys:
             ofh.write("Best batch srch hit ccID and hit status for instID, %s, is : %s, %s\n" % (instId,self.__batchBestHitAssignment[instId][0],self.__batchBestHitAssignment[instId][1]) )
         
-        keys = self.__topHitsList.keys()
+        keys = list(self.__topHitsList.keys())
         keys.sort()
         for instId in keys:
             for tupl in self.__topHitsList[instId]:
                 ofh.write("Top Hits Data contents for instance ID %s is %s\n" % (instId,tupl) )
                 
-        keys = self.__newCandidatesList.keys()
+        keys = list(self.__newCandidatesList.keys())
         keys.sort()
         for instId in keys:
             for tupl in self.__newCandidatesList[instId]:
                 ofh.write("Non-Candidates contents for instance ID %s is %s\n" % (instId,tupl) )
                 
 
-        keys = self.__ccNameList.keys()
+        keys = list(self.__ccNameList.keys())
         keys.sort()
         for instId in keys:
             ofh.write("CC determined name for instID, %s, is : %s\n" % (instId,self.__ccNameList[instId]) )
         
-        keys = self.__ccFormulaList.keys()
+        keys = list(self.__ccFormulaList.keys())
         keys.sort()
         for instId in keys:
             ofh.write("CC determined formula for instID, %s, is : %s\n" % (instId,self.__ccFormulaList[instId]) )
                     
-        keys = self.__ccFormalChrgList.keys()
+        keys = list(self.__ccFormalChrgList.keys())
         keys.sort()
         for instId in keys:
             ofh.write("CC determined formal charge for instID, %s, is : %s\n" % (instId,self.__ccFormalChrgList[instId]) )                    
             
-        keys = self.__ccAssignmentWarning.keys()
+        keys = list(self.__ccAssignmentWarning.keys())
         keys.sort()
         for instId in keys:
             ofh.write("CC assignment warning for instID, %s, is : %s\n" % (instId,self.__ccAssignmentWarning[instId]) )     
             
-        keys = self.__ccSingleAtomFlag.keys()
+        keys = list(self.__ccSingleAtomFlag.keys())
         keys.sort()
         for instId in keys:
             ofh.write("CC single atom flag for instID, %s, is : %s\n" % (instId,self.__ccSingleAtomFlag[instId]) )     
         
-        keys = self.__annotAssignment.keys()
+        keys = list(self.__annotAssignment.keys())
         keys.sort()
         for instId in keys:
             ofh.write("Annotator-assigned ccID for instID, %s, is : %s\n" % (instId,self.__annotAssignment[instId]) )
@@ -1782,7 +1783,7 @@ class ChemCompAssignDataStore(object):
         for grp in self.__GlbllyAssgndGrpLst:
             ofh.write("glbllyAssgndGrpList dump: group that was assigned via 'All Instances' view: %s\n" % grp)
         
-        keys = self.__GlbllyAssgndDict.keys()
+        keys = list(self.__GlbllyAssgndDict.keys())
         keys.sort()   
         for grp in keys:   
             ofh.write("GlbllyAssgndDict dump: ccid %s was assigned via 'All Instances' view to authAssgndGrp %s\n" % (self.__GlbllyAssgndDict[grp],grp) ) 
@@ -1797,12 +1798,12 @@ class ChemCompAssignDataStore(object):
         for grp in self.__GlblRerunSrchLst:
             ofh.write("GlblRerunSrchLst dump: group for which search was rerun via 'All Instances' view: %s\n" % grp)
                 
-        keys = self.__GlblRerunSrchDict_lnkRadii.keys()
+        keys = list(self.__GlblRerunSrchDict_lnkRadii.keys())
         keys.sort()   
         for grp in keys:   
             ofh.write("GlblRerunSrchDict_lnkRadii dump: authAssgndGrp %s currently has link radius delta value of %s\n" % (grp,self.__GlblRerunSrchDict_lnkRadii[grp]) )
             
-        keys = self.__GlblRerunSrchDict_bndRadii.keys()
+        keys = list(self.__GlblRerunSrchDict_bndRadii.keys())
         keys.sort()   
         for grp in keys:   
             ofh.write("GlblRerunSrchDict_bndRadii dump: authAssgndGrp %s currently has bond radius delta value of %s\n" % (grp,self.__GlblRerunSrchDict_bndRadii[grp]) )
@@ -1811,53 +1812,53 @@ class ChemCompAssignDataStore(object):
         for instId in self.__instncRerunSrchLst:
             ofh.write("instncRerunSrchLst dump: instId for which search was rerun via 'Single Instance' view: %s\n" % instId)
             
-        keys = self.__rerunParam_linkRadii.keys()
+        keys = list(self.__rerunParam_linkRadii.keys())
         keys.sort()   
         for instId in keys:   
             ofh.write("rerunParam_linkRadii dump: instId %s currently has link radius delta value of %s\n" % (instId,self.__rerunParam_linkRadii[instId]) )
             
-        keys = self.__rerunParam_bondRadii.keys()
+        keys = list(self.__rerunParam_bondRadii.keys())
         keys.sort()   
         for instId in keys:   
             ofh.write("__rerunParam_bondRadii dump: instId %s currently has bond radius delta value of %s\n" % (instId,self.__rerunParam_bondRadii[instId]) )
             
-        keys = self.__newCcDefined.keys()
+        keys = list(self.__newCcDefined.keys())
         keys.sort()   
         for instId in keys:   
             ofh.write("__newCcDefined dump: instId %s currently has new CC ID defined of %s\n" % (instId,self.__newCcDefined[instId]) )
             
-        keys = self.__dpstrCcExactMatchId.keys()
+        keys = list(self.__dpstrCcExactMatchId.keys())
         keys.sort()   
         for grpId in keys:   
             ofh.write("Mismatches in grpId '%s' currently have value of '%s' for exact match ID.\n" % (grpId,self.__dpstrCcExactMatchId[grpId]) )
             
-        keys = self.__dpstrCcType.keys()
+        keys = list(self.__dpstrCcType.keys())
         keys.sort()   
         for grpId in keys:   
             ofh.write("Mismatches in grpId '%s' currently have value of '%s' for auth provided ligand type.\n" % (grpId,self.__dpstrCcType[grpId]) )
         
-        keys = self.__dpstrCcAltId.keys()
+        keys = list(self.__dpstrCcAltId.keys())
         keys.sort()   
         for grpId in keys:   
             ofh.write("Mismatches in grpId '%s' currently have value of '%s' for author proposed alternate ID.\n" % (grpId,self.__dpstrCcAltId[grpId]) )
 
-        ccIds = self.__dpstrCcName.keys()
+        ccIds = list(self.__dpstrCcName.keys())
         ccIds.sort()   
         for ccId in ccIds:   
             ofh.write("Mismatches in ccId '%s' currently given auth provided ligand descriptor string of '%s'\n" % (ccId,self.__dpstrCcDscrptrStr[ccId]) )
 
-        grpIds = self.__dpstrUploadFiles.keys()
+        grpIds = list(self.__dpstrUploadFiles.keys())
         grpIds.sort()   
         for grpId in grpIds:
-            flTypes = self.__dpstrUploadFiles[grpId].keys()
+            flTypes = list(self.__dpstrUploadFiles[grpId].keys())
             flTypes.sort()
             for flType in flTypes:
                 ofh.write("File(s) uploaded for grpId '%s'and fileType '%s': %r \n" % (grpId,flType,self.__dpstrUploadFiles[grpId][flType].items()) )
                 
-        grpIds = self.__dpstrSketchFiles.keys()
+        grpIds = list(self.__dpstrSketchFiles.keys())
         grpIds.sort()   
         for grpId in grpIds:
-            flTypes = self.__dpstrSketchFiles[grpId].keys()
+            flTypes = list(self.__dpstrSketchFiles[grpId].keys())
             flTypes.sort()
             for flType in flTypes:
                 ofh.write("Sketch file(s) generated for grpId '%s'and fileType '%s': %r \n" % (grpId,flType,self.__dpstrSketchFiles[grpId][flType].items()) )
