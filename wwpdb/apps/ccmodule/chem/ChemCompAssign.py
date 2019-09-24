@@ -790,7 +790,7 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.doAssignValidation() - CC instid validation list  : %s\n" % self.__ccValidateInstIdList)
             self.__lfh.flush()
         #
-        numProc = multiprocessing.cpu_count() / 2
+        numProc = int(multiprocessing.cpu_count() / 2)
         mpu = MultiProcUtil(verbose = self.__verbose)
         mpu.set(workerObj = self, workerMethod = "runMultiAssignValidation")
         mpu.setWorkingDir(self.__sessionPath)
