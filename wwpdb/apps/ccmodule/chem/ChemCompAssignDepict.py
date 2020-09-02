@@ -216,6 +216,10 @@ class ChemCompAssignDepict(ChemCompDepict):
             else:
                 depDataSetId="TMP_ID"
             myD['identifier'] = depDataSetId
+            #
+            if depId:
+                myD['identifier'] = depId
+            #
         #
         myD['session_url_prefix'] = self.rltvAssgnSessionPath
         #
@@ -1339,11 +1343,15 @@ class ChemCompAssignDepict(ChemCompDepict):
                     if (self.__verbose):
                         self.__lfh.write("+%s.%s() - Failed to generate image file [%s] from %s string [%s].\n" %(className, methodName, toLclSessnImgPth, chemCompDescriptorType.upper(), chemCompDescriptor) )
                         traceback.print_exc(file=self.__lfh)
-                
+                    #
             except:
+                # problem with importing SMILES string
+                p_strReplDict['display_dscrptr_vw_btn'] = "displaynone"
+                p_strReplDict['dpstr_info_dscrptr_img_pth'] = ""
                 if (self.__verbose):
                     self.__lfh.write("+%s.%s() - Failed to generate image file [%s] from %s string [%s].\n" %(className, methodName, toLclSessnImgPth, chemCompDescriptorType.upper(), chemCompDescriptor) )
                     traceback.print_exc(file=self.__lfh)
+                #
         else:
             p_strReplDict['display_dscrptr_vw_btn'] = "displaynone"
             p_strReplDict['dpstr_info_dscrptr_img_pth'] = ""

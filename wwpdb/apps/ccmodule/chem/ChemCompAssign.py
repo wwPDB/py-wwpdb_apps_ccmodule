@@ -222,6 +222,11 @@ class ChemCompAssign(object):
                 depDataSetId=fN.lower()
             else:
                 depDataSetId="TMP_ID"
+            #
+            identifier = self.__reqObj.getValue("identifier")
+            if identifier:
+                depDataSetId = identifier
+            #
         #
         if self.__verbose:
             self.__lfh.write("+ChemCompAssign.doAssign() - Starting \n")

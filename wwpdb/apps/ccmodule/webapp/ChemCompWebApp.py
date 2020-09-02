@@ -109,6 +109,8 @@
 # 2014-10-22    ZF     Allow special ion water complex ligands to be forced matched in _ccAssign_validateCcId
 # 2014-11-03    ZF     Add ChemCompAlignImageGenerator class in _ccAssign_getNewCandidate & __generateInstanceLevelData to generate aligned images
 # 2015-03-01    ZF     Re-implemented _ccAssign_generateBatchData()
+# 2019-11-12    ZF     Added option for deposition id input in standalone mode
+# 2020-08-27    ZF     Added blocking 'REF_ONLY' status ligands
 #                        
 ##
 """
@@ -726,11 +728,25 @@ class ChemCompWebAppWorker(object):
                                                   fileSource=str(self.__reqObj.getValue("filesource")).lower(), \
                                                   versionId='latest', partNumber=1)
         else:
-            if not self.__isFileUpload():
-                rC.setError(errMsg='No file uploaded')            
+            depId = str(self.__reqObj.getValue('identifier')).upper().strip()
+            if depId:
+                pI = PathInfo(siteId=self.__siteId, sessionPath=self.__sessionPath, verbose=self.__verbose, log=self.__lfh)
+                archiveFilePath = pI.getFilePath(dataSetId=depId, wfInstanceId=None, contentType='model', formatType='pdbx', fileSource="archive")
+                if archiveFilePath and os.access(archiveFilePath, os.R_OK):
+                    self.__modelFilePath = pI.getFilePath(dataSetId=depId, wfInstanceId=None, contentType='model', formatType='pdbx', fileSource="session")
+                    shutil.copyfile(archiveFilePath, self.__modelFilePath)
+                    self.__reqObj.setValue("filePath", self.__modelFilePath)
+                    self.__reqObj.setValue("identifier", depId)
+                else:
+                    rC.setError(errMsg='Invalid Deposition ID: ' + depId)
+                    return rC
+                #
+            elif self.__isFileUpload():
+                self.__uploadFile()
+            else:
+                rC.setError(errMsg='No Deposition ID input & file uploaded')            
                 return rC
             #
-            self.__uploadFile()
         #
         if (self.__verbose):
             self.__lfh.write("+ChemCompWebAppWorker._ccAssign_BatchSrchSummary() Call ChemCompAssignDepict with workflow %r\n" % bIsWorkflow)
@@ -1586,6 +1602,11 @@ class ChemCompWebAppWorker(object):
             status = cifObj.GetSingleValue('chem_comp', 'pdbx_release_status')
             if status == 'OBS':
                 errorMessage = '"' + ccId + '" is an obsolete code.'
+                rC.setError(errMsg=errorMessage)
+                return rC
+            #
+            if status == 'REF_ONLY':
+                errorMessage = '"' + ccId + '" is an "REF_ONLY" code.'
                 rC.setError(errMsg=errorMessage)
                 return rC
             #
@@ -2458,7 +2479,7 @@ class ChemCompWebAppWorker(object):
             if (self.__verbose):
                 self.__lfh.write("+ChemCompWebApp.__uploadFile() using default identifier for %s\n" % str(fName) ) 
 
-        self.__reqObj.setValue("identifier",fId)
+        #self.__reqObj.setValue("identifier",fId)
         self.__reqObj.setValue("fileName",fName)
         #
         if fType in ['cif','cifeps','pdb']:

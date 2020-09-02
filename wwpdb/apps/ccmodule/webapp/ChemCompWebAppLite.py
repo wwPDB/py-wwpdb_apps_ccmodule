@@ -57,6 +57,7 @@
 # 2017-03-27    RPS    Disabling functionality for capturing HOH research data and for capturing ligand binding assay data
 #                        Generating cc-dpstr-info file on intermittent saves. Also on startup, now invoking saveLigModState to generate cc-dpstr-prgrss file
 #                        for depui monitoring purposes
+# 2020-08-27    ZF     Added blocking 'REF_ONLY' status ligands
 ##
 """
 'Lite' Chemical component editor tool web request and response processing modules.
@@ -1125,6 +1126,11 @@ class ChemCompWebAppLiteWorker(object):
         status = cifObj.GetSingleValue('chem_comp', 'pdbx_release_status')
         if status == 'OBS':
             errorMessage = '"' + ccId + '" is an obsolete code.'
+            rC.setError(errMsg=errorMessage)
+            return rC
+        #
+        if status == 'REF_ONLY':
+            errorMessage = '"' + ccId + '" is an "REF_ONLY" code.'
             rC.setError(errMsg=errorMessage)
             return rC
         #
