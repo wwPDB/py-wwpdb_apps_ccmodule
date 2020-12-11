@@ -109,7 +109,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__cI=ConfigInfo(self.__siteId)
         self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
         self.__pathPdbxDictFile  = self.__cI.get("SITE_MMCIF_DICT_FILE_PATH")
-        self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX')
+        self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__workingRltvAssgnSessionPath=''
         
         self.__alternateTopHitMarkup='''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''
