@@ -235,7 +235,7 @@ class ChemCompWebAppLiteWorker(object):
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
         self.__deployPath = self.__cI.get('SITE_DEPLOY_PATH')
-        self.__siteSrvcUrlPathPrefix = self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX')
+        self.__siteSrvcUrlPathPrefix = self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__siteConfigDir = self.__cI.get('TOP_WWPDB_SITE_CONFIG_DIR')
         self.__siteLoc = self.__cI.get('WWPDB_SITE_LOC')
         self.__ccConfig = ChemCompConfig(reqObj,verbose=self.__verbose,log=self.__lfh)
