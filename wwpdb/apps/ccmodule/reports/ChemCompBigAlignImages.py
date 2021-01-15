@@ -42,7 +42,7 @@ class ChemCompBigAlignImages(object):
         if not os.access(self.__inputFile, os.R_OK):
             return
         #
-        f = file(self.__inputFile, 'r')
+        f = open(self.__inputFile, 'r')
         data = f.read()
         f.close()
         #
