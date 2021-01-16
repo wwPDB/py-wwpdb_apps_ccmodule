@@ -2440,7 +2440,7 @@ class ChemCompWebAppWorker(object):
             # Store upload file in session directory - 
 
             self.__modelFilePath=os.path.join(self.__sessionPath,fName)
-            ofh=open(self.__modelFilePath,'w')
+            ofh=open(self.__modelFilePath,'wb')
             ofh.write(fs.file.read())
             ofh.close()
             self.__reqObj.setValue("UploadFileName",fName)
