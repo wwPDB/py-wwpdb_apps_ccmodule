@@ -1218,8 +1218,8 @@ class ChemCompAssign(object):
         
         ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         
-        # parse model file to get  pdbx_nonpoly_scheme.pdb_mon_id 
-        # _pdbx_nonpoly_scheme.auth_mon_id 
+        # parse model file to get _pdbx_nonpoly_scheme.pdb_mon_id 
+        # _pdbx_nonpoly_scheme.auth_mon_id and equivalent in _pdbx_branch_scheme.
         #
         fpModel = ccI.getModelPdxFilePath()
         
@@ -1229,8 +1229,22 @@ class ChemCompAssign(object):
             
         if fpModel and os.access(fpModel, os.R_OK):
             cifObj = mmCIFUtil(filePath=fpModel)
-            list = cifObj.GetValue('pdbx_nonpoly_scheme')
-            for dir in list:
+
+            clist = cifObj.GetValue('pdbx_branch_scheme')
+            for dir in clist:
+                if ('pdb_mon_id' not in dir) or ('auth_mon_id' not in dir):
+                    continue
+                #
+                pdbWorkingCcid = dir['pdb_mon_id'].upper()
+                dpstrOrigCcid = dir['auth_mon_id'].upper()
+                
+                if( pdbWorkingCcid == 'HOH' ):
+                    continue
+                
+                rtrnDict[pdbWorkingCcid]=dpstrOrigCcid
+
+            clist = cifObj.GetValue('pdbx_nonpoly_scheme')
+            for dir in clist:
                 if ('pdb_mon_id' not in dir) or ('auth_mon_id' not in dir):
                     continue
                 #
