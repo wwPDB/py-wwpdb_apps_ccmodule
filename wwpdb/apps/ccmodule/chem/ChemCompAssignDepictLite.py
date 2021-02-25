@@ -111,6 +111,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__pathPdbxDictFile  = self.__cI.get("SITE_MMCIF_DICT_FILE_PATH")
         self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__workingRltvAssgnSessionPath=''
+        self.__depositPath=os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), self.__cI.get("DEPOSIT_DIR_NAME"))
         
         self.__alternateTopHitMarkup='''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''
         '''
@@ -1040,9 +1041,9 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     # else user chose to use originally proposed ligand ID
                     lclDict['use_orig_proposed_id_checked'] = 'checked="checked"' #show radio button as clicked
         
-        absltPath2dAuthAssgndImg = os.path.join(p_reqObj.getValue("SessionsPath"),p_hlprDict['sessionid'],"assign",p_authAssignedGrp+'.svg')
+        absltPath2dAuthAssgndImg = os.path.join(self.__depositPath,p_hlprDict["depositionid"].upper(),"cc_report",p_authAssignedGrp+'.svg')
         if( os.access(absltPath2dAuthAssgndImg,os.R_OK) ):
-            path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,p_authAssignedGrp+'.svg')
+            path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
             if( self.__verbose and self.__debug ):
                 self.__lfh.write("+%s.%s() ----- successful access to absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
                 self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
@@ -1050,7 +1051,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             if( self.__verbose and self.__debug ):
                 self.__lfh.write("+%s.%s() ----- could not access absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
             #path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,"rfrnc_reports",p_authAssignedGrp,p_authAssignedGrp+'-300.gif')
-            path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,"rfrnc_reports",p_authAssignedGrp,p_authAssignedGrp+'-noh.gif')
+            path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp, p_authAssignedGrp+'-noh.gif')
             if( self.__verbose and self.__debug ):
                 self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
             
@@ -1145,7 +1146,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__workingRltvAssgnSessionPath=self.__siteSrvcUrlPathPrefix+self.rltvAssgnSessionPath
         #
         if (self.__verbose):
-                    self.__lfh.write("+%s.%s() ----- starting for instId: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
+            self.__lfh.write("+%s.%s() ----- starting for instId: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
                     
         ## interrogate ChemCompAssign DataStore for necessary data items
         authAssignedGrp = p_ccAssgnDataStr.getAuthAssignment(instId)
@@ -1221,7 +1222,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 p_hlprDict['msmtch_explain'] = ''
         
         ## setting relative paths to 2D visualization resources that are used by webpage to load on demand via AJAX
-        p_hlprDict['2dpath']               = os.path.join(self.__workingRltvAssgnSessionPath,instId+'.svg')
+        p_hlprDict['2dpath']                 = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}.svg'.format(depId.upper(), instId)
         '''
         if( bHaveTopHit ):
             p_hlprDict['2dpath']               = os.path.join(self.__workingRltvAssgnSessionPath,instId+'.svg')
@@ -1231,7 +1232,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     
         if( bHaveTopHit ):
             #p_hlprDict['2dpath_top_hit']       = os.path.join(self.__workingRltvAssgnSessionPath,'rfrnc_reports',topHitCcId,topHitCcId+'-noh.gif')
-            p_hlprDict['2dpath_top_hit']       = os.path.join(self.__workingRltvAssgnSessionPath,topHitCcId+'.svg')
+            p_hlprDict['2dpath_top_hit']       = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId.upper(), topHitCcId, topHitCcId)
         
         
         ############################################################################################################################################################
@@ -1708,7 +1709,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn=instncJmolAivwTmplt,parameterDict=p_hlprDict) )
         fp.close()
         #
-        
+
     def __renderInstanceMatchRslts(self,p_ccAssgnDataStr,p_hlprDict):
         ''' For given ligand instance id, generates:
 
