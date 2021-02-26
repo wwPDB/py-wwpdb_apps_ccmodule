@@ -81,13 +81,23 @@ class ChemCompDpUtility(object):
                     fitTupleDict[authAssignedId] = {}
                     fitTupleDict[authAssignedId]['alignList'] = []
                     fitTupleDict[authAssignedId]['masterAlignRef'] = None 
-                
-                # this file will hold information of ligand instance
-                instanceChemCompFilePath = os.path.join(self._depositAssignPath, instId, instId + '.cif')
 
-                # report material for this experimental instance and imaging setup
+                # report material and imaging setup for this experimental instance
+                instanceChemCompFilePath = os.path.join(self._depositAssignPath, instId, instId + '.cif')
                 self._genLigandReportData(instId, instanceChemCompFilePath, 'exp')
                 self._imagingSetupForLigandInstance(instId, authAssignedId, fitTupleDict, instanceChemCompFilePath)
+
+                # report material and imaging setup for the author assigned instance
+                if authAssignedId not in ccIdAlreadySeenList and self._checkLigandPath(authAssignedId):
+                    self._genLigandReportData(authAssignedId, rtype='ref')
+                    self._imagingSetupForTopHit(authAssignedId, authAssignedId, fitTupleDict)
+                    ccIdAlrdySeenLst.append(authAssignedId)
+                
+                # report material and imaging setup for the best dictionary reference
+                if topHitCcId not in ccIdAlreadySeenList and topHitCcId.lower() != 'none':
+                    self._genLigandReportData(topHitCcId, rtype='ref')
+                    self._imagingSetupForTopHit(authAssignedId, topHitCcId, fitTupleDict)
+                    ccIdAlrdySeenLst.append(topHitCcId)
 
         
         except Exception as e:
@@ -160,7 +170,7 @@ class ChemCompDpUtility(object):
             for k,v in filePaths.items():
                 self._logger.debug('Coordinate file reporting -- key: {}, value: {}', k, v)
 
-    def _imagingSetupForLigandInstance(self, instId, authAssignmentId, fitTuplDict, instanceCcAbsFilePath):
+    def _imagingSetupForLigandInstance(self, instId, authAssignedId, fitTupleDict, instanceCcAbsFilePath):
         """Setup for generating instance images.
 
         Args:
@@ -171,12 +181,12 @@ class ChemCompDpUtility(object):
         """
         instImageOutputPath = os.path.join(self._ccReportPath, instId + '.svg')
 
-        if fitTuplDict[authAssignmentId]['masterAlignRef'] is None:
-            fitTuplDict[authAssignmentId]['masterAlignRef'] = (instId, instanceCcAbsFilePath, instImageOutputPath)
+        if fitTupleDict[authAssignedId]['masterAlignRef'] is None:
+            fitTupleDict[authAssignedId]['masterAlignRef'] = (instId, instanceCcAbsFilePath, instImageOutputPath)
         else:
-            fitTuplDict[authAssignmentId]['alignList'].append((instId, instanceCcAbsFilePath, instImageOutputPath))
+            fitTupleDict[authAssignedId]['alignList'].append((instId, instanceCcAbsFilePath, instImageOutputPath))
     
-    def _imagingSetupForTopHit(self, instId, authAssignmentId, fitTuplDict):
+    def _imagingSetupForTopHit(self, instId, authAssignedId, fitTupleDict):
         """Setup for generating ligand reference images.
 
         Args:
@@ -192,11 +202,95 @@ class ChemCompDpUtility(object):
         refImageOutputPath = os.path.join(self._ccReportPath, instId + '.svg')
 
         if os.access(chemCompCifPath, os.R_OK):
-            fitTuplDict[authAssignmentId]['alignList'].append((instId, chemCompCifPath, refImageOutputPath))
+            fitTupleDict[authAssignedId]['alignList'].append((instId, chemCompCifPath, refImageOutputPath))
         else:
             # raising here since it's expected to be able to read the ligand ".cif"
             # file from the ligand dict
             raise IOError('Could not access file "{}"'.format((chemCompCifPath)))
+    
+    def _checkLigandPath(self, ccid):
+        """Helper method to check if a given ligand has a correspondent
+        entry in the dictionary.
+
+        Args:
+            ccid (str): ligand ID
+
+        Returns:
+            bool: True if the ligand has an entry in the dictionary, False otherwise
+        """
+        ccDictPrefix = self._ccConfig.getPath('chemCompCachePath')
+        ligandEntryPath = os.path.join(pathPrefix, ccid[:1], ccid, ccid + '.cif')
+
+        if not os.access(ligandEntryPath, os.R_OK):
+            if self._verbose:
+                self._logger.debug('Ligand ID %s has no corresponding dict ref file at %s', ccid, ligandEntryPath)
+
+            return False
+
+        return True
+    
+    def _genAligned2dImages(self, fitTupleDict):
+        redoCcidLst = []
+
+        for ccid in fitTupleDict:
+            try:
+                if fitTupleDict[ccid]['alignList'] is not None and len(fitTupleDict[ccid]['alignList']) > 0:
+                    fileListPath = os.path.join(self._ccReportPath, 'alignfilelist_{}.txt'.format(ccid))
+                    logPath = os.path.join(self._ccReportPath, 'alignfile_{}.log'.format(ccid))
+
+                    ofh=open(fileListPath,'w')
+                    ofh.write('ASSIGN_PATH:%s\n'%self._ccReportPath)
+                    ofh.write('MASTER_ID:%s\nMASTER_DEF_PTH:%s\nMASTER_IMG_PTH:%s\n'%(fitTupleDict[ccid]["masterAlignRef"][0],fitTupleDict[ccid]["masterAlignRef"][1],fitTupleDict[ccid]["masterAlignRef"][2]) )
+                        
+                    for (thisId,fileDefPath,imgFilePth) in fitTupleDict[ccid]["alignList"]:
+                        ofh.write('ALIGN_ID:%s\nALIGN_DEF_PTH:%s\nALIGN_IMG_PTH:%s\n'%(thisId,fileDefPath,imgFilePth) )
+                        
+                    ofh.close()                
+                    
+                    command = "python -m wwpdb.apps.ccmodule.reports.ChemCompAlignImages -v -i %s -f %s"%(ccid,fileListPath)
+                    returnCode = self.__runTimeout(command=command, logPath=logPath)
+                    
+                    if( returnCode is None or returnCode != 0 ):
+                        self.__lfh.write("\n+++%s.%s() -- WARNING: had to revisit image generation for ccid: %s\n\n" %(className, methodName, ccid) )
+                        redoCcidLst.append(ccid)
+                else:
+                    # there is no match for the ccid, no valid auth assigned id, and there is only one instance of the experimental ccid --> i.e. there will only be one image to generate
+                    redoCcidLst.append(ccid)
+                
+            except:
+                traceback.print_exc(file=self.__lfh)
+                
+            # safeguard measure required if above process fails silently
+            # so we check to see if the master image was not generated and add the ccid to the redo list
+            masterImgPth = fitTupleDict[ccid]["masterAlignRef"][2]
+            if( not os.access( masterImgPth, os.F_OK ) ):
+                self.__lfh.write("\n+++%s.%s() -- WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s\n\n" %(className, methodName, masterImgPth, ccid) )
+                redoCcidLst.append(ccid)
+        
+        # generate non-aligned images for those cases where exception occurred due to timeout/error
+        pathList = []
+        for ccid in redoCcidLst:
+            try:
+                imgTupl = fitTupleDict[ccid]["masterAlignRef"]
+                pathList.append( imgTupl )
+                
+                for anImgTupl in fitTupleDict[ccid]["alignList"]:
+                    pathList.append( anImgTupl )
+                
+                logPath = os.path.join(self._ccReportPath,'genimagefile_'+ccid+'.log')
+                
+                for title,path,imgPth in pathList:
+                    
+                    command = "python -m wwpdb.apps.ccmodule.reports.ChemCompGenImage -v -i %s -f %s -o %s"%(title,path,imgPth)
+                    returnCode = self.__runTimeout(command=command, logPath=logPath)
+                    
+                    if( returnCode is None or returnCode != 0 ):
+                        self.__lfh.write("\n+++%s.%s() -- WARNING: image generation failed for: %s\n\n" %(className, methodName, imgPth) )
+                    
+            except:
+                traceback.print_exc(file=self.__lfh)
+        
+        return
 
     def addInput(self, name=None, value=None, type='file'):
         """Add a named input and value to the dictionary of input parameters.
@@ -248,6 +342,7 @@ class ChemCompDpUtility(object):
         self._reqObj = InputRequest({}, self._verbose, self._lfh)
         self._reqObj.setValue('WWPDB_SITE_ID', self._cI.get('SITE_PREFIX'))
         self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cI.get('TOP_WWPDB_SESSIONS_PATH'))
+        self._reqObj.setValue('SessionsPath', self._cI.get('TOP_WWPDB_SESSIONS_PATH'))
         self._reqObj.setValue('identifier', depId)
 
         # self._sessionId = self._reqObj.getSessionId()
