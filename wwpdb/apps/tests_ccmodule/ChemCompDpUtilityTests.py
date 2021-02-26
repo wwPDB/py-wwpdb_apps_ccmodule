@@ -29,6 +29,8 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         self._ccDpUtility = ChemCompDpUtility('D_800004', self.__verbose, self.__lfh)
         self._ccAssignFile = os.path.join(os.path.dirname(__file__), 'fixtures', 'D_800004_cc-assign_P1.cif.V1')
         self._testCcInstanceFilePath = os.path.join(os.path.dirname(__file__), 'fixtures', '1_H_0G7_701_.cif')
+        self._instId = '1_H_0G7_701_'
+        self._topHitId = '0G7'
 
     def test_process_cc_assign(self):
         # missing cc assign file
@@ -41,31 +43,65 @@ class ChemCompDpUtilityTests(unittest.TestCase):
     
     def test_gen_report_data(self):
         # testing experimental instance reports
-        self._ccDpUtility._genLigandReportData('1_H_0G7_701_', self._testCcInstanceFilePath, 'exp')
+        self._ccDpUtility._genLigandReportData(self._instId, self._testCcInstanceFilePath, 'exp')
 
-        repPath = os.path.join(self._ccDpUtility._ccReportPath, '1_H_0G7_701_', 'report')
-        self.assertTrue(os.path.exists(os.path.join(repPath, '1_H_0G7_701__report.html')))
-        self.assertTrue(os.path.exists(os.path.join(repPath, '1_H_0G7_701_.cif')))
+        repPath = os.path.join(self._ccDpUtility._ccReportPath, self._instId, 'report')
+        self.assertTrue(os.path.exists(os.path.join(repPath, '{}_report.html'.format(self._instId))))
+        self.assertTrue(os.path.exists(os.path.join(repPath, '{}.cif'.format(self._instId))))
         self.assertTrue(os.path.exists(os.path.join(repPath, 'report.log')))
 
         with self.assertRaises(Exception):
             # just expect a generic exception
-            self._ccDpUtility._genLigandReportData('1_H_0G7_701_', '/fake/path', 'exp')
+            self._ccDpUtility._genLigandReportData(self._instId, '/fake/path', 'exp')
         
         # testing reference reports
 
-        self._ccDpUtility._genLigandReportData('0G7', None, 'ref')
+        self._ccDpUtility._genLigandReportData(self._topHitId, None, 'ref')
 
-        repPath = os.path.join(self._ccDpUtility._ccReportPath, 'rfrnc_reports', '0G7')
-        self.assertTrue(os.path.exists(os.path.join(repPath, '0G7_report.html')))
-        self.assertTrue(os.path.exists(os.path.join(repPath, '0G7_ideal.cif')))
+        repPath = os.path.join(self._ccDpUtility._ccReportPath, 'rfrnc_reports', self._topHitId)
+        self.assertTrue(os.path.exists(os.path.join(repPath, '{}_report.html'.format(self._topHitId))))
+        self.assertTrue(os.path.exists(os.path.join(repPath, '{}_ideal.cif'.format(self._topHitId))))
         self.assertTrue(os.path.exists(os.path.join(repPath, 'report.log')))
 
         with self.assertRaises(Exception):
             # just expect a generic exception
             self._ccDpUtility._genLigandReportData('---', None, 'ref')
+    
+    def test_instance_imaging_setup(self):
+        tDict = {}
 
-    @unittest.skip
+        tDict[self._topHitId] = {
+            'alignList': [],
+            'masterAlignRef': None,
+        }
+
+        outputTuple = (
+            '1_H_0G7_701_',
+            '/nfs/public/release/msd/services/onedep/data/production_py3_8/deposit/D_800004/assign/1_H_0G7_701_/1_H_0G7_701_.cif',
+            '/nfs/public/release/msd/services/onedep/data/production_py3_8/deposit/D_800004/cc_report/1_H_0G7_701_.svg',
+        )
+
+        instanceChemCompFilePath = os.path.join(self._ccDpUtility._depositAssignPath, self._instId, self._instId + '.cif')
+        self._ccDpUtility._imagingSetupForLigandInstance(self._instId, self._topHitId, tDict, instanceChemCompFilePath)
+        self.assertEqual(tDict[self._topHitId]['masterAlignRef'], outputTuple)
+    
+    def test_tophit_imaging_setup(self):
+        tDict = {}
+
+        tDict[self._topHitId] = {
+            'alignList': [],
+            'masterAlignRef': None,
+        }
+
+        outputTuple = (
+            '0G7',
+            '/nfs/public/release/msd/services/onedep/deployments/production_py3_8/reference/components/ligand-dict-v3/0/0G7/0G7.cif',
+            '/nfs/public/release/msd/services/onedep/data/production_py3_8/deposit/D_800004/cc_report/0G7.svg',
+        )
+
+        self._ccDpUtility._imagingSetupForTopHit(self._topHitId, self._topHitId, tDict)
+        self.assertEqual(tDict[self._topHitId]['alignList'][0], outputTuple)
+
     def test_do_analysis(self):
         self._ccDpUtility.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, self._ccAssignFile)
         self._ccDpUtility.doAnalysis()

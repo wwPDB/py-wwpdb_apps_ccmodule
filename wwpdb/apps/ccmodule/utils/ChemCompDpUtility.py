@@ -70,19 +70,24 @@ class ChemCompDpUtility(object):
                 if self._verbose:
                     self._logger.debug('instId item: {}', instId)
                 
-                authAssignmentId = ccAssignDataStore.getAuthAssignment(instId)
+                authAssignedId = ccAssignDataStore.getAuthAssignment(instId)
                 topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
 
-                if authAssignmentId not in fitTupleDict:
-                    fitTupleDict[authAssignmentId] = {}
-                    fitTupleDict[authAssignmentId]['alignList'] = []
-                    fitTupleDict[authAssignmentId]['masterAlignRef'] = None 
+                # if instId == '1_H_0G7_701_':
+                #     # print('>>>', authAssignmentId, topHitCcId, instIdList)
+                #     return
+
+                if authAssignedId not in fitTupleDict:
+                    fitTupleDict[authAssignedId] = {}
+                    fitTupleDict[authAssignedId]['alignList'] = []
+                    fitTupleDict[authAssignedId]['masterAlignRef'] = None 
                 
                 # this file will hold information of ligand instance
                 instanceChemCompFilePath = os.path.join(self._depositAssignPath, instId, instId + '.cif')
 
-                # report material for this experimental instance
+                # report material for this experimental instance and imaging setup
                 self._genLigandReportData(instId, instanceChemCompFilePath, 'exp')
+                self._imagingSetupForLigandInstance(instId, authAssignedId, fitTupleDict, instanceChemCompFilePath)
 
         
         except Exception as e:
@@ -130,12 +135,18 @@ class ChemCompDpUtility(object):
             instId (str): instance ID
             instanceCcAbsFilePath (str): path to instance ID ".cif" file
             type (str): report type (either "exp" or "ref" for now)
+        Raises:
+            Exception:
+                - if using "ref" mode, must pass a valid instance ID
+                - if using "exp" mode, must pass a valid (and accessible) ".cif" file
         """
         ccReport = ChemCompReport(self._reqObj, self._verbose, self._lfh)
 
         if rtype == 'exp':
+            # this is for experimental instances
             ccReport.setFilePath(instanceCcAbsFilePath, instId)
         elif rtype == 'ref':
+            # this is for reference instances
             ccReport.setDefinitionId(definitionId=instId.lower())
         
         ccReport.doReport(type=rtype, ccAssignPthMdfier=instId)
@@ -148,6 +159,44 @@ class ChemCompDpUtility(object):
             
             for k,v in filePaths.items():
                 self._logger.debug('Coordinate file reporting -- key: {}, value: {}', k, v)
+
+    def _imagingSetupForLigandInstance(self, instId, authAssignmentId, fitTuplDict, instanceCcAbsFilePath):
+        """Setup for generating instance images.
+
+        Args:
+            instId (str): instance ID
+            authAssignmentId (str): author assigned ID
+            fitTuplDict (dict): dictionary to store image related data
+            instanceCcAbsFilePath (str): path to instance ".cif" file
+        """
+        instImageOutputPath = os.path.join(self._ccReportPath, instId + '.svg')
+
+        if fitTuplDict[authAssignmentId]['masterAlignRef'] is None:
+            fitTuplDict[authAssignmentId]['masterAlignRef'] = (instId, instanceCcAbsFilePath, instImageOutputPath)
+        else:
+            fitTuplDict[authAssignmentId]['alignList'].append((instId, instanceCcAbsFilePath, instImageOutputPath))
+    
+    def _imagingSetupForTopHit(self, instId, authAssignmentId, fitTuplDict):
+        """Setup for generating ligand reference images.
+
+        Args:
+            instId (str): instance ID
+            authAssignmentId (str): author assigned ID
+            fitTuplDict (dict): dictionary to store image related data
+        Raises:
+            IOError: if we were not able to read the ligand ".cif" file from
+                the ligand dict
+        """
+        pathPrefix = self._ccConfig.getPath('chemCompCachePath')
+        chemCompCifPath = os.path.join(pathPrefix, instId[:1], instId, instId + '.cif')
+        refImageOutputPath = os.path.join(self._ccReportPath, instId + '.svg')
+
+        if os.access(chemCompCifPath, os.R_OK):
+            fitTuplDict[authAssignmentId]['alignList'].append((instId, chemCompCifPath, refImageOutputPath))
+        else:
+            # raising here since it's expected to be able to read the ligand ".cif"
+            # file from the ligand dict
+            raise IOError('Could not access file "{}"'.format((chemCompCifPath)))
 
     def addInput(self, name=None, value=None, type='file'):
         """Add a named input and value to the dictionary of input parameters.
