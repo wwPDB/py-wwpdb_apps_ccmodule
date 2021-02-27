@@ -8,9 +8,10 @@
 import os
 import sys
 from logging                                            import getLogger, StreamHandler, Formatter, DEBUG, INFO
-from subprocess                                         import call,Popen,PIPE
-from wwpdb.utils.wf.WfDataObject                        import WfDataObject
+from threading                                          import Timer
+from subprocess                                         import call, Popen, PIPE
 from mmcif.io.PdbxReader                                import PdbxReader
+from wwpdb.utils.wf.WfDataObject                        import WfDataObject
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssignReader
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
@@ -98,6 +99,8 @@ class ChemCompDpUtility(object):
                     self._genLigandReportData(topHitCcId, rtype='ref')
                     self._imagingSetupForTopHit(authAssignedId, topHitCcId, fitTupleDict)
                     ccIdAlrdySeenLst.append(topHitCcId)
+            
+            self._genAligned2dImages(fitTupleDict)
 
         
         except Exception as e:
@@ -176,7 +179,7 @@ class ChemCompDpUtility(object):
         Args:
             instId (str): instance ID
             authAssignmentId (str): author assigned ID
-            fitTuplDict (dict): dictionary to store image related data
+            fitTuplDict (dict): dictionary containing image related data
             instanceCcAbsFilePath (str): path to instance ".cif" file
         """
         instImageOutputPath = os.path.join(self._ccReportPath, instId + '.svg')
@@ -192,7 +195,7 @@ class ChemCompDpUtility(object):
         Args:
             instId (str): instance ID
             authAssignmentId (str): author assigned ID
-            fitTuplDict (dict): dictionary to store image related data
+            fitTuplDict (dict): dictionary containing image related data
         Raises:
             IOError: if we were not able to read the ligand ".cif" file from
                 the ligand dict
@@ -237,60 +240,111 @@ class ChemCompDpUtility(object):
                 if fitTupleDict[ccid]['alignList'] is not None and len(fitTupleDict[ccid]['alignList']) > 0:
                     fileListPath = os.path.join(self._ccReportPath, 'alignfilelist_{}.txt'.format(ccid))
                     logPath = os.path.join(self._ccReportPath, 'alignfile_{}.log'.format(ccid))
-
-                    ofh=open(fileListPath,'w')
-                    ofh.write('ASSIGN_PATH:%s\n'%self._ccReportPath)
-                    ofh.write('MASTER_ID:%s\nMASTER_DEF_PTH:%s\nMASTER_IMG_PTH:%s\n'%(fitTupleDict[ccid]["masterAlignRef"][0],fitTupleDict[ccid]["masterAlignRef"][1],fitTupleDict[ccid]["masterAlignRef"][2]) )
-                        
-                    for (thisId,fileDefPath,imgFilePth) in fitTupleDict[ccid]["alignList"]:
-                        ofh.write('ALIGN_ID:%s\nALIGN_DEF_PTH:%s\nALIGN_IMG_PTH:%s\n'%(thisId,fileDefPath,imgFilePth) )
-                        
-                    ofh.close()                
                     
-                    command = "python -m wwpdb.apps.ccmodule.reports.ChemCompAlignImages -v -i %s -f %s"%(ccid,fileListPath)
-                    returnCode = self.__runTimeout(command=command, logPath=logPath)
-                    
-                    if( returnCode is None or returnCode != 0 ):
-                        self.__lfh.write("\n+++%s.%s() -- WARNING: had to revisit image generation for ccid: %s\n\n" %(className, methodName, ccid) )
+                    self._createAlignFileList(ccid, fileListPath, fitTupleDict)
+                    if not self._alignImages(ccid, fileListPath):
                         redoCcidLst.append(ccid)
                 else:
-                    # there is no match for the ccid, no valid auth assigned id, and there is only one instance of the experimental ccid --> i.e. there will only be one image to generate
+                    # there is no match for the ccid, no valid auth assigned id,
+                    # and there is only one instance of the experimental ccid
+                    # there will only be one image to generate
                     redoCcidLst.append(ccid)
                 
             except:
-                traceback.print_exc(file=self.__lfh)
+                self._logger.error('Error aligning images for ligand "%s"', ccid, exc_info=True)
                 
             # safeguard measure required if above process fails silently
             # so we check to see if the master image was not generated and add the ccid to the redo list
-            masterImgPth = fitTupleDict[ccid]["masterAlignRef"][2]
-            if( not os.access( masterImgPth, os.F_OK ) ):
-                self.__lfh.write("\n+++%s.%s() -- WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s\n\n" %(className, methodName, masterImgPth, ccid) )
+            masterImgPath = fitTupleDict[ccid]['masterAlignRef'][2]
+            if not os.access(masterImgPath, os.F_OK):
+                self._logger.warning('WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s', masterImgPath, ccid)
                 redoCcidLst.append(ccid)
         
         # generate non-aligned images for those cases where exception occurred due to timeout/error
         pathList = []
         for ccid in redoCcidLst:
             try:
-                imgTupl = fitTupleDict[ccid]["masterAlignRef"]
-                pathList.append( imgTupl )
+                imgTupl = fitTupleDict[ccid]['masterAlignRef']
+                pathList.append(imgTupl)
                 
-                for anImgTupl in fitTupleDict[ccid]["alignList"]:
+                for anImgTupl in fitTupleDict[ccid]['alignList']:
                     pathList.append( anImgTupl )
                 
                 logPath = os.path.join(self._ccReportPath,'genimagefile_'+ccid+'.log')
                 
-                for title,path,imgPth in pathList:
-                    
-                    command = "python -m wwpdb.apps.ccmodule.reports.ChemCompGenImage -v -i %s -f %s -o %s"%(title,path,imgPth)
-                    returnCode = self.__runTimeout(command=command, logPath=logPath)
-                    
-                    if( returnCode is None or returnCode != 0 ):
-                        self.__lfh.write("\n+++%s.%s() -- WARNING: image generation failed for: %s\n\n" %(className, methodName, imgPth) )
-                    
+                for title, path, imagePath in pathList:
+                    if not self._genImages(title, path, imagePath):
+                        self._logger.warning('WARNING: image generation failed for: %s',(imagePath))
             except:
-                traceback.print_exc(file=self.__lfh)
+                self._logger.error('Error generating non-aligned images for ligand "%s"', ccid, exc_info=True)
         
         return
+    
+    def _createAlignFileList(self, ccid, fileListPath, fitTupleDict):
+        """Utility to write the align list file.
+
+        Args:
+            ccid (str): ligand ID
+            fileListPath (str): path to the align list file
+            fitTupleDict (dict): dictionary containing image related data
+        """
+        _MASTER_REFS = (
+            'MASTER_ID:{}\n'
+            'MASTER_DEF_PTH:{}\n'
+            'MASTER_IMG_PTH:{}\n'
+        )
+
+        _ALIGN_REFS = (
+            'ALIGN_ID:{}\n'
+            'ALIGN_DEF_PTH:{}\n'
+            'ALIGN_IMG_PTH:{}\n'
+        )
+
+        with open(fileListPath, 'w') as f:
+            f.write('ASSIGN_PATH:{}\n'.format(self._ccReportPath))
+
+            f.write(_MASTER_REFS.format(
+                fitTupleDict[ccid]['masterAlignRef'][0],
+                fitTupleDict[ccid]['masterAlignRef'][1],
+                fitTupleDict[ccid]['masterAlignRef'][2])
+            )
+
+            for (thisId, fileDefPath, imgFilePth) in fitTupleDict[ccid]['alignList']:
+                f.write(_ALIGN_REFS.format(thisId, fileDefPath, imgFilePth))
+    
+    def _alignImages(self, ccid, fileListPath):
+        cmd = ['python', '-m', 'wwpdb.apps.ccmodule.reports.ChemCompAlignImages', '-v', '-i', ccid, '-f', fileListPath]
+        kill_process = lambda process: process.terminate()
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=False, close_fds=True, preexec_fn=os.setsid)
+        timer = Timer(10, kill_process, [process])
+
+        try:
+            timer.start()
+            stdout, stderr = process.communicate()
+        finally:
+            timer.cancel()
+
+        if process.returncode == 0 or process.returncode == None:
+            return False
+        
+        return True
+    
+    def _genImages(self, title, path, imagePath):
+        cmd = ['python', '-m', 'wwpdb.apps.ccmodule.reports.ChemCompGenImage', '-v', '-i', title, '-f', path, '-o', imagePath]
+        kill_process = lambda process: process.terminate()
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=False, close_fds=True, preexec_fn=os.setsid)
+        timer = Timer(10, kill_process, [process])
+
+        try:
+            timer.start()
+            stdout, stderr = process.communicate()
+        finally:
+            timer.cancel()
+        
+        if process.returncode == 0 or process.returncode == None:
+            return False
+        
+        return True
 
     def addInput(self, name=None, value=None, type='file'):
         """Add a named input and value to the dictionary of input parameters.
