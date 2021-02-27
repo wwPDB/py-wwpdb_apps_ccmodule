@@ -1,9 +1,7 @@
 ##
-# File:     NmrDpUtility.py
+# File:     ChemCompDpUtility.py
 # Date:     03-Mar-2021
 #
-# Updates:
-# 03-Mar-2021  wmb - add methods for:
 
 import os
 import sys
@@ -39,8 +37,10 @@ class ChemCompDpUtility(object):
         self._inputParamDict = {}
         self._depId = depId
         self._cI = ConfigInfo()
+
         # setting up session object
         self._setupSession(self._depId)
+
         # setting up chem comp config
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
         self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), self._cI.get('DEPOSIT_DIR_NAME'))
@@ -74,10 +74,6 @@ class ChemCompDpUtility(object):
                 authAssignedId = ccAssignDataStore.getAuthAssignment(instId)
                 topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
 
-                # if instId == '1_H_0G7_701_':
-                #     # print('>>>', authAssignmentId, topHitCcId, instIdList)
-                #     return
-
                 if authAssignedId not in fitTupleDict:
                     fitTupleDict[authAssignedId] = {}
                     fitTupleDict[authAssignedId]['alignList'] = []
@@ -92,17 +88,21 @@ class ChemCompDpUtility(object):
                 if authAssignedId not in ccIdAlreadySeenList and self._checkLigandPath(authAssignedId):
                     self._genLigandReportData(authAssignedId, rtype='ref')
                     self._imagingSetupForTopHit(authAssignedId, authAssignedId, fitTupleDict)
-                    ccIdAlrdySeenLst.append(authAssignedId)
+                    ccIdAlreadySeenList.append(authAssignedId)
                 
                 # report material and imaging setup for the best dictionary reference
                 if topHitCcId not in ccIdAlreadySeenList and topHitCcId.lower() != 'none':
                     self._genLigandReportData(topHitCcId, rtype='ref')
                     self._imagingSetupForTopHit(authAssignedId, topHitCcId, fitTupleDict)
-                    ccIdAlrdySeenLst.append(topHitCcId)
+                    ccIdAlreadySeenList.append(topHitCcId)
             
             self._genAligned2dImages(fitTupleDict)
 
-        
+            # parse cif files for data needed in instance browser
+            # as we're creating a datastore from scratch
+            ccA.getDataForInstncSrch(instIdList, ccAssignDataStore)
+            ccAssignDataStore.dumpData(self._lfh)
+            ccAssignDataStore.serialize()
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
 
@@ -222,7 +222,7 @@ class ChemCompDpUtility(object):
             bool: True if the ligand has an entry in the dictionary, False otherwise
         """
         ccDictPrefix = self._ccConfig.getPath('chemCompCachePath')
-        ligandEntryPath = os.path.join(pathPrefix, ccid[:1], ccid, ccid + '.cif')
+        ligandEntryPath = os.path.join(ccDictPrefix, ccid[:1], ccid, ccid + '.cif')
 
         if not os.access(ligandEntryPath, os.R_OK):
             if self._verbose:
@@ -233,6 +233,11 @@ class ChemCompDpUtility(object):
         return True
     
     def _genAligned2dImages(self, fitTupleDict):
+        """Generate images used in the report.
+
+        Args:
+            fitTupleDict (dict): dictionary containing image related data
+        """
         redoCcidLst = []
 
         for ccid in fitTupleDict:
