@@ -129,6 +129,31 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         self._ccDpUtility._imagingSetupForTopHit(self._authAssignedId, self._authAssignedId, self._fitTupleDict)
         self.assertEqual(self._fitTupleDict[self._authAssignedId]['alignList'][0], outputTuple)
 
+    def test_write_align_file_list(self):
+        original = ''
+        generated = ''
+        fileListPath = os.path.join(self._ccReportPath, 'alignfilelist_{}.txt'.format(self._authAssignedId))
+
+        self._ccDpUtility._createAlignFileList(self._authAssignedId, fileListPath, self._fitTupleDict)
+
+        with open(os.path.join(os.path.dirname(__file__), 'fixtures', 'alignfilelist_0G7.txt')) as f:
+            original = f.read()
+        
+        with open(os.path.join(self._ccReportPath, 'alignfilelist_0G7.txt')) as f:
+            generated = f.read()
+
+        self.assertEqual(original, generated)
+    
+    def test_copy_file_util(self):
+        open(os.path.join(self._ccDictPath, 'test-sketch.sdf'), 'w').close()
+        dstPath = os.path.join(self._ccReportPath, 'test-sketch.sdf')
+
+        self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, 'test-sketch.sdf'), dstPath)
+        self.assertTrue(os.path.exists(dstPath))
+
+        with self.assertRaises(IOError):
+            self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, 'test-sketch.sdf1'), dstPath)
+
     @unittest.skip
     def test_gen_images(self):
         shutil.copyfile(os.path.join(os.path.dirname(__file__), 'fixtures', '1_H_0G7_701_.svg'), os.path.join(self._ccReportPath, '1_H_0G7_701_.svg'))
@@ -155,21 +180,6 @@ class ChemCompDpUtilityTests(unittest.TestCase):
 
         imgPath = os.path.join(self._ccReportPath, '{}.svg'.format(self._authAssignedId))
         self.assertTrue(os.path.exists(imgPath))
-
-    def test_write_align_file_list(self):
-        original = ''
-        generated = ''
-        fileListPath = os.path.join(self._ccReportPath, 'alignfilelist_{}.txt'.format(self._authAssignedId))
-
-        self._ccDpUtility._createAlignFileList(self._authAssignedId, fileListPath, self._fitTupleDict)
-
-        with open(os.path.join(os.path.dirname(__file__), 'fixtures', 'alignfilelist_0G7.txt')) as f:
-            original = f.read()
-        
-        with open(os.path.join(self._ccReportPath, 'alignfilelist_0G7.txt')) as f:
-            generated = f.read()
-
-        self.assertEqual(original, generated)
 
     @unittest.skip
     def test_do_analysis(self):
