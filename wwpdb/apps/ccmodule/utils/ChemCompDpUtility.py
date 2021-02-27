@@ -31,7 +31,7 @@ class ChemCompDpUtility(object):
     _CC_ASSIGN_DIR = 'assign'
     
     def __init__(self, depId, verbose=False, log=sys.stderr):
-        self._verbose = False
+        self._verbose = verbose
         self._debug = False
         self._lfh = log
         self._logger = self._setupLog(log)
@@ -466,8 +466,8 @@ class ChemCompDpUtility(object):
                 pathDict['dpstrInfoFileDirPth'] = os.path.split(pathDict['dpstrInfoFileFlPth'])[0]
 
                 if self._verbose:
-                    self._logger.info('CC depositor info export directory path: %s', pathDict['dpstrInfoFileDirPth'])
-                    self._logger.info('CC depositor info export file path: %s', pathDict['dpstrInfoFileFlPth'])
+                    self._logger.debug('CC depositor info export directory path: %s', pathDict['dpstrInfoFileDirPth'])
+                    self._logger.debug('CC depositor info export file path: %s', pathDict['dpstrInfoFileFlPth'])
             else:
                 self._logger.warning('---- WARNING ---- No path obtained for CC depositor info export file, id %s', depId)
 
@@ -478,8 +478,8 @@ class ChemCompDpUtility(object):
                 pathDict['picFileDirPth'] = os.path.split(pathDict['picFileFlPth'])[0]
             
                 if (self._verbose):
-                    self._logger.info('CC assign details export directory path: %s', pathDict['picFileDirPth'])
-                    self._logger.info('CC assign details export file path: %s', pathDict['picFileFlPth'])
+                    self._logger.debug('CC assign details export directory path: %s', pathDict['picFileDirPth'])
+                    self._logger.debug('CC assign details export file path: %s', pathDict['picFileFlPth'])
             else:
                 self._logger.warning('---- WARNING ---- No path obtained for CC assign details export file, id %s', depId)
 
@@ -488,8 +488,8 @@ class ChemCompDpUtility(object):
             pathDict['dpstrPrgrssFileDirPth'] = os.path.split(pathDict['dpstrPrgrssFileFlPth'])[0]
             
             if (self._verbose):
-                self._logger.info('CC assign dpstr progress directory path: %s', pathDict['dpstrPrgrssFileDirPth'])
-                self._logger.info('CC assign dpstr progress file path: %s', pathDict['dpstrPrgrssFileFlPth'])
+                self._logger.debug('CC assign dpstr progress directory path: %s', pathDict['dpstrPrgrssFileDirPth'])
+                self._logger.debug('CC assign dpstr progress file path: %s', pathDict['dpstrPrgrssFileFlPth'])
         else:
             self._logger.warning('processing undefined filesource %r', fileSource)
 

@@ -640,7 +640,7 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - session id  %s\n" % sessionId)            
             self.__lfh.flush()
         #
-        assignDirPath=os.path.join(self.__sessionPath,'assign')
+        assignDirPath=os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'),'deposit',depDataSetId.upper(),'cc_report')
         #if self.__verbose:
         #    self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - assignDirPath is: %s\n" % assignDirPath)
         #
