@@ -1,7 +1,7 @@
-ASSIGN_PATH:/nfs/msd/services/onedep/data/development/deposit/D_800004/cc_report
+ASSIGN_PATH:/nfs/msd/services/onedep/data/development/deposit/D_800004/cc_analysis
 MASTER_ID:1_H_0G7_701_
 MASTER_DEF_PTH:/nfs/msd/services/onedep/data/development/deposit/D_800004/assign/1_H_0G7_701_/1_H_0G7_701_.cif
-MASTER_IMG_PTH:/nfs/msd/services/onedep/data/development/deposit/D_800004/cc_report/1_H_0G7_701_.svg
+MASTER_IMG_PTH:/nfs/msd/services/onedep/data/development/deposit/D_800004/cc_analysis/1_H_0G7_701_.svg
 ALIGN_ID:0G7
 ALIGN_DEF_PTH:/nfs/msd/services/onedep/deployments/development/reference/components/ligand-dict-v3/0/0G7/0G7.cif
-ALIGN_IMG_PTH:/nfs/msd/services/onedep/data/development/deposit/D_800004/cc_report/0G7.svg
+ALIGN_IMG_PTH:/nfs/msd/services/onedep/data/development/deposit/D_800004/cc_analysis/0G7.svg

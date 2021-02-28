@@ -27,7 +27,7 @@ class ChemCompDpInputs:
 class ChemCompDpUtility(object):
     """ Wrapper class for ligand analysis operations
     """
-    _CC_REPORT_DIR = 'cc_report'
+    _CC_REPORT_DIR = 'cc_analysis'
     _CC_ASSIGN_DIR = 'assign'
     
     def __init__(self, depId, verbose=False, log=sys.stderr):
@@ -148,7 +148,7 @@ class ChemCompDpUtility(object):
         """Generate the actual report file. The file path is based on
         the deposition ID and instance ID, as:
 
-        /<deposit_path>/<deposit_id>/cc_report/<instance_id>/...
+        /<deposit_path>/<deposit_id>/cc_analysis/<instance_id>/...
 
         Args:
             instId (str): instance ID

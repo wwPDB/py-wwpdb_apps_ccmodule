@@ -243,7 +243,7 @@ class ChemCompWebAppLiteWorker(object):
         self.__ccConfig = ChemCompConfig(reqObj,verbose=self.__verbose,log=self.__lfh)
         self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), self.__cI.get('DEPOSIT_DIR_NAME'))
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
-        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_report') # should we add 'cc_report' in a variable in site-config?
+        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis') # should we add 'cc_analysis' in a variable in site-config?
         #
         self.__pathInstncsVwTmplts="templates/workflow_ui/instances_view"
         self.__pathSnglInstcTmplts=self.__pathInstncsVwTmplts+"/single_instance"
@@ -378,7 +378,7 @@ class ChemCompWebAppLiteWorker(object):
         ligandId     = self.__reqObj.getValue("ligid").upper()
         filename     = self.__reqObj.getValue("file")
 
-        ccReportPath = os.path.join(self.__depositPath, depId, "cc_report")
+        ccReportPath = os.path.join(self.__depositPath, depId, "cc_analysis")
         fileType     = filename.split(".")[-1]
         filePath     = None
 
@@ -519,7 +519,7 @@ class ChemCompWebAppLiteWorker(object):
             self.__lfh.flush()
 
         sph=self.__setSemaphore()
-        ccAssignDataStore = self.__checkForExistingCcAssignments()
+        ccAssignDataStore=self.__checkForExistingCcAssignments()
         
         if ccAssignDataStore is None: # i.e. no work had previously been done and saved by depositor
             self.__lfh.write("+%s.%s() No existing analysis data found.\n" %(self.__class__.__name__, sys._getframe().f_code.co_name ) )   

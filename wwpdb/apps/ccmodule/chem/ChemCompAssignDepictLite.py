@@ -1041,7 +1041,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     # else user chose to use originally proposed ligand ID
                     lclDict['use_orig_proposed_id_checked'] = 'checked="checked"' #show radio button as clicked
         
-        absltPath2dAuthAssgndImg = os.path.join(self.__depositPath,p_hlprDict["depositionid"].upper(),"cc_report",p_authAssignedGrp+'.svg')
+        absltPath2dAuthAssgndImg = os.path.join(self.__depositPath,p_hlprDict["depositionid"].upper(),"cc_analysis",p_authAssignedGrp+'.svg')
         if( os.access(absltPath2dAuthAssgndImg,os.R_OK) ):
             path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
             if( self.__verbose and self.__debug ):

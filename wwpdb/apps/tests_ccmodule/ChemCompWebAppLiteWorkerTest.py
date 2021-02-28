@@ -47,7 +47,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("file",          "1_A_F6R_501_.svg")
 
         # generating dummy svg file
-        depid_dir = os.path.join(self.__depositPath, "D_800001", "cc_report")
+        depid_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis")
         os.makedirs(depid_dir, exist_ok=True)
         
         with open(os.path.join(depid_dir, "1_A_F6R_501_.svg"), "w") as f:
@@ -66,7 +66,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("ligid",         "G6Q")
 
         # generating dummy gif file
-        gif_dir = os.path.join(self.__depositPath, "D_800001", "cc_report", "rfrnc_reports", "G6Q")
+        gif_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis", "rfrnc_reports", "G6Q")
         os.makedirs(gif_dir, exist_ok=True)
 
         with open(os.path.join(gif_dir, "G6Q-noh.gif"), "w") as f:
@@ -85,7 +85,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("ligid",         "G6Q")
 
         # generating dummy cif file
-        cif_dir = os.path.join(self.__depositPath, "D_800001", "cc_report", "rfrnc_reports", "G6Q")
+        cif_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis", "rfrnc_reports", "G6Q")
         os.makedirs(cif_dir, exist_ok=True)
 
         with open(os.path.join(cif_dir, "G6Q_ideal.cif"), "w") as f:
@@ -102,7 +102,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("ligid",         "1_A_F6R_501_")
 
         # generating dummy cif file
-        cif_dir = os.path.join(self.__depositPath, "D_800001", "cc_report", "1_A_F6R_501_", "report")
+        cif_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis", "1_A_F6R_501_", "report")
         os.makedirs(cif_dir, exist_ok=True)
 
         with open(os.path.join(cif_dir, "F6R_model.cif"), "w") as f:
