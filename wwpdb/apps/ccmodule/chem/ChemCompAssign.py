@@ -1166,7 +1166,12 @@ class ChemCompAssign(object):
                         #
                     elif( upldFileType in contentTypeDict['component-definition'][0] ):
                         self.__registerFilePaths('component-definition', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
-                            
+                        #
+                        if authAssgndGrp in self.__origUpdIdMap:
+                            for updId in self.__origUpdIdMap[authAssgndGrp]:
+                                self.__registerFilePaths('component-definition', upldFileName, upldFileType, p_ccAssgnDtaStr, updId, dpstrFileSource)
+                            #
+                        #
                     else:
                         if( self.__verbose ):
                             self.__lfh.write("+%s.%s() ---------------WARNING---------------: Processing skipped for unexpected file type '%s' found for file(s) uploaded for ligid '%s'.\n" %(className, methodName, upldFileType, authAssgndGrp) )
