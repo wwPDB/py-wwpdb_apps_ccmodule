@@ -1147,13 +1147,23 @@ class ChemCompAssign(object):
                 # handling sdf files
                 if( upldFileType == 'sdf'):
                     self.__registerFilePaths('component-sketch', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
-                    
+                    #
+                    if authAssgndGrp in self.__origUpdIdMap:
+                        for updId in self.__origUpdIdMap[authAssgndGrp]:
+                            self.__registerFilePaths('component-sketch', upldFileName, upldFileType, p_ccAssgnDtaStr, updId, dpstrFileSource)
+                        #
+                    #
                 else:
                 # handling of any files that were uploaded. we will register filename/path info with chemCompDataStore so that these can be recalled
                 # by ChemCompWebApp when it looks to load any files provided by the depositor into the session directory for working use.
                     if( upldFileType in contentTypeDict['component-image'][0] ):
                         self.__registerFilePaths('component-image', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
-                                    
+                        #
+                        if authAssgndGrp in self.__origUpdIdMap:
+                            for updId in self.__origUpdIdMap[authAssgndGrp]:
+                                self.__registerFilePaths('component-image', upldFileName, upldFileType, p_ccAssgnDtaStr, updId, dpstrFileSource)
+                            #
+                        #
                     elif( upldFileType in contentTypeDict['component-definition'][0] ):
                         self.__registerFilePaths('component-definition', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
                             
