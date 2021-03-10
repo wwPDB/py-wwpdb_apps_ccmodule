@@ -86,7 +86,10 @@ from time import localtime, strftime
 from wwpdb.utils.session.WebRequest              import InputRequest,ResponseContent
 #
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
-from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
+try:
+    from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
+except Exception as e:
+    print('++ChemCompWebAppLite -- Error importing ChemCompAssignDepictLite\n%s' % str(e))
 #
 from wwpdb.apps.ccmodule.search.ChemCompSearch          import ChemCompSearch
 from wwpdb.apps.ccmodule.search.ChemCompSearchDepict    import ChemCompSearchDepict
@@ -272,7 +275,7 @@ class ChemCompWebAppLiteWorker(object):
                          #'/service/cc_lite/assign/wf/new_session':                 '_ccAssign_BatchSrchSummary',
                          '/service/cc_lite/report/get_file':                        '_getReportFile',
                          '/service/cc_lite/wf/new_session':                         '_ligandSrchSummary',
-                         '/service/cc_lite/view/ligandsummary':                     '_generateSummaryData',
+                         '/service/cc_lite/view/ligandsummary':                     '_loadSummaryData',
                          '/service/cc_lite/view/ligandsummary/data_check':          '_checkForSummaryData',
                          '/service/cc_lite/view/ligandsummary/data_load':           '_loadSummaryData',
                          '/service/cc_lite/view/instancebrowser':                   '_generateInstncBrowser',
@@ -600,6 +603,7 @@ class ChemCompWebAppLiteWorker(object):
         self.__reqObj.setDefaultReturnFormat(return_format="html")        
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         #
+        ccAssignDataStore=self.__checkForExistingCcAssignments()
         ccADS=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
         #
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
