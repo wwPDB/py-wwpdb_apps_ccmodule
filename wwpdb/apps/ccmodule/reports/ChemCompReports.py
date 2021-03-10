@@ -60,7 +60,7 @@ class ChemCompReport(object):
 
         self.__siteId=str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI=ConfigInfo(self.__siteId)
-        self.__depositPath=os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), self.__cI.get("DEPOSIT_DIR_NAME"))
+        self.__depositPath=os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
 

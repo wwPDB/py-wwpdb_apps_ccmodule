@@ -46,7 +46,7 @@ class ChemCompDpUtility(object):
 
         # setting up chem comp config
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
-        self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), self._cI.get('DEPOSIT_DIR_NAME'))
+        self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
     

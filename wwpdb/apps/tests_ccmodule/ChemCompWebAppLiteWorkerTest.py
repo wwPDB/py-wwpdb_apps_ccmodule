@@ -40,7 +40,7 @@ class ReportFilesRequestTest(unittest.TestCase):
 
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
-        self.__depositPath = os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), self.__cI.get("DEPOSIT_DIR_NAME"))
+        self.__depositPath = os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
 
     def testGetReportInstanceSvg(self):
         self.__reqObj.setValue("source",        "author")

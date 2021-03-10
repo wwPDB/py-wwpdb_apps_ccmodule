@@ -244,7 +244,7 @@ class ChemCompWebAppLiteWorker(object):
         self.__siteConfigDir = self.__cI.get('TOP_WWPDB_SITE_CONFIG_DIR')
         self.__siteLoc = self.__cI.get('WWPDB_SITE_LOC')
         self.__ccConfig = ChemCompConfig(reqObj,verbose=self.__verbose,log=self.__lfh)
-        self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), self.__cI.get('DEPOSIT_DIR_NAME'))
+        self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis') # should we add 'cc_analysis' in a variable in site-config?
         #

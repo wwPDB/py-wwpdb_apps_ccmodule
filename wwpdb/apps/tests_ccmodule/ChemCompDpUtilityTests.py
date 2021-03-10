@@ -65,7 +65,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         """Create the required paths
         """
         cls._ccDictPath = os.path.join(cls._ccConfig.getPath('chemCompCachePath'), '0', '0G7')
-        cls._depositPath = os.path.join(cls._cI.get('SITE_DEPOSIT_STORAGE_PATH'), cls._cI.get('DEPOSIT_DIR_NAME'))
+        cls._depositPath = os.path.join(cls._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
         cls._ccReportPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_REPORT_DIR)
         cls._depositAssignPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_ASSIGN_DIR)
 
