@@ -111,10 +111,6 @@ from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 #
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 #
-from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
-from wwpdb.utils.oe_util.oedepict.OeDepict                          import OeDepict
-from wwpdb.utils.oe_util.build.OeChemCompIoUtils                    import OeChemCompIoUtils
-#
 import datetime, stat
 import socket, shlex
 from subprocess import call,Popen,PIPE
