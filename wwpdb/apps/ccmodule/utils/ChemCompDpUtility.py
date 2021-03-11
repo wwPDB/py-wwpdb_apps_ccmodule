@@ -57,9 +57,16 @@ class ChemCompDpUtility(object):
             # first we get the data dict from the cc assign file
             rDict = self._processCcAssignFile()
             cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
+
             # instantiate a ChemCompAssignDataStore object to store deposition information
+            if self._verbose:
+                self._logger.debug('Creating datastore for resulting assign details.')
+
             ccAssignDataStore = cca.createDataStore(rDict, True)
+
             # listing assignment keys
+            if self._verbose:
+                self._logger.debug('Getting author assignment keys.')
             instIdList = ccAssignDataStore.getAuthAssignmentKeys()
             
             if len(instIdList) == 0:
@@ -134,6 +141,9 @@ class ChemCompDpUtility(object):
         if not os.access(fPath, os.R_OK):
             raise IOError('Could not read file "{}"'.format(fPath))
 
+        if self._verbose:
+            self._logger.debug('Reading assign results for desired match data.')
+
         pR = PdbxChemCompAssignReader(self._verbose, self._lfh)
         pR.setFilePath(filePath=fPath)
         pR.getBlock()
@@ -160,6 +170,9 @@ class ChemCompDpUtility(object):
                 - if using "exp" mode, must pass a valid (and accessible) ".cif" file
         """
         ccReport = ChemCompReport(self._reqObj, self._verbose, self._lfh)
+
+        if self._verbose:
+            self._logger.debug('Generating report for %s (%s), %s.', instId, rtype, instanceCcAbsFilePath)
 
         if rtype == 'exp':
             # this is for experimental instances
@@ -231,8 +244,7 @@ class ChemCompDpUtility(object):
         ligandEntryPath = os.path.join(ccDictPrefix, ccid[:1], ccid, ccid + '.cif')
 
         if not os.access(ligandEntryPath, os.R_OK):
-            if self._verbose:
-                self._logger.debug('Ligand ID %s has no corresponding dict ref file at %s', ccid, ligandEntryPath)
+            self._logger.warning('Ligand ID %s has no corresponding dict ref file at %s', ccid, ligandEntryPath)
 
             return False
 
@@ -244,9 +256,14 @@ class ChemCompDpUtility(object):
         Args:
             fitTupleDict (dict): dictionary containing image related data
         """
+        if self._verbose:
+            self._logger.debug('Starting image generation.')
+
         redoCcidLst = []
 
         for ccid in fitTupleDict:
+            self._logger.info('Performing image alignment tasks for %s.', ccid)
+
             try:
                 if fitTupleDict[ccid]['alignList'] is not None and len(fitTupleDict[ccid]['alignList']) > 0:
                     fileListPath = os.path.join(self._ccReportPath, 'alignfilelist_{}.txt'.format(ccid))
@@ -263,7 +280,7 @@ class ChemCompDpUtility(object):
                 
             except:
                 self._logger.error('Error aligning images for ligand "%s"', ccid, exc_info=True)
-                
+
             # safeguard measure required if above process fails silently
             # so we check to see if the master image was not generated and add the ccid to the redo list
             masterImgPath = fitTupleDict[ccid]['masterAlignRef'][2]
@@ -274,6 +291,7 @@ class ChemCompDpUtility(object):
         # generate non-aligned images for those cases where exception occurred due to timeout/error
         pathList = []
         for ccid in redoCcidLst:
+            self._logger.info('Performing image generation tasks for %s.', ccid)
             try:
                 imgTupl = fitTupleDict[ccid]['masterAlignRef']
                 pathList.append(imgTupl)
@@ -329,11 +347,19 @@ class ChemCompDpUtility(object):
         process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=False, close_fds=True, preexec_fn=os.setsid)
         timer = Timer(10, kill_process, [process])
 
+        if self._verbose:
+            self._logger.debug('Image alignment command: %s', ' '.join(cmd))
+
         try:
             timer.start()
             stdout, stderr = process.communicate()
         finally:
             timer.cancel()
+
+        if self._verbose:
+            self._logger.debug('Image alignment process returned with %s', process.returncode)
+            self._logger.debug('Image alignment process returned with stdout %s', stdout)
+            self._logger.debug('Image alignment process returned with stderr %s', stderr)
 
         if process.returncode == 0 or process.returncode == None:
             return False
@@ -355,9 +381,10 @@ class ChemCompDpUtility(object):
         finally:
             timer.cancel()
         
-        self._logger.info('Image generation process returned with %s', process.returncode)
-        self._logger.info('Image generation process returned with stdout %s', stdout)
-        self._logger.info('Image generation process returned with stderr %s', stderr)
+        if self._verbose:
+            self._logger.debug('Image generation process returned with %s', process.returncode)
+            self._logger.debug('Image generation process returned with stdout %s', stdout)
+            self._logger.debug('Image generation process returned with stderr %s', stderr)
 
         if process.returncode == 0 or process.returncode == None:
             return False
@@ -373,7 +400,12 @@ class ChemCompDpUtility(object):
         instIdLst = []
         contentTypeDict = self._cI.get('CONTENT_TYPE_DICTIONARY')
 
+        self._logger.info('Processing previously addressed ligand groups')
+
         for ligId in ccAssignDataStore.getGlbllyRslvdGrpList():
+            if self._verbose:
+                self._logger.debug('Processing ligand %s', ligId)
+
             try:
                 # technically speaking, sdf files are not "uploaded" but are generated by any
                 # sketches created by depositor if using the marvinsketch editor provided in the UI
@@ -419,8 +451,11 @@ class ChemCompDpUtility(object):
         """
         if sourceFilePath is not None and os.access(sourceFilePath, os.R_OK):
             shutil.copyfile(sourceFilePath, destFilePath)
+
+            if self._verbose:
+                self._logger.debug('Copied workflow file from %s to report path %s', sourceFilePath, destFilePath)
         else:
-            raise IOError('Error when attempting to copy file from path "%s to report path as "%s"' % (sourceFilePath, destFilePath))
+            raise IOError('Error when attempting to copy file from %s to report path as %s' % (sourceFilePath, destFilePath))
 
     def _saveLigModState(self, mode):
         """Persist state of user's chem comp module session which involves capturing updated:
