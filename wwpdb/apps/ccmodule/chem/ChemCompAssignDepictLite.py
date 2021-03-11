@@ -1047,13 +1047,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             if( self.__verbose and self.__debug ):
                 self.__lfh.write("+%s.%s() ----- successful access to absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
                 self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
-        else:
-            if( self.__verbose and self.__debug ):
-                self.__lfh.write("+%s.%s() ----- could not access absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
-            #path2dAuthAssgndImg = os.path.join(self.__workingRltvAssgnSessionPath,"rfrnc_reports",p_authAssignedGrp,p_authAssignedGrp+'-300.gif')
-            path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp, p_authAssignedGrp+'-noh.gif')
-            if( self.__verbose and self.__debug ):
-                self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
             
             
         lclDict['2dpath_auth_assgnd_id'] = path2dAuthAssgndImg

@@ -346,12 +346,19 @@ class ChemCompDpUtility(object):
         process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=False, close_fds=True, preexec_fn=os.setsid)
         timer = Timer(10, kill_process, [process])
 
+        if self._verbose:
+            self._logger.debug('Image generation command: %s', ' '.join(cmd))
+
         try:
             timer.start()
             stdout, stderr = process.communicate()
         finally:
             timer.cancel()
         
+        self._logger.info('Image generation process returned with %s', process.returncode)
+        self._logger.info('Image generation process returned with stdout %s', stdout)
+        self._logger.info('Image generation process returned with stderr %s', stderr)
+
         if process.returncode == 0 or process.returncode == None:
             return False
         
@@ -554,8 +561,8 @@ class ChemCompDpUtility(object):
 
         self._reqObj = InputRequest({}, self._verbose, self._lfh)
         self._reqObj.setValue('WWPDB_SITE_ID', self._cI.get('SITE_PREFIX'))
-        self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cI.get('TOP_WWPDB_SESSIONS_PATH'))
-        self._reqObj.setValue('SessionsPath', self._cI.get('TOP_WWPDB_SESSIONS_PATH'))
+        self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH'))
+        self._reqObj.setValue('SessionsPath', self._cI.get('SITE_WEB_APPS_SESSIONS_PATH'))
         self._reqObj.setValue('identifier', depId)
         self._reqObj.setValue('filesource', 'deposit')
 
