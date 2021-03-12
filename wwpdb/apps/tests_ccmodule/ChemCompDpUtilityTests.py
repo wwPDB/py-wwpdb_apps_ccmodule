@@ -15,6 +15,13 @@ __version__   = "V1.0"
 import sys, unittest, traceback
 import time, os, os.path
 import shutil
+
+from unittest.mock import MagicMock, Mock, patch
+from subprocess import Popen
+
+# mock config
+communicate_config = {'return_value': ('a', 'b')}
+
 from wwpdb.apps.ccmodule.utils.ChemCompDpUtility import ChemCompDpUtility, ChemCompDpInputs
 from wwpdb.apps.ccmodule.utils.ChemCompConfig    import ChemCompConfig
 from wwpdb.utils.session.WebRequest              import InputRequest
@@ -28,7 +35,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls):        
         cls._verbose = False
         cls._lfh = sys.stderr
 
@@ -39,8 +46,8 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         cls._cI = ConfigInfo()
         cls._reqObj = InputRequest({}, cls._verbose, cls._lfh)
         cls._reqObj.setValue('WWPDB_SITE_ID', cls._cI.get('SITE_PREFIX'))
-        cls._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', cls._cI.get('TOP_WWPDB_SESSIONS_PATH'))
-        cls._reqObj.setValue('SessionsPath', cls._cI.get('TOP_WWPDB_SESSIONS_PATH'))
+        cls._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', cls._cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH'))
+        cls._reqObj.setValue('SessionsPath', cls._cI.get('SITE_WEB_APPS_SESSIONS_PATH'))
         cls._reqObj.setValue('identifier', cls._depId)
 
         cls._ccConfig = ChemCompConfig(cls._reqObj, cls._verbose, cls._lfh)
@@ -105,7 +112,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         with self.assertRaises(Exception):
             # just expect a generic exception
             self._ccDpUtility._genLigandReportData('---', None, 'ref')
-    
+
     def test_A_imaging_setup(self):
         open(os.path.join(self._ccDictPath, '0G7.cif'), 'w').close()
 
@@ -143,7 +150,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             generated = f.read()
 
         self.assertEqual(original, generated)
-    
+
     def test_copy_file_util(self):
         open(os.path.join(self._ccDictPath, 'test-sketch.sdf'), 'w').close()
         dstPath = os.path.join(self._ccReportPath, 'test-sketch.sdf')
@@ -154,8 +161,9 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         with self.assertRaises(IOError):
             self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, 'test-sketch.sdf1'), dstPath)
 
-    @unittest.skip
-    def test_gen_images(self):
+    @patch.object(Popen, 'communicate', **communicate_config)
+    def test_gen_images(self, mock_popen):
+        self._ccDpUtility._verbose = True
         shutil.copyfile(os.path.join(os.path.dirname(__file__), 'fixtures', '1_H_0G7_701_.svg'), os.path.join(self._ccReportPath, '1_H_0G7_701_.svg'))
 
         tupleDict = {
@@ -176,10 +184,10 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         self._ccDpUtility._genAligned2dImages(self._fitTupleDict)
         
         imgPath = os.path.join(self._ccReportPath, '{}.svg'.format(self._instId))
-        self.assertTrue(os.path.exists(imgPath))
+        self.assertTrue(mock_popen.called)
 
         imgPath = os.path.join(self._ccReportPath, '{}.svg'.format(self._authAssignedId))
-        self.assertTrue(os.path.exists(imgPath))
+        self.assertTrue(mock_popen.called)
 
     @unittest.skip
     def test_do_analysis(self):
