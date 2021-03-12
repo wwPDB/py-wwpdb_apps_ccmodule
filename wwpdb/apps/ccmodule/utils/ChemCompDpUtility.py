@@ -54,19 +54,26 @@ class ChemCompDpUtility(object):
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
 
         try:
+            # checking if there is already a cc_analysis folder and removing if so
+            # this is to ensure that the report folder will contain only data to
+            # the most recent deposition
+            if os.path.exists(self._ccReportPath):
+                self._logger.info('Removing existing %s directory', self._CC_ASSIGN_DIR)
+                shutil.rmtree(self._ccReportPath, ignore_errors=True)
+
             # first we get the data dict from the cc assign file
             rDict = self._processCcAssignFile()
             cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
 
             # instantiate a ChemCompAssignDataStore object to store deposition information
             if self._verbose:
-                self._logger.debug('Creating datastore for resulting assign details.')
+                self._logger.debug('Creating datastore for resulting assign details')
 
             ccAssignDataStore = cca.createDataStore(rDict, True)
 
             # listing assignment keys
             if self._verbose:
-                self._logger.debug('Getting author assignment keys.')
+                self._logger.debug('Getting author assignment keys')
             instIdList = ccAssignDataStore.getAuthAssignmentKeys()
             
             if len(instIdList) == 0:
