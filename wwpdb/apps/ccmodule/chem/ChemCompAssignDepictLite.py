@@ -53,6 +53,7 @@ __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
 import os, sys
+from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from wwpdb.apps.ccmodule.depict.ChemCompDepict import ChemCompDepict
 from wwpdb.apps.ccmodule.chem.ChemCompAssign   import ChemCompAssign
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
@@ -80,6 +81,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__lfh=log
         self.__debug=False
         self.__reqObj=p_reqObj
+        self._logger = self._setupLog(log)
         #
         self.__cDict=PdbxCategoryDefinition._cDict
         #
@@ -114,23 +116,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__depositPath=os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
         
         self.__alternateTopHitMarkup='''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''
-        '''
-        self.__measurementTypes = []
-        try:
-            pda=PdbxDictionaryInfo(dictPath=self.__pathPdbxDictFile,verbose=self.__verbose,log=self.__lfh)
-            dInfo=pda.assembleByAttribute()
-            #
-            self.__measurementTypes = dInfo['pdbx_binding_assay']['COLUMN_ENUMS']['assay_value_type']
-            self.__measurementTypes.sort()
-            #
-            if( self.__verbose ):
-                self.__lfh.write("+%s.%s() -- self.__measurementTypes is %r\n" % (self.__class__.__name__,
-                                                       sys._getframe().f_code.co_name,
-                                                       self.__measurementTypes) )
-
-        except:
-            traceback.print_exc(file=self.__lfh)
-        '''
         
     ################################################################################################################
     # ------------------------------------------------------------------------------------------------------------
@@ -440,6 +425,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         browser         = self.__reqObj.getValue("browser")
         #
         depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+        self._ccReportPath = os.path.join(self.__depositPath, depId, 'cc_analysis')
         #
         # Establish helper dictionary of elements used to populate html templates
         #
@@ -455,114 +441,34 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         hlprDict['service_url_prefix'] = self.__siteSrvcUrlPathPrefix
         hlprDict['hndle_msmtch_tophit_id'] = ''
         hlprDict['hndle_msmtch_tophit_id_list'] = {}
-        #
+        
         oL=[]
-        #
         oL.append('<div id="cc_instance_browser">\n<h4>Browse Chem Components by Ligand Group</h4>\n<div id="pagi" class="noprint fltlft"></div>\n<br class="clearfloat" />\n')
         oL.append('<div id="cc_instance_browse_content">\n') 
-        #
-        bGrpRequiresAttention = False
-        #
+
         if (self.__verbose):
             for k in p_ligIdLst:
                 self.__lfh.write("+%s.%s() ccID key in p_ligIdLst: %30s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, k) )
             for id in p_ligIdRsrchLst:
                 self.__lfh.write("+%s.%s() ligid in p_ligIdRsrchLst: %30s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, id) )
-                
-        #
-        ligGrpDict = self.__generateLigGroupSummaryDict(p_ccAssgnDataStr)
-        #
+
         for grpIndx, ligId in enumerate(p_ligIdLst, start=1):
-            # first determine some data items about the current ligand ID/group
-            # that we need to know for display purposes
-            totlInstncsInGrp = 0
-            bGrpRequiresAttention = False
-            #
-            totlInstncsInGrp = ligGrpDict[ligId]['totlInstncsInGrp']
-            bGrpRequiresAttention = ligGrpDict[ligId]['bGrpRequiresAttention']
-            bGrpMsmtchsAddressed = ligGrpDict[ligId]['bGrpMismatchAddressed']
-            #
-            hlprDict['auth_assgnd_grp'] = ligId
-            ccName = ligGrpDict[ligId]['ccName']
-            hlprDict['auth_assgnd_ccname']   =(ccName and len(ccName) or [''])[0]
-            hlprDict['auth_assgnd_ccname_displ']  = self.truncateForDisplay(hlprDict['auth_assgnd_ccname'])
-            hlprDict['auth_assgnd_ccformula']   = ligGrpDict[ligId]['ccFormula']
-            hlprDict['auth_assgnd_ccformula_displ'] = self.truncateForDisplay(hlprDict['auth_assgnd_ccformula'])
-            hlprDict['tot_inst_cnt'] = totlInstncsInGrp
-            #
             tabStyle="displaynone"
-            if grpIndx==1:
-                tabStyle="_current"
-            #
-            ##########################################################################################
+            if grpIndx == 1:
+                tabStyle = "_current"
+
             # will need to generate the below output for each encounter of new group ID,
             # because this serves as start of "page" for the given ligand group
-            ##########################################################################################
             oL.append('<div id="p%s" class="%s tabscount">'% (str(grpIndx),tabStyle))
             oL.append('<div class="cmpnt_grp displaynone">%s</div>' % ligId)
             oL.append('<div class="inneraccordion" id="%s_inneraccordion">' % ligId)
-            #
-            if( bGrpRequiresAttention ):
-                text1 = "there is at least one instance for which " if totlInstncsInGrp > 1 else ""
-                text2 = "sections below for those instances that require  " if totlInstncsInGrp > 1 else "section below for the instance that requires "
-                            
-                hlprDict['mismatch_msg'] = '<br /><br />However, '+text1+'there is a discrepancy between the coordinates for '+ligId+' and the possible match in the CCD. ' + \
-                                            'Please see '+text2+'attention. Clicking on section headers labelled "instance" will expand/collapse content. ' + \
-                                            'Both 2D and 3D comparison views are provided.<br /><br />' + \
-                                            'The section "address mismatched instances of: '+ligId+'" allows you to provide more information about this ligand. Please provide at least one of the following: ' + \
-                                            'an alternative ligand ID, a chemical diagram by file upload of image file or a descriptor string in SMILES/InChI format. When you have finished with this ligand, ' + \
-                                            'press the "Save" button at the bottom of the page.'
-            else:
-                hlprDict['mismatch_msg'] = ""
-            #
-            ligCount = ["Zero","One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight","Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
-                     "Sixteen", "Seventeen", "Eighteen", "Nineteen","Twenty"]
-            #
-            if totlInstncsInGrp < 21:
-                hlprDict['tot_inst_cnt'] = ligCount[totlInstncsInGrp]
-            #
-            hlprDict['copy_ies'] = "copies" if totlInstncsInGrp > 1 else "copy"
-            hlprDict['has_have'] = "have" if totlInstncsInGrp > 1 else "has"  
-            oL.append('<div><h3>%(tot_inst_cnt)s %(copy_ies)s of %(auth_assgnd_grp)s %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s) %(has_have)s been identified in your coordinates.%(mismatch_msg)s<!--  end of class="all_instances" div--></h3></div>' % hlprDict)
-            #
-            # then render html markup that serves as search result content for those instances in the current ligand group
-            for instId in ligGrpDict[ligId]['instIdLst']:
-                    
-                # rendering markup for chem component instances in the current group 
-                                    
-                hlprDict['instanceid']   = instId
-                # if this particular instance is NOT one of the instances with mismatch issue, then can hide "attention required" notice
-                if( instId not in ligGrpDict[ligId]['mismatchLst'] ):
-                    hlprDict['attn_reqd_display'] = 'displaynone'
-                else:
-                    # else this instId does have mismatch issue but we show "attention required" notice only if depositor has yet to address the issue 
-                    if( bGrpMsmtchsAddressed ):
-                        hlprDict['attn_reqd_display'] = 'displaynone'
-                    else:                    
-                        hlprDict['attn_reqd_display'] = ''
-                #
-                ###################################################################################################
-                # Call method below to generate html content for "Single Instance" profile, content is in form of html  
-                # fragments stored in files on the server. The files are then recruited by AJAX calls made by the front end
-                ###################################################################################################
-                self.doRender_InstanceProfile(p_ccAssgnDataStr,hlprDict)
-                #
-                oL.append( self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcTmplts),fn="cc_lite_instnc_disp_tmplt.html",parameterDict=hlprDict) )
-                # end of interating through instances for current ligand group/ID
-                
-            # if necessary generate "describe new ligand for all-instances" section
-            if( bGrpRequiresAttention ):
-                oL.extend( self.doRender_HandleLigndMsmtchSection(ligId,p_ccAssgnDataStr,ligGrpDict,hlprDict,p_reqObj) )
-            '''    
-            if( ligId in p_ligIdRsrchLst ):
-                oL.extend( self.doRender_ResearchDataCapture(ligId,p_ccAssgnDataStr,hlprDict,p_reqObj) )
-            '''
-            navButtons='''<br /><br /><div id="" class="nav_buttons">
-        <div title="" class="fltrgt savedone" style="padding-left: 0px;"><input id="" name="savedone" value="Finish (all issues are addressed)" title="" class="fltrgt savedone" type="button" disabled="disabled"></div>
-        <input style="margin-right: 10px;" id="" name="back_to_summary_vw" value="Back to Summary View" class="fltrgt displaynone back_to_summary_vw" type="button" disabled="disabled">
-        <input style="margin-right: 10px;" id="" name="instance_browser_ui" value="Inspect Selected Ligands" type="button" class="fltrgt instance_browser_ui" disabled="disabled" >
-    </div>'''
-            oL.append(navButtons+'</div></div>') #one terminal div for inneraccordion then another terminal div for p<N>
+
+            mainHtmlDirPath = os.path.join(self._ccReportPath, 'html', ligId)
+            mainHtmlFilePath = os.path.join(mainHtmlDirPath, ligId + '.html')
+
+            if os.access(mainHtmlFilePath, os.R_OK):
+                with open(mainHtmlFilePath) as f:
+                    oL.append(f.read().replace('\\n', '\n') + '\n')            
             
         #end of iterating through all chem components
             
@@ -1041,13 +947,10 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     # else user chose to use originally proposed ligand ID
                     lclDict['use_orig_proposed_id_checked'] = 'checked="checked"' #show radio button as clicked
         
-        absltPath2dAuthAssgndImg = os.path.join(self.__depositPath,p_hlprDict["depositionid"].upper(),"cc_analysis",p_authAssignedGrp+'.svg')
-        if( os.access(absltPath2dAuthAssgndImg,os.R_OK) ):
-            path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
-            if( self.__verbose and self.__debug ):
-                self.__lfh.write("+%s.%s() ----- successful access to absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, absltPath2dAuthAssgndImg) )
-                self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )
-            
+        path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
+        if( self.__verbose and self.__debug ):
+            self.__lfh.write("+%s.%s() ----- successful access to absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name) )
+            self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )            
             
         lclDict['2dpath_auth_assgnd_id'] = path2dAuthAssgndImg
         lclDict['use_exact_match_id_list'] = self.__generateExactMatchAssignMarkup(lclDict,exactMatchId)
@@ -1113,7 +1016,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         oL.append( self.processTemplate( tmpltPth=p_htmlTmpltPth,fn="marvin_sketch_tmplt.html",parameterDict=rD ) )
         
         # exporting html to file for debug purposes
-        fp=open(self.absltAssgnSessionPath+'/'+p_authAssignedGrp+'_mrvnsktch.html','w')
+        fp=open(os.path.join(self._ccReportPath, 'html', 'debug' + p_authAssignedGrp + '_mrvnsktch.html'),'w')
         fp.write("%s" % '\n'.join( oL ) )
         fp.close()
         
@@ -1275,9 +1178,10 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         ############################################################################################################################################################
         ## 3D JMOL renderings
         ############################################################################################################################################################
+        self.__lfh.write("+%s.%s() ----- WARNING ----- useApplet: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, useApplet) )
         if( useApplet ):
             self.__renderInstance3dViews(p_ccAssgnDataStr,p_hlprDict)
-        ##
+        #
         
         ############################################################################################################################################################
         ###################################                     END creating "single instance" view                                 ##############################
@@ -1285,6 +1189,310 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         ##
         if (self.__verbose):
                     self.__lfh.write("+%s.%s() ----- reached end for instId: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
+
+    def generateInstancesMainHtml(self, ccAssignDataStore, ligList):
+        bIsWorkflow     = self.isWorkflow(self.__reqObj)
+        depId           = str(self.__reqObj.getValue("identifier"))
+        wfInstId        = str(self.__reqObj.getValue("instance")).upper()
+        sessionId       = self.__reqObj.getSessionId()
+        fileSource      = str(self.__reqObj.getValue("filesource")).lower()
+        htmlTmpltPth    = self.__reqObj.getValue("TemplatePath")
+        browser         = self.__reqObj.getValue("browser")
+
+        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+
+        # establish helper dictionary of elements used to populate html templates
+        helperDict = {}
+        helperDict['sessionid'] = sessionId
+        helperDict['depositionid'] = depId
+        helperDict['filesource'] = fileSource
+        helperDict['instance'] = wfInstId #i.e. workflow instance ID 
+        helperDict['identifier'] = depId
+        helperDict['html_template_path'] = htmlTmpltPth
+        helperDict['jmol_code_base'] = self.jmolCodeBase
+        helperDict['browser'] = browser
+        helperDict['service_url_prefix'] = self.__siteSrvcUrlPathPrefix
+        helperDict['hndle_msmtch_tophit_id'] = ''
+        helperDict['hndle_msmtch_tophit_id_list'] = {}
+
+        ligGrpDict = self.__generateLigGroupSummaryDict(ccAssignDataStore)
+
+        for grpIndx, ligId in enumerate(ligList, start=1):
+            if ligId == None:
+                continue
+            
+            oL=[]
+            # first determine some data items about the current ligand ID/group
+            # that we need to know for display purposes
+            totlInstncsInGrp = 0
+            bGrpRequiresAttention = False
+            #
+            totlInstncsInGrp = ligGrpDict[ligId]['totlInstncsInGrp']
+            bGrpRequiresAttention = ligGrpDict[ligId]['bGrpRequiresAttention']
+            bGrpMsmtchsAddressed = ligGrpDict[ligId]['bGrpMismatchAddressed']
+            #
+            helperDict['auth_assgnd_grp'] = ligId
+            ccName = ligGrpDict[ligId]['ccName']
+            helperDict['auth_assgnd_ccname']   =(ccName and len(ccName) or [''])[0]
+            helperDict['auth_assgnd_ccname_displ']  = self.truncateForDisplay(helperDict['auth_assgnd_ccname'])
+            helperDict['auth_assgnd_ccformula']   = ligGrpDict[ligId]['ccFormula']
+            helperDict['auth_assgnd_ccformula_displ'] = self.truncateForDisplay(helperDict['auth_assgnd_ccformula'])
+            helperDict['tot_inst_cnt'] = totlInstncsInGrp
+
+            #
+            if( bGrpRequiresAttention ):
+                text1 = "there is at least one instance for which " if totlInstncsInGrp > 1 else ""
+                text2 = "sections below for those instances that require  " if totlInstncsInGrp > 1 else "section below for the instance that requires "
+                            
+                helperDict['mismatch_msg'] = '<br /><br />However, '+text1+'there is a discrepancy between the coordinates for '+ligId+' and the possible match in the CCD. ' + \
+                                            'Please see '+text2+'attention. Clicking on section headers labelled "instance" will expand/collapse content. ' + \
+                                            'Both 2D and 3D comparison views are provided.<br /><br />' + \
+                                            'The section "address mismatched instances of: '+ligId+'" allows you to provide more information about this ligand. Please provide at least one of the following: ' + \
+                                            'an alternative ligand ID, a chemical diagram by file upload of image file or a descriptor string in SMILES/InChI format. When you have finished with this ligand, ' + \
+                                            'press the "Save" button at the bottom of the page.'
+            else:
+                helperDict['mismatch_msg'] = ""
+            #
+            ligCount = ["Zero","One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight","Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+                     "Sixteen", "Seventeen", "Eighteen", "Nineteen","Twenty"]
+            #
+            if totlInstncsInGrp < 21:
+                helperDict['tot_inst_cnt'] = ligCount[totlInstncsInGrp]
+            #
+            helperDict['copy_ies'] = "copies" if totlInstncsInGrp > 1 else "copy"
+            helperDict['has_have'] = "have" if totlInstncsInGrp > 1 else "has"  
+            oL.append('<div><h3>%(tot_inst_cnt)s %(copy_ies)s of %(auth_assgnd_grp)s %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s) %(has_have)s been identified in your coordinates.%(mismatch_msg)s<!--  end of class="all_instances" div--></h3></div>' % helperDict)
+            #
+            # then render html markup that serves as search result content for those instances in the current ligand group
+            for instId in ligGrpDict[ligId]['instIdLst']:
+                    
+                # rendering markup for chem component instances in the current group 
+                                    
+                helperDict['instanceid']   = instId
+                # if this particular instance is NOT one of the instances with mismatch issue, then can hide "attention required" notice
+                if( instId not in ligGrpDict[ligId]['mismatchLst'] ):
+                    helperDict['attn_reqd_display'] = 'displaynone'
+                else:
+                    # else this instId does have mismatch issue but we show "attention required" notice only if depositor has yet to address the issue 
+                    if( bGrpMsmtchsAddressed ):
+                        helperDict['attn_reqd_display'] = 'displaynone'
+                    else:                    
+                        helperDict['attn_reqd_display'] = ''
+                #
+                ###################################################################################################
+                # Call method below to generate html content for "Single Instance" profile, content is in form of html  
+                # fragments stored in files on the server. The files are then recruited by AJAX calls made by the front end
+                ###################################################################################################
+                self._generateInstanceProfileHtml(helperDict, ccAssignDataStore)
+                # self.doRender_InstanceProfile(p_ccAssgnDataStr,hlprDict)
+                #
+                oL.append( self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcTmplts),fn="cc_lite_instnc_disp_tmplt.html",parameterDict=helperDict) )
+                # end of interating through instances for current ligand group/ID
+                
+            # if necessary generate "describe new ligand for all-instances" section
+            if( bGrpRequiresAttention ):
+                oL.extend( self.doRender_HandleLigndMsmtchSection(ligId,ccAssignDataStore,ligGrpDict,helperDict, self.__reqObj) )
+
+            navButtons='''<br /><br /><div id="" class="nav_buttons">
+        <div title="" class="fltrgt savedone" style="padding-left: 0px;"><input id="" name="savedone" value="Finish (all issues are addressed)" title="" class="fltrgt savedone" type="button" disabled="disabled"></div>
+        <input style="margin-right: 10px;" id="" name="back_to_summary_vw" value="Back to Summary View" class="fltrgt displaynone back_to_summary_vw" type="button" disabled="disabled">
+        <input style="margin-right: 10px;" id="" name="instance_browser_ui" value="Inspect Selected Ligands" type="button" class="fltrgt instance_browser_ui" disabled="disabled" >
+    </div>'''
+            oL.append(navButtons+'</div></div>') #one terminal div for inneraccordion then another terminal div for p<N>
+
+            mainHtmlDirPath = os.path.join(self._ccReportPath, 'html', ligId)
+            mainHtmlFilePath = os.path.join(mainHtmlDirPath, ligId + '.html')
+
+            if not os.path.exists(mainHtmlDirPath):
+                os.makedirs(mainHtmlDirPath, exist_ok=True)
+
+            with open(mainHtmlFilePath, 'w') as f:
+                f.write(''.join(oL))
+
+    def _generateInstanceProfileHtml(self, helperDict, ccAssignDataStore):
+        instId          = helperDict['instanceid']
+        sessionId       = helperDict['sessionid']
+        depId           = helperDict['depositionid']
+        wfInstId        = helperDict['instance']
+        browser         = helperDict['browser']
+        htmlTmpltPth    = os.path.join(helperDict['html_template_path'], self.__pathCCliteSnglInstcTmplts)
+        self._ccReportPath = os.path.join(self.__depositPath, depId, 'cc_analysis')
+
+        self._logger.info("Generating instance profile HTML for instId: %s", instId)
+                    
+        # interrogate ChemCompAssign DataStore for necessary data items
+        authAssignedGroup = ccAssignDataStore.getAuthAssignment(instId)
+        topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
+        isGroupResolved = (authAssignedGroup in ccAssignDataStore.getGlbllyRslvdGrpList())
+        
+        # determine whether or not a top candidate hit has been found for this instance 
+        if topHitCcId.lower() == 'none':
+            hasTopHit = False
+            helperDict['have_top_hit'] = False
+
+            if self.__verbose:
+                self._logger.debug('instId %s has no top hit', instId)
+        else:
+            hasTopHit = True
+            helperDict['have_top_hit'] = True
+            
+        # determine whether or not to use applets based on browser detected
+        if browser == 'noApplets':
+            useApplet = False
+        else:
+            useApplet = True
+
+        # establish dictionary of elements used to populate html template for instance profile
+        if authAssignedGroup.upper() != topHitCcId.upper():
+            helperDict['attn_reqd'] = 'attn_reqd'
+        else:
+            helperDict['attn_reqd'] = ''
+            
+        if isGroupResolved:
+            helperDict['is_rslvd'] = 'is_rslvd'
+        else:
+            helperDict['is_rslvd'] = 'not_rslvd'
+        
+        helperDict['auth_assgnd_grp'] = authAssignedGroup
+        helperDict['status'] = ccAssignDataStore.getBatchBestHitStatus(instId)
+        helperDict['name'] = ccAssignDataStore.getCcName(instId)
+        helperDict['formula'] = ccAssignDataStore.getCcFormula(instId)
+        helperDict['formula_displ'] = self.truncateForDisplay(helperDict['formula'])
+        helperDict['fmlcharge'] = ccAssignDataStore.getCcFormalChrg(instId)
+        helperDict['exact_match_ccid'] = ''
+
+        if self.__debug:
+            self._logger.debug('----- single atomflag for instId %s is: %s', instId, ccAssignDataStore.getCcSingleAtomFlag(instId))
+
+        helperDict['dsplyvizopt'] = '' if str(ccAssignDataStore.getCcSingleAtomFlag(instId)).lower() == 'n' else 'displaynone'
+
+        if hasTopHit:
+            helperDict['exact_match_ccid'] = topHitCcId
+            topHitsList = ccAssignDataStore.getTopHitsList(instId)
+            helperDict['exact_match_ccname'] = (len(topHitsList) and [topHitsList[0][3]] or [''])[0]
+            helperDict['exact_match_ccname_displ'] = self.truncateForDisplay(helperDict['exact_match_ccname'])
+            helperDict['exact_match_ccformula'] = (len(topHitsList) and [topHitsList[0][4]] or [''])[0]
+            helperDict['exact_match_ccformula_displ'] = self.truncateForDisplay(helperDict['exact_match_ccformula'])
+
+            if topHitCcId.lower() != authAssignedGroup.lower():
+                helperDict['msmtch_explain'] = 'There is a discrepancy between your coordinates of <span class="strong">{}</span> and the match found in the CCD: <span style="color: #F00;">{}</span>'.format(authAssignedGroup, topHitCcId)
+                helperDict['hndle_msmtch_tophit_id'] = topHitCcId
+                if authAssignedGroup not in helperDict['hndle_msmtch_tophit_id_list']:
+                    helperDict['hndle_msmtch_tophit_id_list'][authAssignedGroup] = []
+                if topHitCcId not in helperDict['hndle_msmtch_tophit_id_list'][authAssignedGroup]:
+                    helperDict['hndle_msmtch_tophit_id_list'][authAssignedGroup].append(topHitCcId)
+            else:
+                helperDict['msmtch_explain'] = ''
+        
+        # setting relative paths to 2D visualization resources that are used by webpage to load on demand via AJAX
+        helperDict['2dpath'] = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}.svg'.format(depId, instId)
+  
+        if hasTopHit:
+            # if the assign search yielded top hit(s) we need to generate tabular display of match results
+            helperDict['2dpath_top_hit'] = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId, topHitCcId, topHitCcId)
+            helperDict['assgn_sess_path_rel'] = '>>>' + self.__workingRltvAssgnSessionPath # this key/value is used in private renderInstanceMatchResults function for cc_viz_cmp_li_tmplt.html
+            helperDict['cc_instnc_match_rslts_tbl'] = ''.join(self._generateMatchResultsTable(ccAssignDataStore, helperDict))
+
+        instanceProfileLabel = 'instnc_profile.html'
+        
+        # establishing values for RELATIVE path used by FRONT end for locating file that serves as instance profile markup and is called by front end on-demand 
+        htmlFilePathRel = '/service/cc_lite/report/get_file?identifier={}&source=report&ligid={}&file={}'.format(depId.upper(), instId, instId + instanceProfileLabel)
+        helperDict['instnc_profile_path'] = htmlFilePathRel
+        
+        # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
+        htmlDirPathAbs = os.path.join(self._ccReportPath, 'html', instId)
+        if not os.path.exists(htmlDirPathAbs):
+            os.makedirs(htmlDirPathAbs)
+
+        htmlFilePathAbs = os.path.join(htmlDirPathAbs, instId + instanceProfileLabel)
+
+        with open(htmlFilePathAbs, 'w') as fp:
+            if hasTopHit:
+                if useApplet:
+                    instncProfileTmpltName = 'cc_lite_instnc_profile_tmplt.html'
+                else:
+                    instncProfileTmpltName = 'cc_lite_instnc_profile_noapplet_tmplt.html'
+            else:
+                helperDict['msmtch_explain'] = 'No match was found in the CCD.'
+
+                if( useApplet ):
+                    instncProfileTmpltName = 'cc_lite_instnc_profile_nomatch_tmplt.html'
+                else:
+                    instncProfileTmpltName = 'cc_lite_instnc_profile_nomatch_noapplet_tmplt.html'
+            
+            fp.write('%s' % self.processTemplate(tmpltPth=htmlTmpltPth, fn=instncProfileTmpltName, parameterDict=helperDict))
+        
+        # 3D JMOL renderings
+        if useApplet:
+            self.__renderInstance3dViews(ccAssignDataStore, helperDict)
+
+        if self.__verbose:
+            self._logger.debug('----- reached end for instId: %s', instId)
+    
+    def _generateMatchResultsTable(self, ccAssignDataStore, helperDict):
+        oL = []
+        depId = helperDict['depositionid']
+        instId = helperDict['instanceid']
+        htmlTemplatePath = helperDict['html_template_path']
+        
+        ccid = ccAssignDataStore.getBatchBestHitId(instId)
+        helperDict['ccid'] = ccid
+        helperDict['3dpath_ref'] = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file='
+        
+        #################OBSOLETE?############################
+        #
+        #
+        # cnt = 0
+        # checked = ''
+        # assgnChecked = ''
+        # assgndCcId = ccAssignDataStore.getAnnotAssignment(instId)
+        # assgnChecked = 'checked="checked"'
+        # #
+        # # using p_hlprDict to supply text substitution content for both cc_instnc_match_rslts_tbl_tmplt.html and cc_viz_cmp_li_tmplt.html in this loop
+        # helperDict['assgn_checked'] = assgnChecked
+        # #
+        # matchWarning = ''
+        # retD = self.__processWarningMsg(matchWarning)
+        # helperDict['score_warn_class'] = retD['warn_class']
+        # scorePrefix = retD['prefix']
+        # scoreSuffix = retD['suffix']
+        # #
+        # #p_hlprDict['score'] = scorePrefix+cmpstscore+scoreSuffix
+        # helperDict['score'] = ''
+        # helperDict['cc_name'] = ccAssignDataStore.getCcName(instId)
+        # helperDict['cc_name_displ'] = self.truncateForDisplay(helperDict['cc_name'])
+        # helperDict['cc_formula'] = ccAssignDataStore.getCcFormula(instId)
+        # helperDict['cc_formula_displ'] = self.truncateForDisplay(helperDict['cc_formula'])
+        # helperDict['checked'] = checked
+        # helperDict['index'] = cnt
+        # #
+        # helperDict['a'] = '%a'
+        # #
+        ################################################
+
+        # while we're iterating through the candidate assignments for the given instance, we will
+        # also populate templates used for displaying chem comp references in viz compare grid
+        htmlPathAbs = os.path.join(self.__depositPath, depId, 'cc_analysis', 'html', instId)
+        jmolPathAbs = os.path.join(self.__depositPath, depId, 'cc_analysis', 'html', instId)
+        htmlFilePathAbs = os.path.join(htmlPathAbs, ccid + '_viz_cmp_li.html')
+        atmMpFilePathAbs = os.path.join(htmlPathAbs, ccid + '_ref_atm_mp_li.html')
+        jmolFilePathAbs = os.path.join(jmolPathAbs, ccid + '_ref_jmol.html')
+
+        # populate "cc_viz_cmp_li_tmplt.html" which contains placeholders for "instanceid", "ccid",and "assgn_sess_path_rel"
+        if not os.path.exists(htmlPathAbs):
+            os.makedirs(htmlPathAbs)
+
+        with open(htmlFilePathAbs, 'w') as fp:
+            fp.write('%s' % self.processTemplate(tmpltPth=os.path.join(htmlTemplatePath, self.__pathCCliteSnglInstcCmprTmplts), fn='cc_lite_viz_cmp_li_tmplt.html', parameterDict=helperDict) )
+
+        # populate "cc_ref_jmol_tmplt.html" which contains placeholders for "pct", "index", "a", and "3dpath_ref"
+        if not os.path.exists(jmolPathAbs):
+            os.makedirs(jmolPathAbs)
+
+        with open(jmolFilePathAbs, 'w') as fp:
+            fp.write('%s' % self.processTemplate(tmpltPth=os.path.join(htmlTemplatePath, self.__pathCCliteSnglInstcJmolTmplts), fn='cc_lite_ref_jmol_tmplt.html', parameterDict=helperDict))
+
+        return oL   
 
     def doRender_BatchRslts(self,p_entityId,p_ccAssgnDataStr,p_instIdLst,p_tmpltPth):
         ''' Render "Condensed Batch Search Report"
@@ -1631,24 +1839,26 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         else:
             bHaveTopHit = True
         ##
-        sPathRel = self.__workingRltvAssgnSessionPath
+        sPathRel = self._ccReportPath
         s3dpathEnviron = self.rltvSessionPath
         ##
         instIdPieces = instId.split('_')
         chainId = instIdPieces[1]
         residueNum = instIdPieces[3]
         ##
-        p_hlprDict['3dpath'] = os.path.join(sPathRel,instId,'report',authAssignedGrp)
-        p_hlprDict['3dpath_environ'] = os.path.join(s3dpathEnviron,depId+'-jmol-mdl')
+        # p_hlprDict['3dpath'] = os.path.join(sPathRel,instId,'report',authAssignedGrp)
+        p_hlprDict['3dpath'] = '/service/cc_lite/report/get_file?identifier={}&source=report&ligid={}&file='.format(depId.upper(), authAssignedGrp)
+        # p_hlprDict['3dpath_environ'] = os.path.join(s3dpathEnviron,depId+'-jmol-mdl')
+        p_hlprDict['3dpath_environ'] = '/service/cc_lite/report/get_file?identifier={}&source=report&ligid={}&file='.format(depId.upper(), instId)
         p_hlprDict['residue_num'] = residueNum
         p_hlprDict['chain_id'] = chainId
         # establishing values for ABSOLUTE paths used by BACK end for writing to files that serve as additional resources that may be called by front end on-demand
-        jmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_jmol_instVw.html")
-        environJmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_environ_jmol_instVw.html")
-        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_stndaln_jmol_instVw.html")
-        jmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_jmol_allInstVw.html")
-        environJmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_environ_jmol_allInstVw.html")
-        stndalnJmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_stndaln_jmol_allInstVw.html")
+        jmolFilePathAbs_SnglInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_jmol_instVw.html")
+        environJmolFilePathAbs_SnglInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_environ_jmol_instVw.html")
+        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_instVw.html")
+        jmolFilePathAbs_AllInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_jmol_allInstVw.html")
+        environJmolFilePathAbs_AllInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_environ_jmol_allInstVw.html")
+        stndalnJmolFilePathAbs_AllInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_allInstVw.html")
         #
         #if bHaveTopHit:
         if True:
@@ -1844,3 +2054,28 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             return None
         else:
             return name[i+1:]
+
+    def _setupLog(self, log_file):
+        """Setup a Logger instance to use the same file as provided
+        by the 'log' parameters
+
+        Args:
+            log_file (IOStream): a file-like object
+
+        Returns:
+            Logger: instance of Logger class
+        """
+        logger = getLogger(__name__)
+        handler = StreamHandler(log_file)
+
+        formatter = Formatter('+%(module)s.%(funcName)s() ++ %(message)s\n')
+        handler.setFormatter(formatter)
+
+        logger.addHandler(handler)
+        
+        if self.__verbose:
+            logger.setLevel(DEBUG)
+        else:
+            logger.setLevel(INFO)
+
+        return logger

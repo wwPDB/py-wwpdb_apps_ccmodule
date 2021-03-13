@@ -29,6 +29,7 @@ class ChemCompDpUtility(object):
     """
     _CC_REPORT_DIR = 'cc_analysis'
     _CC_ASSIGN_DIR = 'assign'
+    _CC_HTML_FILES_DIR = 'html'
     
     def __init__(self, depId, verbose=False, log=sys.stderr):
         self._verbose = verbose
@@ -40,6 +41,9 @@ class ChemCompDpUtility(object):
         self._inputParamDict = {}
         self._depId = depId
         self._cI = ConfigInfo()
+
+        # templates path
+        self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
 
         # setting up session object
         self._setupSession(self._depId)
@@ -74,7 +78,9 @@ class ChemCompDpUtility(object):
             # listing assignment keys
             if self._verbose:
                 self._logger.debug('Getting author assignment keys')
+
             instIdList = ccAssignDataStore.getAuthAssignmentKeys()
+            origCcId = set(map(ccAssignDataStore.getDpstrOrigCcIdMaster, instIdList))
             
             if len(instIdList) == 0:
                 # if we get an empty list here, there nothing else to do
@@ -86,7 +92,7 @@ class ChemCompDpUtility(object):
 
             for instId in instIdList:
                 if self._verbose:
-                    self._logger.debug('instId item: {}', instId)
+                    self._logger.debug('instId item: %s', instId)
                 
                 authAssignedId = ccAssignDataStore.getAuthAssignment(instId)
                 topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
@@ -123,6 +129,10 @@ class ChemCompDpUtility(object):
 
             self._importDepositorFiles(ccAssignDataStore)
             self._saveLigModState('intermittent')
+
+            ccAD = ChemCompAssignDepictLite(self._reqObj, self._verbose, self._lfh)
+            # ccAD.setSessionPaths(self._reqObj)
+            oL = ccAD.generateInstancesMainHtml(ccAssignDataStore, origCcId)
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
 
@@ -545,12 +555,6 @@ class ChemCompDpUtility(object):
         # call on ChemCompAssign to save current state of ligand assignments 
         cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
         bSuccess = cca.saveState(pathDict, context='deposit', mode=mode)
-        
-        # below added to support convenience of assessing results during unit testing
-        if mode != 'intermittent':
-            ccAD = ChemCompAssignDepictLite(self._reqObj, self._verbose, self._lfh)
-            ccAD.setSessionPaths(self._reqObj)
-            ccAD.doRender_ResultFilesPage(self._reqObj, bIsWorkflow)
 
         return bSuccess
 
@@ -607,6 +611,7 @@ class ChemCompDpUtility(object):
         self._reqObj.setValue('SessionsPath', self._cI.get('SITE_WEB_APPS_SESSIONS_PATH'))
         self._reqObj.setValue('identifier', depId)
         self._reqObj.setValue('filesource', 'deposit')
+        self._reqObj.setValue('TemplatePath', self._templatePath)
 
     def _setupLog(self, log_file):
         """Setup a Logger instance to use the same file as provided
@@ -632,3 +637,8 @@ class ChemCompDpUtility(object):
             logger.setLevel(INFO)
 
         return logger
+    
+if __name__ == '__main__':
+    dp=ChemCompDpUtility(sys.argv[1],True,sys.__stderr__)
+    dp.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, sys.argv[2])
+    dp.doAnalysis()

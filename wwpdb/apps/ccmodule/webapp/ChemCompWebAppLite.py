@@ -368,7 +368,7 @@ class ChemCompWebAppLiteWorker(object):
                 will affect the Content-Type HTTP header. For now it supports getting
                 svg, gif and cif files.
         """
-        supportedSources = ["ccd", "author"] # this will tell from where we should get the file
+        supportedSources = ["ccd", "author", "report"] # this will tell from where we should get the file
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
 
         sessionId    = self.__sessionId
@@ -390,7 +390,7 @@ class ChemCompWebAppLiteWorker(object):
         filename = re.sub('[^a-zA-Z0-9_.-]+', '', filename)
 
         if source not in supportedSources:
-            rC.setError(errMsg="Source should be either 'ccd' or 'author'")
+            rC.setError(errMsg="Source should be either 'ccd', 'author' or 'report'")
             rC.setStatusCode(HTTPStatus.BAD_REQUEST)
             return rC
 
@@ -422,6 +422,12 @@ class ChemCompWebAppLiteWorker(object):
 
             rC.setReturnFormat("binary")
             rC.setBinaryFile(filePath)
+        elif fileType == "html":
+            filePath = os.path.join(ccReportPath, "html", ligandId, filename)
+
+            rC.setReturnFormat("html")
+            rC.setTextFile(filePath)
+            rC._cD["htmlcontent"] = rC._cD["textcontent"]
         else:
             rC.setReturnFormat("text")
 
