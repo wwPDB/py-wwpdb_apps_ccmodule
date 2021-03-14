@@ -8,15 +8,12 @@ import sys
 import shutil
 from logging                                            import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from threading                                          import Timer
-from subprocess                                         import call, Popen, PIPE
-from mmcif.io.PdbxReader                                import PdbxReader
-from wwpdb.utils.wf.WfDataObject                        import WfDataObject
+from subprocess                                         import Popen, PIPE
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssignReader
-from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
 from wwpdb.utils.session.WebRequest                     import InputRequest
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
@@ -131,7 +128,6 @@ class ChemCompDpUtility(object):
             self._saveLigModState('intermittent')
 
             ccAD = ChemCompAssignDepictLite(self._reqObj, self._verbose, self._lfh)
-            # ccAD.setSessionPaths(self._reqObj)
             oL = ccAD.generateInstancesMainHtml(ccAssignDataStore, origCcId)
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
@@ -207,7 +203,7 @@ class ChemCompDpUtility(object):
             filePaths = ccReport.getReportFilePaths()
             
             for k,v in filePaths.items():
-                self._logger.debug('Coordinate file reporting -- key: {}, value: {}', k, v)
+                self._logger.debug('Coordinate file reporting -- key: %s, value: %s', k, v)
 
     def _imagingSetupForLigandInstance(self, instId, authAssignedId, fitTupleDict, instanceCcAbsFilePath):
         """Setup for generating instance images.

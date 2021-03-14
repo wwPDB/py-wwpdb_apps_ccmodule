@@ -82,6 +82,7 @@ import os, re, sys, time, types, string, traceback, ntpath, threading, signal, s
 from http import HTTPStatus
 from json import loads, dumps
 from time import localtime, strftime
+from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
 
 from wwpdb.utils.session.WebRequest              import InputRequest,ResponseContent
 #
@@ -114,6 +115,7 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 import datetime, stat
 import socket, shlex
 from subprocess import call,Popen,PIPE
+from debug_tools.tools import debug
 
 class ChemCompWebAppLite(object):
     """Handle request and response object processing for the chemical component lite module application.
@@ -243,6 +245,8 @@ class ChemCompWebAppLiteWorker(object):
         self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis') # should we add 'cc_analysis' in a variable in site-config?
+        self.__logger = self._setupLog(log)
+
         #
         self.__pathInstncsVwTmplts="templates/workflow_ui/instances_view"
         self.__pathSnglInstcTmplts=self.__pathInstncsVwTmplts+"/single_instance"
@@ -270,7 +274,7 @@ class ChemCompWebAppLiteWorker(object):
                          ###############  below are URLs created for WFM/common tool development effort######################
                          #'/service/cc_lite/assign/wf/new_session':                 '_ccAssign_BatchSrchSummary',
                          '/service/cc_lite/report/get_file':                        '_getReportFile',
-                         '/service/cc_lite/report/instancelist':                    '_getLigandInstanceList',
+                         '/service/cc_lite/report/instancelist':                    '_getLigandInstancesData',
                          '/service/cc_lite/wf/new_session':                         '_ligandSrchSummary',
                          '/service/cc_lite/view/ligandsummary':                     '_loadSummaryData',
                          '/service/cc_lite/view/ligandsummary/data_check':          '_checkForSummaryData',
@@ -617,33 +621,106 @@ class ChemCompWebAppLiteWorker(object):
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
 
-    def _getLigandInstanceList(self):
+    @debug(output_file=None)
+    def _getLigandInstancesDataA(self):
+        ligandInstancesData = {}
         self.__getSession()
-
-        # check if depId is empty etc
-        depId = str(self.__reqObj.getValue('identifier')).upper()
-        ligIds = str(self.__reqObj.getValue('ligids'))
-        ligIdsList = ligIds.split(',')
-
-        ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        ccADS = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
-
-        instncIdLst = ccADS.getAuthAssignmentKeys()
-        srtdInstncLst = sorted(instncIdLst)
-        ccA.getDataForInstncSrch(srtdInstncLst, ccADS)
-
-        ccADS.dumpData(self.__lfh)
-        ccADS.serialize()
-
-        ccAD = ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-        instanceDict = ccAD.getInstanceList(ligIdsList, ccADS)
 
         self.__reqObj.setDefaultReturnFormat(return_format="html")
         rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         rC.setReturnFormat("jsonData")
-        rC.setData(instanceDict)
+        rC.setData(ligandInstancesData)
 
         return rC
+    
+    @debug(output_file=None)
+    def _getLigandInstancesData(self):
+        ligandInstancesData = {}
+        self.__getSession()
+
+        ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+
+        ligIds = str(self.__reqObj.getValue('ligids'))
+        ligIdsList = ligIds.split(',')
+
+        if self.__verbose:
+            self.__logger.debug('Getting instances for ligId %s', ligIdsList)
+
+        instncIdLst = ccAssignDataStore.getAuthAssignmentKeys()
+        srtdInstncLst = sorted(instncIdLst)
+        ccA.getDataForInstncSrch(srtdInstncLst, ccAssignDataStore)
+
+        ccAssignDataStore.dumpData(self.__lfh)
+        ccAssignDataStore.serialize()
+
+        ligGrpDict = self._generateLigGroupSummaryDict(ccAssignDataStore)
+
+        for ligId in ligIdsList:
+            if ligId in ligGrpDict:
+                ligandInstancesData[ligId] = ligGrpDict[ligId]
+                
+                # checking if it's resolved
+                ligandInstancesData[ligId]['isResolved'] = ligId in ccAssignDataStore.getGlbllyRslvdGrpList()
+
+        self.__reqObj.setDefaultReturnFormat(return_format="html")
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat("jsonData")
+        rC.setData(ligandInstancesData)
+
+        return rC
+    
+    @debug(output_file=None)
+    def _generateLigGroupSummaryDict(self,p_ccAssgnDataStr):
+        ''' generate utility dictionary to hold info for chem comp groups indicated in depositor's data
+        
+            :Returns:
+            Currently returning two-tier dictionary with primary key of chem comp ID and following secondary keys:
+            
+                ``totlInstncsInGrp``:  total number of chem component instances with same ligand ID as given ID
+                ``bGrpRequiresAttention``:  boolean indicating whether or not the given ligand ID group has any instances
+                                        for which top hit does not match author provided ligand ID
+                ``grpMismatchCnt``:  total number of chem component instances where mismatch detected
+                ``instidLst``:  list of instanceIds for all instances of the chem component found in the depositor data 
+        '''
+        rtrnDict = {}
+        instncIdLst=p_ccAssgnDataStr.getAuthAssignmentKeys()
+        ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+        
+        for indx, instnc in enumerate(instncIdLst):
+            authAssgndLigID = p_ccAssgnDataStr.getAuthAssignment(instnc)
+            if authAssgndLigID not in rtrnDict:
+                rtrnDict[authAssgndLigID] = {}
+                rtrnDict[authAssgndLigID]['totlInstncsInGrp'] = 0
+                rtrnDict[authAssgndLigID]['bGrpRequiresAttention'] = False
+                rtrnDict[authAssgndLigID]['bGrpMismatchAddressed'] = False
+                rtrnDict[authAssgndLigID]['grpMismatchCnt'] = 0
+                rtrnDict[authAssgndLigID]['mismatchLst'] = []
+                rtrnDict[authAssgndLigID]['instIdLst'] = []
+                rtrnDict[authAssgndLigID]['ccName'] = p_ccAssgnDataStr.getCcName(instnc) #assuming can use chem comp name for first instance for purposes of the group
+                rtrnDict[authAssgndLigID]['ccFormula'] = p_ccAssgnDataStr.getCcFormula(instnc) #assuming can use chem comp formula for first instance for purposes of the group
+                self.__logger.info('ccName: %s', p_ccAssgnDataStr.getCcName(instnc))
+                self.__logger.info('ccFormula: %s', p_ccAssgnDataStr.getCcFormula(instnc))
+                
+                if( ccA.validCcId(authAssgndLigID) == 1 ):
+                    p_ccAssgnDataStr.addLigIdToInvalidLst(authAssgndLigID)
+                
+            rtrnDict[authAssgndLigID]['totlInstncsInGrp'] += 1
+            rtrnDict[authAssgndLigID]['instIdLst'].append(instnc)
+            rtrnDict[authAssgndLigID]['instIdLst'].sort
+            curTopHitId = p_ccAssgnDataStr.getBatchBestHitId(instnc)
+            self.__logger.info('curTopHitId: %s', p_ccAssgnDataStr.getBatchBestHitId(instnc))
+            if( curTopHitId.upper() != authAssgndLigID.upper() ):  # i.e. mismatch detected
+                rtrnDict[authAssgndLigID]['bGrpRequiresAttention'] = True
+                rtrnDict[authAssgndLigID]['grpMismatchCnt'] += 1
+                rtrnDict[authAssgndLigID]['mismatchLst'].append(instnc)
+                rtrnDict[authAssgndLigID]['mismatchLst'].sort
+            if( authAssgndLigID in p_ccAssgnDataStr.getGlbllyRslvdGrpList() ):
+                rtrnDict[authAssgndLigID]['bGrpMismatchAddressed'] = True
+                
+                
+                    
+        return rtrnDict
 
     def _generateInstncBrowser(self):
         """ Generate content for "Instance Browser" view
@@ -1979,6 +2056,31 @@ class ChemCompWebAppLiteWorker(object):
         else:
             #else we are in the standalone dev environment
             return False
+    
+    def _setupLog(self, log_file):
+        """Setup a Logger instance to use the same file as provided
+        by the 'log' parameters
+
+        Args:
+            log_file (IOStream): a file-like object
+
+        Returns:
+            Logger: instance of Logger class
+        """
+        logger = getLogger(__name__)
+        handler = StreamHandler(log_file)
+
+        formatter = Formatter('+%(module)s.%(funcName)s() ++ %(message)s\n')
+        handler.setFormatter(formatter)
+
+        logger.addHandler(handler)
+        
+        if self.__verbose:
+            logger.setLevel(DEBUG)
+        else:
+            logger.setLevel(INFO)
+
+        return logger
 
 class RedirectDevice:
     def write(self, s):
