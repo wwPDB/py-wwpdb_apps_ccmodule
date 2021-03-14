@@ -270,6 +270,7 @@ class ChemCompWebAppLiteWorker(object):
                          ###############  below are URLs created for WFM/common tool development effort######################
                          #'/service/cc_lite/assign/wf/new_session':                 '_ccAssign_BatchSrchSummary',
                          '/service/cc_lite/report/get_file':                        '_getReportFile',
+                         '/service/cc_lite/report/instancelist':                    '_getLigandInstanceList',
                          '/service/cc_lite/wf/new_session':                         '_ligandSrchSummary',
                          '/service/cc_lite/view/ligandsummary':                     '_loadSummaryData',
                          '/service/cc_lite/view/ligandsummary/data_check':          '_checkForSummaryData',
@@ -615,6 +616,34 @@ class ChemCompWebAppLiteWorker(object):
         #
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
+
+    def _getLigandInstanceList(self):
+        self.__getSession()
+
+        # check if depId is empty etc
+        depId = str(self.__reqObj.getValue('identifier')).upper()
+        ligIds = str(self.__reqObj.getValue('ligids'))
+        ligIdsList = ligIds.split(',')
+
+        ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        ccADS = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
+
+        instncIdLst = ccADS.getAuthAssignmentKeys()
+        srtdInstncLst = sorted(instncIdLst)
+        ccA.getDataForInstncSrch(srtdInstncLst, ccADS)
+
+        ccADS.dumpData(self.__lfh)
+        ccADS.serialize()
+
+        ccAD = ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+        instanceDict = ccAD.getInstanceList(ligIdsList, ccADS)
+
+        self.__reqObj.setDefaultReturnFormat(return_format="html")
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat("jsonData")
+        rC.setData(instanceDict)
+
+        return rC
 
     def _generateInstncBrowser(self):
         """ Generate content for "Instance Browser" view

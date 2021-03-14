@@ -55,20 +55,20 @@ __version__   = "V0.01"
 import os, sys
 from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from wwpdb.apps.ccmodule.depict.ChemCompDepict import ChemCompDepict
-from wwpdb.apps.ccmodule.chem.ChemCompAssign   import ChemCompAssign
+from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
-from wwpdb.apps.ccmodule.reports.ChemCompReports  import ChemCompReport
-from wwpdb.apps.ccmodule.view.ChemCompView              import ChemCompView
-from wwpdb.apps.ccmodule.sketch.ChemCompSketch          import ChemCompSketch
-from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict    import ChemCompSketchDepict
-from wwpdb.utils.config.ConfigInfo                        import ConfigInfo
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
 
 class ChemCompAssignDepictLite(ChemCompDepict):
     """ Class responsible for generating HTML depictions of 
         chemical component search results for the Common Tool Deposition UI.
 
     """
+    _CC_REPORT_DIR = 'cc_analysis'
+    _CC_ASSIGN_DIR = 'assign'
+    _CC_HTML_FILES_DIR = 'html'
+
     def __init__(self,p_reqObj,verbose=False,log=sys.stderr):
         """
 
@@ -81,7 +81,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__lfh=log
         self.__debug=False
         self.__reqObj=p_reqObj
-        self._logger = self._setupLog(log)
+        self.__depId = str(self.__reqObj.getValue("identifier")).upper()
         #
         self.__cDict=PdbxCategoryDefinition._cDict
         #
@@ -113,9 +113,13 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__pathPdbxDictFile  = self.__cI.get("SITE_MMCIF_DICT_FILE_PATH")
         self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__workingRltvAssgnSessionPath=''
-        self.__depositPath=os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
         
         self.__alternateTopHitMarkup='''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''
+
+        self.__depositPath = os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
+        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
+        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
+        self.__logger = self._setupLog(log)
         
     ################################################################################################################
     # ------------------------------------------------------------------------------------------------------------
@@ -395,6 +399,20 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         rtrnLst.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_launch_instnc_brwsr_frm_tmplt.html", parameterDict=myD) )
         return rtrnLst
 
+    def getInstanceList(self, ligIdList, ccAssignDataStore):
+        ligSubgroupDict = {}
+
+        self.__logger.info('Getting instances for ligId %s', ligIdList)
+
+        ligGrpDict = self.__generateLigGroupSummaryDict(ccAssignDataStore)
+
+        self.__logger.debug('Result %s', ligGrpDict)
+        
+        for ligId in ligIdList:
+            if ligId in ligGrpDict:
+                ligSubgroupDict[ligId] = ligGrpDict[ligId]
+        
+        return ligSubgroupDict
 
     def doRender_InstanceBrwsr(self,p_ligIdLst,p_ligIdRsrchLst, p_ccAssgnDataStr,p_reqObj):
         ''' Render HTML markup for the ccmodule_lite UI Instance Browser
@@ -414,7 +432,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 ``oL``: output list consisting of HTML markup
         '''
         self.__reqObj = p_reqObj
-        self.__lfh.write("+%s.%s() self.__reqObj is: %r\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj) )
+        self.__logger.info('self.__reqObj is: %r', self.__reqObj)
         
         bIsWorkflow     = self.isWorkflow(self.__reqObj)
         depId           = str(self.__reqObj.getValue("identifier"))
@@ -425,12 +443,11 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         browser         = self.__reqObj.getValue("browser")
         #
         depId = self.__formatDepositionDataId(depId, bIsWorkflow)
-        self._ccReportPath = os.path.join(self.__depositPath, depId, 'cc_analysis')
         #
         # Establish helper dictionary of elements used to populate html templates
         #
-        hlprDict={}
-        hlprDict['sessionid']    = sessionId
+        hlprDict = {}
+        hlprDict['sessionid'] = sessionId
         hlprDict['depositionid'] = depId
         hlprDict['filesource'] = fileSource
         hlprDict['instance'] = wfInstId #i.e. workflow instance ID 
@@ -442,36 +459,34 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         hlprDict['hndle_msmtch_tophit_id'] = ''
         hlprDict['hndle_msmtch_tophit_id_list'] = {}
         
-        oL=[]
+        oL = []
         oL.append('<div id="cc_instance_browser">\n<h4>Browse Chem Components by Ligand Group</h4>\n<div id="pagi" class="noprint fltlft"></div>\n<br class="clearfloat" />\n')
         oL.append('<div id="cc_instance_browse_content">\n') 
 
         if (self.__verbose):
             for k in p_ligIdLst:
-                self.__lfh.write("+%s.%s() ccID key in p_ligIdLst: %30s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, k) )
+                self.__logger.debug('ccID key in p_ligIdLst: %30s', k)
             for id in p_ligIdRsrchLst:
-                self.__lfh.write("+%s.%s() ligid in p_ligIdRsrchLst: %30s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, id) )
+                self.__logger.debug('ligid in p_ligIdRsrchLst: %30s', id)
 
         for grpIndx, ligId in enumerate(p_ligIdLst, start=1):
-            tabStyle="displaynone"
+            tabStyle = 'displaynone'
             if grpIndx == 1:
-                tabStyle = "_current"
+                tabStyle = '_current'
 
             # will need to generate the below output for each encounter of new group ID,
             # because this serves as start of "page" for the given ligand group
-            oL.append('<div id="p%s" class="%s tabscount">'% (str(grpIndx),tabStyle))
+            oL.append('<div id="p%s" class="%s tabscount">' % (str(grpIndx),tabStyle))
             oL.append('<div class="cmpnt_grp displaynone">%s</div>' % ligId)
             oL.append('<div class="inneraccordion" id="%s_inneraccordion">' % ligId)
 
-            mainHtmlDirPath = os.path.join(self._ccReportPath, 'html', ligId)
+            mainHtmlDirPath = os.path.join(self.__ccReportPath, 'html', ligId)
             mainHtmlFilePath = os.path.join(mainHtmlDirPath, ligId + '.html')
 
             if os.access(mainHtmlFilePath, os.R_OK):
                 with open(mainHtmlFilePath) as f:
                     oL.append(f.read().replace('\\n', '\n') + '\n')            
-            
-        #end of iterating through all chem components
-            
+
         oL.append('</div>\n')
         #above is end of cc_entity_browse_content div
         oL.append('</div>\n')
@@ -797,11 +812,11 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         # we are making a local copy of the p_hlprDict dictionary because while we reuse some of the key/value pairs 
         # we redefine some of the key/value pairings differently for specific use in the describe-new-ligand view 
         lclDict = p_hlprDict.copy()
-        #
+
         htmlTmpltPth = os.path.join(lclDict['html_template_path'],self.__pathCCliteAllInstcs)
-        #
+
         if (self.__verbose):
-                    self.__lfh.write("+%s.%s() ----- starting for author assigned entityID: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp) )
+            self.__lfh.write("+%s.%s() ----- starting for author assigned entityID: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp) )
         #
         #bGrpRequiresAttention = (p_authAssignedGrp in p_ccAssgnDataStr.getGlblAttentionReqdLst())
         
@@ -1016,7 +1031,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         oL.append( self.processTemplate( tmpltPth=p_htmlTmpltPth,fn="marvin_sketch_tmplt.html",parameterDict=rD ) )
         
         # exporting html to file for debug purposes
-        fp=open(os.path.join(self._ccReportPath, 'html', 'debug' + p_authAssignedGrp + '_mrvnsktch.html'),'w')
+        fp=open(os.path.join(self.__ccReportPath, 'html', 'debug' + p_authAssignedGrp + '_mrvnsktch.html'),'w')
         fp.write("%s" % '\n'.join( oL ) )
         fp.close()
         
@@ -1191,15 +1206,25 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     self.__lfh.write("+%s.%s() ----- reached end for instId: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, instId) )
 
     def generateInstancesMainHtml(self, ccAssignDataStore, ligList):
+        """Render HTML markup for the ccmodule_lite UI Instance Browser
+            The Instance Browser provides navigation of sections devoted to each ligand group (one ligand group viewed at a time)
+            identified within a deposition dataset.
+            A given ligand group section is itself broken down into:
+                - a "single-instance" section, providing perspective/actions on a single ligand instance within the group
+            
+            This method generates HTML sections right after the chem comp analysis.
+        Args:
+            ccAssignDataStore (ChemCompAssignDataStore): object representing current state of ligand matches/assignments
+            ligList (list): list of ligand ids associated with the current deposition
+        """
         bIsWorkflow     = self.isWorkflow(self.__reqObj)
-        depId           = str(self.__reqObj.getValue("identifier"))
         wfInstId        = str(self.__reqObj.getValue("instance")).upper()
         sessionId       = self.__reqObj.getSessionId()
         fileSource      = str(self.__reqObj.getValue("filesource")).lower()
         htmlTmpltPth    = self.__reqObj.getValue("TemplatePath")
         browser         = self.__reqObj.getValue("browser")
 
-        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+        depId = self.__formatDepositionDataId(self.__depId, bIsWorkflow)
 
         # establish helper dictionary of elements used to populate html templates
         helperDict = {}
@@ -1221,16 +1246,16 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             if ligId == None:
                 continue
             
-            oL=[]
+            oL = []
             # first determine some data items about the current ligand ID/group
             # that we need to know for display purposes
             totlInstncsInGrp = 0
             bGrpRequiresAttention = False
-            #
+
             totlInstncsInGrp = ligGrpDict[ligId]['totlInstncsInGrp']
             bGrpRequiresAttention = ligGrpDict[ligId]['bGrpRequiresAttention']
             bGrpMsmtchsAddressed = ligGrpDict[ligId]['bGrpMismatchAddressed']
-            #
+
             helperDict['auth_assgnd_grp'] = ligId
             ccName = ligGrpDict[ligId]['ccName']
             helperDict['auth_assgnd_ccname']   =(ccName and len(ccName) or [''])[0]
@@ -1239,7 +1264,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             helperDict['auth_assgnd_ccformula_displ'] = self.truncateForDisplay(helperDict['auth_assgnd_ccformula'])
             helperDict['tot_inst_cnt'] = totlInstncsInGrp
 
-            #
             if( bGrpRequiresAttention ):
                 text1 = "there is at least one instance for which " if totlInstncsInGrp > 1 else ""
                 text2 = "sections below for those instances that require  " if totlInstncsInGrp > 1 else "section below for the instance that requires "
@@ -1252,46 +1276,38 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                                             'press the "Save" button at the bottom of the page.'
             else:
                 helperDict['mismatch_msg'] = ""
-            #
+
             ligCount = ["Zero","One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight","Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
                      "Sixteen", "Seventeen", "Eighteen", "Nineteen","Twenty"]
-            #
+
             if totlInstncsInGrp < 21:
                 helperDict['tot_inst_cnt'] = ligCount[totlInstncsInGrp]
-            #
+
             helperDict['copy_ies'] = "copies" if totlInstncsInGrp > 1 else "copy"
             helperDict['has_have'] = "have" if totlInstncsInGrp > 1 else "has"  
             oL.append('<div><h3>%(tot_inst_cnt)s %(copy_ies)s of %(auth_assgnd_grp)s %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s) %(has_have)s been identified in your coordinates.%(mismatch_msg)s<!--  end of class="all_instances" div--></h3></div>' % helperDict)
-            #
+
             # then render html markup that serves as search result content for those instances in the current ligand group
             for instId in ligGrpDict[ligId]['instIdLst']:
-                    
                 # rendering markup for chem component instances in the current group 
-                                    
-                helperDict['instanceid']   = instId
+                helperDict['instanceid'] = instId
+
                 # if this particular instance is NOT one of the instances with mismatch issue, then can hide "attention required" notice
-                if( instId not in ligGrpDict[ligId]['mismatchLst'] ):
+                if instId not in ligGrpDict[ligId]['mismatchLst']:
                     helperDict['attn_reqd_display'] = 'displaynone'
                 else:
                     # else this instId does have mismatch issue but we show "attention required" notice only if depositor has yet to address the issue 
-                    if( bGrpMsmtchsAddressed ):
+                    if bGrpMsmtchsAddressed:
                         helperDict['attn_reqd_display'] = 'displaynone'
                     else:                    
                         helperDict['attn_reqd_display'] = ''
-                #
-                ###################################################################################################
-                # Call method below to generate html content for "Single Instance" profile, content is in form of html  
-                # fragments stored in files on the server. The files are then recruited by AJAX calls made by the front end
-                ###################################################################################################
+                
                 self._generateInstanceProfileHtml(helperDict, ccAssignDataStore)
-                # self.doRender_InstanceProfile(p_ccAssgnDataStr,hlprDict)
-                #
-                oL.append( self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcTmplts),fn="cc_lite_instnc_disp_tmplt.html",parameterDict=helperDict) )
-                # end of interating through instances for current ligand group/ID
+                oL.append(self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathCCliteSnglInstcTmplts),fn="cc_lite_instnc_disp_tmplt.html",parameterDict=helperDict))
                 
             # if necessary generate "describe new ligand for all-instances" section
-            if( bGrpRequiresAttention ):
-                oL.extend( self.doRender_HandleLigndMsmtchSection(ligId,ccAssignDataStore,ligGrpDict,helperDict, self.__reqObj) )
+            if bGrpRequiresAttention:
+                oL.extend(self.doRender_HandleLigndMsmtchSection(ligId,ccAssignDataStore,ligGrpDict,helperDict, self.__reqObj))
 
             navButtons='''<br /><br /><div id="" class="nav_buttons">
         <div title="" class="fltrgt savedone" style="padding-left: 0px;"><input id="" name="savedone" value="Finish (all issues are addressed)" title="" class="fltrgt savedone" type="button" disabled="disabled"></div>
@@ -1300,7 +1316,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
     </div>'''
             oL.append(navButtons+'</div></div>') #one terminal div for inneraccordion then another terminal div for p<N>
 
-            mainHtmlDirPath = os.path.join(self._ccReportPath, 'html', ligId)
+            mainHtmlDirPath = os.path.join(self.__ccReportPath, 'html', ligId)
             mainHtmlFilePath = os.path.join(mainHtmlDirPath, ligId + '.html')
 
             if not os.path.exists(mainHtmlDirPath):
@@ -1310,15 +1326,20 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 f.write(''.join(oL))
 
     def _generateInstanceProfileHtml(self, helperDict, ccAssignDataStore):
-        instId          = helperDict['instanceid']
-        sessionId       = helperDict['sessionid']
-        depId           = helperDict['depositionid']
-        wfInstId        = helperDict['instance']
-        browser         = helperDict['browser']
-        htmlTmpltPth    = os.path.join(helperDict['html_template_path'], self.__pathCCliteSnglInstcTmplts)
-        self._ccReportPath = os.path.join(self.__depositPath, depId, 'cc_analysis')
+        """Generate html "single-instance" profile content for given ligand instance
 
-        self._logger.info("Generating instance profile HTML for instId: %s", instId)
+        Args:
+            helperDict (dict): dictionary of data to be used for subsitution/population of HTML template(s)
+            ccAssignDataStore (ChemCompAssignDataStore): ChemCompAssignDataStore object representing current state of ligand matches/assignments
+        """
+        instId = helperDict['instanceid']
+        sessionId = helperDict['sessionid']
+        depId = helperDict['depositionid']
+        wfInstId = helperDict['instance']
+        browser = helperDict['browser']
+        htmlTmpltPth = os.path.join(helperDict['html_template_path'], self.__pathCCliteSnglInstcTmplts)
+
+        self.__logger.info("Generating instance profile HTML for instId: %s", instId)
                     
         # interrogate ChemCompAssign DataStore for necessary data items
         authAssignedGroup = ccAssignDataStore.getAuthAssignment(instId)
@@ -1331,7 +1352,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             helperDict['have_top_hit'] = False
 
             if self.__verbose:
-                self._logger.debug('instId %s has no top hit', instId)
+                self.__logger.debug('instId %s has no top hit', instId)
         else:
             hasTopHit = True
             helperDict['have_top_hit'] = True
@@ -1362,7 +1383,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         helperDict['exact_match_ccid'] = ''
 
         if self.__debug:
-            self._logger.debug('----- single atomflag for instId %s is: %s', instId, ccAssignDataStore.getCcSingleAtomFlag(instId))
+            self.__logger.debug('----- single atomflag for instId %s is: %s', instId, ccAssignDataStore.getCcSingleAtomFlag(instId))
 
         helperDict['dsplyvizopt'] = '' if str(ccAssignDataStore.getCcSingleAtomFlag(instId)).lower() == 'n' else 'displaynone'
 
@@ -1400,7 +1421,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         helperDict['instnc_profile_path'] = htmlFilePathRel
         
         # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
-        htmlDirPathAbs = os.path.join(self._ccReportPath, 'html', instId)
+        htmlDirPathAbs = os.path.join(self.__ccReportPath, 'html', instId)
         if not os.path.exists(htmlDirPathAbs):
             os.makedirs(htmlDirPathAbs)
 
@@ -1427,7 +1448,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             self.__renderInstance3dViews(ccAssignDataStore, helperDict)
 
         if self.__verbose:
-            self._logger.debug('----- reached end for instId: %s', instId)
+            self.__logger.debug('----- reached end for instId: %s', instId)
     
     def _generateMatchResultsTable(self, ccAssignDataStore, helperDict):
         oL = []
@@ -1442,38 +1463,38 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #################OBSOLETE?############################
         #
         #
-        # cnt = 0
-        # checked = ''
-        # assgnChecked = ''
-        # assgndCcId = ccAssignDataStore.getAnnotAssignment(instId)
-        # assgnChecked = 'checked="checked"'
-        # #
-        # # using p_hlprDict to supply text substitution content for both cc_instnc_match_rslts_tbl_tmplt.html and cc_viz_cmp_li_tmplt.html in this loop
-        # helperDict['assgn_checked'] = assgnChecked
-        # #
-        # matchWarning = ''
-        # retD = self.__processWarningMsg(matchWarning)
-        # helperDict['score_warn_class'] = retD['warn_class']
-        # scorePrefix = retD['prefix']
-        # scoreSuffix = retD['suffix']
-        # #
-        # #p_hlprDict['score'] = scorePrefix+cmpstscore+scoreSuffix
-        # helperDict['score'] = ''
-        # helperDict['cc_name'] = ccAssignDataStore.getCcName(instId)
-        # helperDict['cc_name_displ'] = self.truncateForDisplay(helperDict['cc_name'])
-        # helperDict['cc_formula'] = ccAssignDataStore.getCcFormula(instId)
-        # helperDict['cc_formula_displ'] = self.truncateForDisplay(helperDict['cc_formula'])
-        # helperDict['checked'] = checked
-        # helperDict['index'] = cnt
-        # #
-        # helperDict['a'] = '%a'
-        # #
+        cnt = 0
+        checked = ''
+        assgnChecked = ''
+        assgndCcId = ccAssignDataStore.getAnnotAssignment(instId)
+        assgnChecked = 'checked="checked"'
+        #
+        # using p_hlprDict to supply text substitution content for both cc_instnc_match_rslts_tbl_tmplt.html and cc_viz_cmp_li_tmplt.html in this loop
+        helperDict['assgn_checked'] = assgnChecked
+        #
+        matchWarning = ''
+        retD = self.__processWarningMsg(matchWarning)
+        helperDict['score_warn_class'] = retD['warn_class']
+        scorePrefix = retD['prefix']
+        scoreSuffix = retD['suffix']
+        #
+        #p_hlprDict['score'] = scorePrefix+cmpstscore+scoreSuffix
+        helperDict['score'] = ''
+        helperDict['cc_name'] = ccAssignDataStore.getCcName(instId)
+        helperDict['cc_name_displ'] = self.truncateForDisplay(helperDict['cc_name'])
+        helperDict['cc_formula'] = ccAssignDataStore.getCcFormula(instId)
+        helperDict['cc_formula_displ'] = self.truncateForDisplay(helperDict['cc_formula'])
+        helperDict['checked'] = checked
+        helperDict['index'] = cnt
+        #
+        helperDict['a'] = '%a'
+        #
         ################################################
 
         # while we're iterating through the candidate assignments for the given instance, we will
         # also populate templates used for displaying chem comp references in viz compare grid
-        htmlPathAbs = os.path.join(self.__depositPath, depId, 'cc_analysis', 'html', instId)
-        jmolPathAbs = os.path.join(self.__depositPath, depId, 'cc_analysis', 'html', instId)
+        htmlPathAbs = os.path.join(self.__ccReportPath, 'html', instId)
+        jmolPathAbs = os.path.join(self.__ccReportPath, 'html', instId)
         htmlFilePathAbs = os.path.join(htmlPathAbs, ccid + '_viz_cmp_li.html')
         atmMpFilePathAbs = os.path.join(htmlPathAbs, ccid + '_ref_atm_mp_li.html')
         jmolFilePathAbs = os.path.join(jmolPathAbs, ccid + '_ref_jmol.html')
@@ -1839,7 +1860,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         else:
             bHaveTopHit = True
         ##
-        sPathRel = self._ccReportPath
+        sPathRel = self.__ccReportPath
         s3dpathEnviron = self.rltvSessionPath
         ##
         instIdPieces = instId.split('_')
@@ -1853,12 +1874,12 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         p_hlprDict['residue_num'] = residueNum
         p_hlprDict['chain_id'] = chainId
         # establishing values for ABSOLUTE paths used by BACK end for writing to files that serve as additional resources that may be called by front end on-demand
-        jmolFilePathAbs_SnglInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_jmol_instVw.html")
-        environJmolFilePathAbs_SnglInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_environ_jmol_instVw.html")
-        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_instVw.html")
-        jmolFilePathAbs_AllInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_jmol_allInstVw.html")
-        environJmolFilePathAbs_AllInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_environ_jmol_allInstVw.html")
-        stndalnJmolFilePathAbs_AllInstVw = os.path.join(self._ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_allInstVw.html")
+        jmolFilePathAbs_SnglInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_jmol_instVw.html")
+        environJmolFilePathAbs_SnglInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_environ_jmol_instVw.html")
+        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_instVw.html")
+        jmolFilePathAbs_AllInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_jmol_allInstVw.html")
+        environJmolFilePathAbs_AllInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_environ_jmol_allInstVw.html")
+        stndalnJmolFilePathAbs_AllInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_allInstVw.html")
         #
         #if bHaveTopHit:
         if True:
