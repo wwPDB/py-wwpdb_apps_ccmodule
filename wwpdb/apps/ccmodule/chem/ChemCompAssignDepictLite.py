@@ -318,23 +318,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         oL.append('<td class="selectinstnc_td"><input name="NONE%%" id="NONE_rsrch" type="checkbox" class="selectinstnc_rsrch selectinst_none" %s %s></td>' % (None_checked, None_check_disabled) )
         oL.append('</tr>')
         iRow+=1
-
-        '''
-        # creating artificial row to allow depositor to select "water" as "focus of research"
-        oL.append('<tr class="%s c_HOH">' % self.__rowClass(iRow) )
-        #
-        oL.append('<td class="">HOH</td>') # Ligand ID column
-        #
-        oL.append('<td class="HOH_plchldr"></td>') # number of instances column
-        #
-        oL.append('<td class="HOH_plchldr"></td>') # status column
-        #
-        oL.append('<td class="HOH_plchldr"></td>' ) # select for inspection column
-        #                  
-        oL.append('<td><input name="HOH" id="HOH_rsrch" type="checkbox" class="selectinstnc_rsrch" %s %s></td>' % (HOH_checked, HOH_check_disabled) )
-        #                  
-        oL.append('</tr>')
-        '''
         
         oL.append('</table>')
         oL.append('<span id="mismatchlist" class="displaynone">'+msmtchlist+'</span>')
@@ -798,7 +781,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         rtrnLst.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_hoh_rsrch_data_init_tmplt.html", parameterDict=myD) )
         return rtrnLst
     
-    def _genLigandMismatchSectionHtml(self, p_authAssignedGrp, p_ccAssgnDataStr, p_ligGrpDict, p_hlprDict):
+    def _generateLigandMismatchSectionHtml(self, p_authAssignedGrp, p_ccAssgnDataStr, p_ligGrpDict, p_hlprDict):
         # we are making a local copy of the p_hlprDict dictionary because while we reuse some of the key/value pairs 
         # we redefine some of the key/value pairings differently for specific use in the describe-new-ligand view 
         lclDict = p_hlprDict.copy()
@@ -1465,7 +1448,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 
             # if necessary generate "describe new ligand for all-instances" section
             if bGrpRequiresAttention:
-                self._genLigandMismatchSectionHtml(ligId, ccAssignDataStore, ligGrpDict, helperDict)
+                self._generateLigandMismatchSectionHtml(ligId, ccAssignDataStore, ligGrpDict, helperDict)
 
     def _generateInstanceProfileHtml(self, helperDict, ccAssignDataStore):
         """Generate html "single-instance" profile content for given ligand instance
@@ -1687,61 +1670,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #end of iterating through all ligand instances
         
         return oL
-
-    """
-    def doRender_AtmMpList(self,p_ccAssgnDataStr,p_hlprDict,p_atmMpHtmlPathAbs,p_ccId=None):
-        ''' Generate file containing html fragment that represents atom listing for the given reference chem component
-        
-            :Params:
-            
-                + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
-                + ``p_hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
-                + ``p_atmMpHtmlPathAbs``: path to be used for writing out HTML fragment file on the server
-                + ``p_ccId``: ChemComp ID, if present indicates that HTML being generated for a dictionary reference
-
-        '''
-        ##
-        instId          = p_hlprDict['instanceid']
-        tmpltPth        = p_hlprDict['html_template_path']
-        ##
-        atmMpLst=[]
-        tmpltFile=''
-        #
-        oL=[]
-        #
-        if( p_ccId is None ):
-            #atmMpLst = (p_ccAssgnDataStr.getAtomMapDict(p_instId))[( (p_ccAssgnDataStr.getAtomMapDict(p_instId)).keys() )[0]]
-            atomMapDict = p_ccAssgnDataStr.getAtomMapDict(instId)
-            if atomMapDict:
-                listOfTopHitsForInstId = (p_ccAssgnDataStr.getAtomMapDict(instId)).keys()
-                if len(listOfTopHitsForInstId) > 0:
-                    topHitForInstId = listOfTopHitsForInstId[0]
-                    atmMpLst = atomMapDict[topHitForInstId]
-            tmpltFile = "cc_instnc_atm_mp_li_tmplt.html"
-        else:
-            atmMpLst = (p_ccAssgnDataStr.getAtomMapDict(instId))[p_ccId]
-            tmpltFile = "cc_ref_atm_mp_li_tmplt.html"
-        #            
-        if (self.__verbose):
-            self.__lfh.write("+ChemCompAssignDepictLite.doRender_AtmMpList() starting for instId %s and candidate ccid %s\n" % (instId,p_ccId) )
-        #
-        atm=''
-        for instAtm, refAtm in atmMpLst:
-            #
-            if( p_ccId is None ):
-                atm = instAtm
-            else:
-                atm = refAtm
-            #
-            p_hlprDict['atom'] = atm
-            #
-            oL.append( self.processTemplate(tmpltPth=os.path.join(tmpltPth,self.__pathInstncsVwTmplts),fn=tmpltFile,parameterDict=p_hlprDict) )
-        #end of iterating through all atm map entries for the ref ccId
-        #
-        fp=open(p_atmMpHtmlPathAbs,'w')
-        fp.write("%s" % ('\n'.join(oL)) )
-        fp.close
-    """
 
     def doRender_UploadedFilesList(self,p_ccid,p_filesLst,p_reqObj):
         """ 
@@ -2021,43 +1949,23 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         environJmolFilePathAbs_AllInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_environ_jmol_allInstVw.html")
         stndalnJmolFilePathAbs_AllInstVw = os.path.join(self.__ccReportPath, 'html', instId, instId+"instnc_stndaln_jmol_allInstVw.html")
         #
-        #if bHaveTopHit:
-        if True:
-            # set default templates to be used
-            instncJmolTmplt = "cc_instnc_jmol_tmplt.html"
-            instncJmolAivwTmplt = "cc_instnc_jmol_aivw_tmplt.html"
-            ################################################################################
-            # when there is a top hit, we also need to generate "ready-made" html markup 
-            # for option to view author's instance within the structure environment
-            # (this was found necessary due to Java security access 
-            # restrictions encountered in Mac/Firefox scenarios)
-            #    ===    single instance environ view    ===
-            fp=open(environJmolFilePathAbs_SnglInstVw,'w')
-            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_SnglInstnc,fn="cc_instnc_environ_jmol_tmplt.html",parameterDict=p_hlprDict) )
-            fp.close()
-            #    ===    all instance environ view    ===
-            fp=open(environJmolFilePathAbs_AllInstVw,'w')
-            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn="cc_instnc_environ_jmol_aivw_tmplt.html",parameterDict=p_hlprDict) )
-            fp.close()
-            ################################################################################
-        else:
-            # set default templates to be used
-            instncJmolTmplt = "cc_instnc_jmol_nomatch_tmplt.html"
-            instncJmolAivwTmplt = "cc_instnc_jmol_aivw_nomatch_tmplt.html"
-            ################################################################################
-            # when there is no top hit, we also need to generate "ready-made" html markup 
-            # for option to view author's instance in "standalone" mode if the user so chooses
-            # (this was found necessary due to Java security access 
-            # restrictions encountered in Mac/Firefox scenarios)
-            #    ===    single instance stndaln view    ===
-            fp=open(stndalnJmolFilePathAbs_SnglInstVw,'w')
-            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_SnglInstnc,fn="cc_instnc_stndaln_jmol_nomatch_tmplt.html",parameterDict=p_hlprDict) )
-            fp.close()
-            #    ===    all instance stndaln view    ===
-            fp=open(stndalnJmolFilePathAbs_AllInstVw,'w')
-            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn="cc_instnc_stndaln_jmol_aivw_nomatch_tmplt.html",parameterDict=p_hlprDict) )
-            fp.close()
-            ################################################################################
+        # set default templates to be used
+        instncJmolTmplt = "cc_instnc_jmol_tmplt.html"
+        instncJmolAivwTmplt = "cc_instnc_jmol_aivw_tmplt.html"
+        ################################################################################
+        # when there is a top hit, we also need to generate "ready-made" html markup 
+        # for option to view author's instance within the structure environment
+        # (this was found necessary due to Java security access 
+        # restrictions encountered in Mac/Firefox scenarios)
+        #    ===    single instance environ view    ===
+        fp=open(environJmolFilePathAbs_SnglInstVw,'w')
+        fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_SnglInstnc,fn="cc_instnc_environ_jmol_tmplt.html",parameterDict=p_hlprDict) )
+        fp.close()
+        #    ===    all instance environ view    ===
+        fp=open(environJmolFilePathAbs_AllInstVw,'w')
+        fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth_AllInstnc,fn="cc_instnc_environ_jmol_aivw_tmplt.html",parameterDict=p_hlprDict) )
+        fp.close()
+        ################################################################################
         #
         ####################################################################################################
         # generate default "single-instance view"

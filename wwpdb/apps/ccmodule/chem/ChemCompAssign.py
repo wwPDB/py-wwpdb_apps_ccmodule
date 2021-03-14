@@ -108,6 +108,10 @@ class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
 
     """
+    _CC_REPORT_DIR = 'cc_analysis'
+    _CC_ASSIGN_DIR = 'assign'
+    _CC_HTML_FILES_DIR = 'html'
+
     def __init__(self,reqObj,verbose=False,log=sys.stderr):
         """
 
@@ -141,6 +145,11 @@ class ChemCompAssign(object):
         #
 
     def __setup(self):
+        self.__depId = self.__reqObj.getValue('identifier')
+        self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
+        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
+        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
+
         self.normal = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 
                        'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER',
                        'THR', 'VAL', 'TRP', 'TYR', 'C', 'G', 'T', 'A', 'U',
@@ -181,7 +190,7 @@ class ChemCompAssign(object):
             
     def getInstanceIdListForValidation(self):
         return self.__ccValidateInstIdList
-        
+
     def doAssign(self,exactMatchOption=False):
         """ ----   CC Assign Search entry point   ----
             Local copy of PDBx coordinate held by WFM environment is made.
@@ -406,13 +415,13 @@ class ChemCompAssign(object):
         #
         # Local path details - i.e. for processing within given session
         #
-        assignDirPath       =   os.path.join(self.__sessionPath,'assign')
+        assignDirPath       =   self.__ccReportPath
         assignFileUpdtdPath =   os.path.join(assignDirPath,depDataSetId+'-cc-assign-updated.cif')
         pdbxFileName        =   depDataSetId+'-model.cif'
-        pdbxFilePath        =   os.path.join(self.__sessionPath,pdbxFileName)
-        pdbxOutFilePath     =   os.path.join(self.__sessionPath,depDataSetId+'-model-update.cif')
+        pdbxFilePath        =   os.path.join(self.__depositPath,pdbxFileName)
+        pdbxOutFilePath     =   os.path.join(self.__depositPath,depDataSetId+'-model-update.cif')
         #
-        dpstrInfoDirPath       =   os.path.join(self.__sessionPath,'assign')
+        dpstrInfoDirPath       =   self.__ccReportPath
         dpstrInfoFilePath =   os.path.join(assignDirPath,depDataSetId+'-cc-dpstr-info.cif')
         dpstrUpdtdPdbxFilePath =   os.path.join(assignDirPath,depDataSetId+'-cc-model-w-dpstr-info.cif')
         
@@ -640,12 +649,10 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - session id  %s\n" % sessionId)            
             self.__lfh.flush()
         #
-        assignDirPath=os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'),'deposit',depDataSetId.upper(),'cc_analysis')
-        #if self.__verbose:
-        #    self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - assignDirPath is: %s\n" % assignDirPath)
-        #
+        assignDirPath=self.__ccReportPath
+
         try:
-            os.chdir(self.__sessionPath)
+            os.chdir(self.__depositPath)
             for srchId in p_srchIdsL:
                 # dd is data dictionary for a given instance of chem component
                 dd={}
@@ -872,7 +879,7 @@ class ChemCompAssign(object):
         #
         depDataSetId    = self.__reqObj.getValue("identifier")
         sessionId       = self.__reqObj.getValue("sessionid") 
-        assignDirPath=os.path.join(self.__sessionPath,'assign')
+        assignDirPath   = self.__ccReportPath
         
         if self.__verbose:
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - Starting doAssignInstance() \n")
@@ -901,7 +908,7 @@ class ChemCompAssign(object):
         ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
         #
         try:
-            os.chdir(self.__sessionPath)
+            os.chdir(self.__depositPath)
             os.system("env > LOGENV")
             #
             # bond distance calculation is done on the full model file using current link radii setting.
@@ -961,7 +968,7 @@ class ChemCompAssign(object):
         #
         depDataSetId    = self.__reqObj.getValue("identifier")
         sessionId       = self.__reqObj.getValue("sessionid") 
-        assignDirPath=os.path.join(self.__sessionPath,'assign')
+        assignDirPath   = self.__ccReportPath
         
         if self.__verbose:
             self.__lfh.write("+ChemCompAssign.doAssignInstanceComp() - Starting doAssignInstanceComp() \n")
@@ -975,7 +982,7 @@ class ChemCompAssign(object):
         ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
         #
         try:
-            os.chdir(self.__sessionPath)
+            os.chdir(self.__depositPath)
             os.system("env > LOGENV")
             #
             # bond distance calculation is done on the full model file using current link radii setting.

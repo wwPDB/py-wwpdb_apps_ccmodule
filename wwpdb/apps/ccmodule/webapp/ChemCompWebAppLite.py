@@ -637,6 +637,7 @@ class ChemCompWebAppLiteWorker(object):
     def _getLigandInstancesData(self):
         ligandInstancesData = {}
         self.__getSession()
+        self.__checkForExistingCcAssignments()
 
         ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
@@ -1596,14 +1597,18 @@ class ChemCompWebAppLiteWorker(object):
         depId = str(self.__reqObj.getValue("identifier")).upper()
         ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         fpAssignDtlsWfmArchive =  ccI.getChemCompAssignDetailsFilePath()
+
         if (self.__verbose):
             self.__lfh.write("+%s.%s() ---- checking for existence of cc-assign-details.pic file in path: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, fpAssignDtlsWfmArchive) )
+
         if( fpAssignDtlsWfmArchive is not None and os.access(fpAssignDtlsWfmArchive,os.R_OK) ):
                 assignDtlsLclPath = os.path.join(self.__sessionPath,'assign')
                 if( not os.access(assignDtlsLclPath,os.R_OK)):
                     os.makedirs(assignDtlsLclPath)
+
                 fpAssignDtlsLcl = os.path.join(assignDtlsLclPath,depId+'-cc-assign-details.pic')
                 shutil.copyfile(fpAssignDtlsWfmArchive,fpAssignDtlsLcl)
+
                 if( os.access(fpAssignDtlsLcl,os.R_OK) ):
                     #########################################################################################################################################################
                     #    If we have a pickle file of cc assign details this means that the annotator had saved previous ligand assignment work
