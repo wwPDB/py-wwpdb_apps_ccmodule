@@ -147,5 +147,9 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.assertEqual(rc._cD["errortext"], "File not found")
         self.assertEqual(rc._cD["statuscode"], 404)
     
+    def testGetLigandInstanceData(self):
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+        stw._getLigandInstancesData()
+    
 if __name__ == '__main__':
     unittest.main()

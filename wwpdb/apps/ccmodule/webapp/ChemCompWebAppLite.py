@@ -78,6 +78,8 @@ __email__     = "rsala@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
+from coverage import Coverage
+
 import os, re, sys, time, types, string, traceback, ntpath, threading, signal, shutil
 from http import HTTPStatus
 from json import loads, dumps
@@ -115,7 +117,6 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 import datetime, stat
 import socket, shlex
 from subprocess import call,Popen,PIPE
-from debug_tools.tools import debug
 
 class ChemCompWebAppLite(object):
     """Handle request and response object processing for the chemical component lite module application.
@@ -323,6 +324,11 @@ class ChemCompWebAppLiteWorker(object):
 
             Operation output is packaged in a ResponseContent() object.
         """
+        reqPath = ''
+        # cov = Coverage(auto_data=True, config_file=False, debug=['config', 'sql'])
+        cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
+        cov.start()
+        # cov.load()
         #
         try:
             reqPath=self.__reqObj.getRequestPath()
@@ -342,6 +348,16 @@ class ChemCompWebAppLiteWorker(object):
             rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
             rC.setError(errMsg='Operation failure')
             return rC
+        finally:
+            cov.stop()
+            # cov.save()
+
+            try:
+                cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
+            except:
+                pass
+            # if 'write_coverage' in reqPath:
+            #     self.__lfh.write('>>> WRITING COVERAGE REPORT')
 
     def __normalizeReqPath(self,p_reqPath):
         # special handling required for some sites which have custom prefixes in url request
@@ -610,7 +626,6 @@ class ChemCompWebAppLiteWorker(object):
         self.__reqObj.setDefaultReturnFormat(return_format="html")        
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         #
-        ccAssignDataStore=self.__checkForExistingCcAssignments()
         ccADS=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
         #
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
@@ -620,26 +635,11 @@ class ChemCompWebAppLiteWorker(object):
         #
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
-
-    @debug(output_file=None)
-    def _getLigandInstancesDataA(self):
-        ligandInstancesData = {}
-        self.__getSession()
-
-        self.__reqObj.setDefaultReturnFormat(return_format="html")
-        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rC.setReturnFormat("jsonData")
-        rC.setData(ligandInstancesData)
-
-        return rC
     
-    @debug(output_file=None)
     def _getLigandInstancesData(self):
         ligandInstancesData = {}
         self.__getSession()
-        self.__checkForExistingCcAssignments()
 
-        ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
 
         ligIds = str(self.__reqObj.getValue('ligids'))
@@ -647,13 +647,6 @@ class ChemCompWebAppLiteWorker(object):
 
         if self.__verbose:
             self.__logger.debug('Getting instances for ligId %s', ligIdsList)
-
-        instncIdLst = ccAssignDataStore.getAuthAssignmentKeys()
-        srtdInstncLst = sorted(instncIdLst)
-        ccA.getDataForInstncSrch(srtdInstncLst, ccAssignDataStore)
-
-        ccAssignDataStore.dumpData(self.__lfh)
-        ccAssignDataStore.serialize()
 
         ligGrpDict = self._generateLigGroupSummaryDict(ccAssignDataStore)
 
@@ -671,7 +664,6 @@ class ChemCompWebAppLiteWorker(object):
 
         return rC
     
-    @debug(output_file=None)
     def _generateLigGroupSummaryDict(self,p_ccAssgnDataStr):
         ''' generate utility dictionary to hold info for chem comp groups indicated in depositor's data
         
