@@ -926,7 +926,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     # else user chose to use originally proposed ligand ID
                     lclDict['use_orig_proposed_id_checked'] = 'checked="checked"' # show radio button as clicked
         
-        path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
+        path2dAuthAssgndImg = '/service/cc_lite/report/file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
 
         if self.__verbose and self.__debug:
             self.__logger.debug('----- so setting path2dAuthAssgndImg to: %s', path2dAuthAssgndImg)
@@ -1125,7 +1125,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     # else user chose to use originally proposed ligand ID
                     lclDict['use_orig_proposed_id_checked'] = 'checked="checked"' #show radio button as clicked
         
-        path2dAuthAssgndImg = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
+        path2dAuthAssgndImg = '/service/cc_lite/report/file?identifier={}&source=author&file={}'.format(p_hlprDict["depositionid"].upper(), p_authAssignedGrp + '.svg')
         if( self.__verbose and self.__debug ):
             self.__lfh.write("+%s.%s() ----- successful access to absltPath2dAuthAssgndImg at: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name) )
             self.__lfh.write("+%s.%s() ----- so setting path2dAuthAssgndImg to: %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, path2dAuthAssgndImg) )            
@@ -1296,7 +1296,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 p_hlprDict['msmtch_explain'] = ''
         
         ## setting relative paths to 2D visualization resources that are used by webpage to load on demand via AJAX
-        p_hlprDict['2dpath']                 = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}.svg'.format(depId.upper(), instId)
+        p_hlprDict['2dpath']                 = '/service/cc_lite/report/file?identifier={}&source=author&file={}.svg'.format(depId.upper(), instId)
         '''
         if( bHaveTopHit ):
             p_hlprDict['2dpath']               = os.path.join(self.__workingRltvAssgnSessionPath,instId+'.svg')
@@ -1306,7 +1306,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                     
         if( bHaveTopHit ):
             #p_hlprDict['2dpath_top_hit']       = os.path.join(self.__workingRltvAssgnSessionPath,'rfrnc_reports',topHitCcId,topHitCcId+'-noh.gif')
-            p_hlprDict['2dpath_top_hit']       = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId.upper(), topHitCcId, topHitCcId)
+            p_hlprDict['2dpath_top_hit']       = '/service/cc_lite/report/file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId.upper(), topHitCcId, topHitCcId)
         
         
         ############################################################################################################################################################
@@ -1529,18 +1529,18 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 helperDict['msmtch_explain'] = ''
         
         # setting relative paths to 2D visualization resources that are used by webpage to load on demand via AJAX
-        helperDict['2dpath'] = '/service/cc_lite/report/get_file?identifier={}&source=author&file={}.svg'.format(depId, instId)
+        helperDict['2dpath'] = '/service/cc_lite/report/file?identifier={}&source=author&file={}.svg'.format(depId, instId)
   
         if hasTopHit:
             # if the assign search yielded top hit(s) we need to generate tabular display of match results
-            helperDict['2dpath_top_hit'] = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId, topHitCcId, topHitCcId)
+            helperDict['2dpath_top_hit'] = '/service/cc_lite/report/file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId, topHitCcId, topHitCcId)
             helperDict['assgn_sess_path_rel'] = self.__workingRltvAssgnSessionPath # this key/value is used in private renderInstanceMatchResults function for cc_viz_cmp_li_tmplt.html
             helperDict['cc_instnc_match_rslts_tbl'] = ''.join(self._generateMatchResultsTable(ccAssignDataStore, helperDict))
 
         instanceProfileLabel = 'instnc_profile.html'
         
         # establishing values for RELATIVE path used by FRONT end for locating file that serves as instance profile markup and is called by front end on-demand 
-        htmlFilePathRel = '/service/cc_lite/report/get_file?identifier={}&source=report&ligid={}&file={}'.format(depId.upper(), instId, instId + instanceProfileLabel)
+        htmlFilePathRel = '/service/cc_lite/report/file?identifier={}&source=report&ligid={}&file={}'.format(depId.upper(), instId, instId + instanceProfileLabel)
         helperDict['instnc_profile_path'] = htmlFilePathRel
         
         # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
@@ -1578,7 +1578,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         
         ccid = ccAssignDataStore.getBatchBestHitId(instId)
         helperDict['ccid'] = ccid
-        helperDict['3dpath_ref'] = '/service/cc_lite/report/get_file?identifier={}&source=ccd&ligid={}&file='
+        helperDict['3dpath_ref'] = '/service/cc_lite/report/file?identifier={}&source=ccd&ligid={}&file='
         
         #################OBSOLETE?############################
         #
@@ -1933,9 +1933,9 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         residueNum = instIdPieces[3]
         ##
         # p_hlprDict['3dpath'] = os.path.join(sPathRel,instId,'report',authAssignedGrp)
-        p_hlprDict['3dpath'] = '/service/cc_lite/report/get_file?identifier={}&source=report&ligid={}&file='.format(depId.upper(), authAssignedGrp)
+        p_hlprDict['3dpath'] = '/service/cc_lite/report/file?identifier={}&source=report&ligid={}&file='.format(depId.upper(), authAssignedGrp)
         # p_hlprDict['3dpath_environ'] = os.path.join(s3dpathEnviron,depId+'-jmol-mdl')
-        p_hlprDict['3dpath_environ'] = '/service/cc_lite/report/get_file?identifier={}&source=report&ligid={}&file='.format(depId.upper(), instId)
+        p_hlprDict['3dpath_environ'] = '/service/cc_lite/report/file?identifier={}&source=report&ligid={}&file='.format(depId.upper(), instId)
         p_hlprDict['residue_num'] = residueNum
         p_hlprDict['chain_id'] = chainId
         # establishing values for ABSOLUTE paths used by BACK end for writing to files that serve as additional resources that may be called by front end on-demand

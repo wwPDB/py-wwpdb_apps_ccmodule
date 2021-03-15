@@ -13,9 +13,11 @@ __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V1.0"
 
 import sys, unittest, traceback
-import time, os, os.path
+import time, os, os.path, json
+from unittest.mock import MagicMock, patch
 
 from wwpdb.utils.config.ConfigInfo                          import ConfigInfo
+from wwpdb.apps.ccmodule.utils                              import Exceptions
 from wwpdb.utils.session.WebRequest                         import InputRequest
 from wwpdb.utils.testing.Features                           import Features
 from wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite          import ChemCompWebAppLiteWorker
@@ -26,7 +28,7 @@ class ReportFilesRequestTest(unittest.TestCase):
 
     '''
     def setUp(self):
-        self.__verbose=True
+        self.__verbose=False
         self.__lfh=sys.stderr
         self.__topPath=os.getenv('WWPDB_CCMODULE_TOP_PATH')
         #
@@ -133,7 +135,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         rc = stw._getReportFile()
 
-        self.assertEqual(rc._cD["errortext"], "Source should be either 'ccd' or 'author'")
+        self.assertEqual(rc._cD["errortext"], "Source should be either 'ccd', 'author' or 'report'")
         self.assertEqual(rc._cD["statuscode"], 400)
 
         # ---
@@ -146,10 +148,117 @@ class ReportFilesRequestTest(unittest.TestCase):
 
         self.assertEqual(rc._cD["errortext"], "File not found")
         self.assertEqual(rc._cD["statuscode"], 404)
-    
-    def testGetLigandInstanceData(self):
+
+class LigandSummaryTest(unittest.TestCase):
+    """Tests for the new endpoint to retrieve a summary for
+    the requestd ligands.
+    """
+    ligIds = ['AAA']
+
+    mock_ccad = MagicMock()
+    mock_ccad.getAuthAssignmentKeys.return_value = ligIds
+    mock_ccad.getCcName.return_value = None
+    mock_ccad.getCcFormula.return_value = 'C1C'
+    mock_ccad.getAuthAssignment.return_value = 'AAA'
+    mock_ccad.getBatchBestHitId.return_value = 'AAA'
+
+    def setUp(self):
+        self.__verbose=False
+        self.__lfh=sys.stderr
+        self.__topPath=os.getenv('WWPDB_CCMODULE_TOP_PATH')
+        #
+        # Create a request object and session directories for test cases
+        #
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj.setValue("WWPDB_SITE_ID",  "PDBE_DEV")
+        self.__reqObj.setValue("TopSessionPath", self.__topPath)
+        self.__reqObj.setValue("TopPath",        self.__topPath)
+        self.__reqObj.setValue("identifier",    "D_800001")
+
+        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__cI = ConfigInfo(self.__siteId)
+        self.__depositPath = os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
+
+    def testLigSummaryDict(self):
+        matching_ligand = {
+            'AAA': {
+                'totlInstncsInGrp': 1,
+                'bGrpRequiresAttention': False,
+                'bGrpMismatchAddressed': False,
+                'grpMismatchCnt': 0,
+                'mismatchLst': [],
+                'instIdLst': self.ligIds,
+                'ccName': None,
+                'ccFormula': 'C1C',
+                'isResolved': False,
+            }
+        }
+
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, self.ligIds)
+        self.assertEqual(return_dict, matching_ligand)
+
+    def testLigSummaryDictMismatch(self):
+        matching_ligand = {
+            'AAA': {
+                'totlInstncsInGrp': 1,
+                'bGrpRequiresAttention': True,
+                'bGrpMismatchAddressed': False,
+                'grpMismatchCnt': 1,
+                'mismatchLst': ['AAA'],
+                'instIdLst': self.ligIds,
+                'ccName': None,
+                'ccFormula': 'C1C',
+                'isResolved': False,
+            }
+        }
+
+        self.mock_ccad.getBatchBestHitId.return_value = 'AAB'
+
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, self.ligIds)
+        self.assertEqual(return_dict, matching_ligand)
+
+    def testLigSummaryDictInvalidLig(self):
+        """Test the case when the user provides an invalid lig id
+        """
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, ['CCC'])
+        self.assertEqual(return_dict, {})
+
+    @patch('wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.ChemCompAssignDataStore', autospec=True)
+    def testGetLigandSummary(self, mock_ccda):
+        mock_ccda.return_value.getAuthAssignmentKeys.return_value = self.ligIds
+        mock_ccda.return_value.getCcName.return_value = None
+        mock_ccda.return_value.getCcFormula.return_value = 'C1C'
+        mock_ccda.return_value.getAuthAssignment.return_value = 'AAA'
+        mock_ccda.return_value.getBatchBestHitId.return_value = 'AAA'
+
+        # empty lig id list
+        self.__reqObj.setValue('ligids', '')
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-        stw._getLigandInstancesData()
-    
+        
+        with self.assertRaises(Exceptions.InvalidLigandId):
+            stw._getLigandInstancesData()
+        
+        # passing rubbish
+        self.__reqObj.setValue('ligids', 'CLA,_"FFF`')
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+        self.assertEqual(stw._getLigandInstancesData().get()['RETURN_STRING'], '{}')
+
+        # more rubbish
+        self.__reqObj.setValue('ligids', {})
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+        self.assertEqual(stw._getLigandInstancesData().get()['RETURN_STRING'], '{}')
+
+        # valid input
+        self.__reqObj.setValue('ligids', 'AAA')
+        stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+        json_summary = json.loads(stw._getLigandInstancesData().get()['RETURN_STRING'])
+        
+        self.assertEqual(json_summary['AAA']['totlInstncsInGrp'], 1)
+        self.assertEqual(json_summary['AAA']['bGrpRequiresAttention'], False)
+        self.assertEqual(json_summary['AAA']['instIdLst'], ['AAA'])
+
 if __name__ == '__main__':
     unittest.main()

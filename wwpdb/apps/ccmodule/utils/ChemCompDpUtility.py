@@ -6,6 +6,7 @@
 import os
 import sys
 import shutil
+import traceback
 from logging                                            import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from threading                                          import Timer
 from subprocess                                         import Popen, PIPE
