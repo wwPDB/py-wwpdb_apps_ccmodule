@@ -59,7 +59,6 @@ from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
-from debug_tools.tools import debug
 
 class ChemCompAssignDepictLite(ChemCompDepict):
     """ Class responsible for generating HTML depictions of 
@@ -383,7 +382,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         rtrnLst.append( self.processTemplate(tmpltPth=os.path.join(tmpltPath,self.__pathCCliteGlblVwTmplts),fn="cc_lite_launch_instnc_brwsr_frm_tmplt.html", parameterDict=myD) )
         return rtrnLst
 
-    @debug(output_file=None)
     def getInstanceList(self, ligIdList, ccAssignDataStore):
         ligSubgroupDict = {}
 
@@ -1851,7 +1849,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
     #      Private helper methods
     # ------------------------------------------------------------------------------------------------------------
     #
-    @debug(output_file=None)
     def __generateLigGroupSummaryDict(self,p_ccAssgnDataStr):
         ''' generate utility dictionary to hold info for chem comp groups indicated in depositor's data
         
