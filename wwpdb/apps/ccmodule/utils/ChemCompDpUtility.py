@@ -12,6 +12,7 @@ from threading                                          import Timer
 from subprocess                                         import Popen, PIPE
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
+from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssignReader
@@ -51,6 +52,7 @@ class ChemCompDpUtility(object):
         self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
+        self._ligState = LigandAnalysisState(self._depId, self._verbose, self._lfh)
     
     def doAnalysis(self):
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
@@ -62,6 +64,12 @@ class ChemCompDpUtility(object):
             if os.path.exists(self._ccReportPath):
                 self._logger.info('Removing existing %s directory', self._CC_ASSIGN_DIR)
                 shutil.rmtree(self._ccReportPath, ignore_errors=True)
+            
+            os.makedirs(self._ccReportPath, exist_ok=True)
+
+            # initializing the ligand state monitor
+            self._ligState.init()
+            self._progress = 0.0
 
             # first we get the data dict from the cc assign file
             rDict = self._processCcAssignFile()
@@ -83,10 +91,13 @@ class ChemCompDpUtility(object):
             if len(instIdList) == 0:
                 # if we get an empty list here, there nothing else to do
                 self._logger.warning('Empty assignment keys')
+                self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_STOPPED)
                 return
             
             ccIdAlreadySeenList=[]
             fitTupleDict={}
+
+            updateStep = .3 / len(instIdList)
 
             for instId in instIdList:
                 if self._verbose:
@@ -116,6 +127,9 @@ class ChemCompDpUtility(object):
                     self._genLigandReportData(topHitCcId, rtype='ref')
                     self._imagingSetupForTopHit(authAssignedId, topHitCcId, fitTupleDict)
                     ccIdAlreadySeenList.append(topHitCcId)
+                
+                self._progress += updateStep
+                self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_RUNNING, instId)
             
             self._genAligned2dImages(fitTupleDict)
 
@@ -130,8 +144,12 @@ class ChemCompDpUtility(object):
 
             ccAD = ChemCompAssignDepictLite(self._reqObj, self._verbose, self._lfh)
             oL = ccAD.generateInstancesMainHtml(ccAssignDataStore, origCcId)
+
+            self._progress += .3 # to finish up the last bit
+            self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_FINISHED)
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
+            self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_STOPPED)
 
     def _processCcAssignFile(self):
         """Interrogate resulting assign results file for desired match data.
@@ -275,6 +293,8 @@ class ChemCompDpUtility(object):
 
         redoCcidLst = []
 
+        updateStep = .2 / len(fitTupleDict)
+
         for ccid in fitTupleDict:
             self._logger.info('Performing image alignment tasks for %s.', ccid)
 
@@ -301,6 +321,9 @@ class ChemCompDpUtility(object):
             if not os.access(masterImgPath, os.F_OK):
                 self._logger.warning('WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s', masterImgPath, ccid)
                 redoCcidLst.append(ccid)
+            
+            self._progress += updateStep
+            self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_RUNNING, ccid)
         
         # generate non-aligned images for those cases where exception occurred due to timeout/error
         pathList = []
@@ -320,6 +343,9 @@ class ChemCompDpUtility(object):
                         self._logger.warning('WARNING: image generation failed for: %s',(imagePath))
             except:
                 self._logger.error('Error generating non-aligned images for ligand "%s"', ccid, exc_info=True)
+            finally:
+                self._progress += updateStep
+                self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_RUNNING, ccid)
         
         return
     

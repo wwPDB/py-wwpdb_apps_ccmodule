@@ -85,6 +85,7 @@ from http import HTTPStatus
 from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
 
 from wwpdb.apps.ccmodule.utils                          import Exceptions
+from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
 from wwpdb.utils.session.WebRequest                     import InputRequest,ResponseContent
 #
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
@@ -275,7 +276,7 @@ class ChemCompWebAppLiteWorker(object):
                          '/service/cc_lite/report/create':                       '_getLigandInstancesData',
                          '/service/cc_lite/report/file':                         '_getReportFile',
                          '/service/cc_lite/report/summary':                      '_getLigandInstancesData',
-                         '/service/cc_lite/report/status':                       '_getLigandInstancesData',
+                         '/service/cc_lite/report/status':                       '_getLigandAnalysisStatus',
                          ###################################################################################################
                          }
         
@@ -628,6 +629,18 @@ class ChemCompWebAppLiteWorker(object):
         #
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
+
+    def _getLigandAnalysisStatus(self):
+        depId = str(self.__reqObj.getValue('identifier')).upper()
+        ligState = LigandAnalysisState(depId, self.__verbose, self.__lfh)
+        state = ligState.getProgress()
+
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat('jsonData')
+        rC.setData(state)
+
+        return rC
+
     
     def _getLigandInstancesData(self):
         """Endpoint to get a summary dictionary for requested
