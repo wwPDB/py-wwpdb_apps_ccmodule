@@ -85,7 +85,7 @@ class ChemCompDpUtility(object):
                 self._logger.debug('Getting author assignment keys')
 
             instIdList = ccAssignDataStore.getAuthAssignmentKeys()
-            origCcId = set(map(ccAssignDataStore.getDpstrOrigCcIdMaster, instIdList))
+            origCcId = set(map(ccAssignDataStore.getAuthAssignment, instIdList))
             
             if len(instIdList) == 0:
                 # if we get an empty list here, there nothing else to do
@@ -660,17 +660,17 @@ class ChemCompDpUtility(object):
     
 if __name__ == '__main__':
     from coverage import Coverage
-    cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
-    cov.start()
+    # cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
+    # cov.start()
 
     dp=ChemCompDpUtility(sys.argv[1],True,sys.__stderr__)
     dp.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, sys.argv[2])
     dp.doAnalysis()
 
-    cov.stop()
-    # cov.save()
+    # cov.stop()
+    # # cov.save()
 
-    try:
-        cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
-    except:
-        pass
+    # try:
+    #     cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
+    # except:
+    #     pass

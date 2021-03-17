@@ -418,12 +418,12 @@ class ChemCompAssign(object):
         assignDirPath       =   self.__ccReportPath
         assignFileUpdtdPath =   os.path.join(assignDirPath,depDataSetId+'-cc-assign-updated.cif')
         pdbxFileName        =   depDataSetId+'-model.cif'
-        pdbxFilePath        =   os.path.join(self.__depositPath,pdbxFileName)
-        pdbxOutFilePath     =   os.path.join(self.__depositPath,depDataSetId+'-model-update.cif')
+        pdbxFilePath        =   os.path.join(self.__depositPath,depDataSetId,pdbxFileName)
+        pdbxOutFilePath     =   os.path.join(self.__depositPath,depDataSetId,depDataSetId+'-model-update.cif')
         #
         dpstrInfoDirPath       =   self.__ccReportPath
-        dpstrInfoFilePath =   os.path.join(assignDirPath,depDataSetId+'-cc-dpstr-info.cif')
-        dpstrUpdtdPdbxFilePath =   os.path.join(assignDirPath,depDataSetId+'-cc-model-w-dpstr-info.cif')
+        dpstrInfoFilePath      =   os.path.join(dpstrInfoDirPath,depDataSetId+'-cc-dpstr-info.cif')
+        dpstrUpdtdPdbxFilePath =   os.path.join(dpstrInfoDirPath,depDataSetId+'-cc-model-w-dpstr-info.cif')
         
         #
         try:
@@ -901,7 +901,7 @@ class ChemCompAssign(object):
         else:
             mdlFileName = depDataSetId+'-model.cif'
         #            
-        mdlfilePath = os.path.join(self.__sessionPath,mdlFileName)
+        mdlfilePath = os.path.join(self.__depositPath,depDataSetId,mdlFileName)
         ccLinkFilePath  =os.path.join(assignDirPath,self.__ccTargetInstanceId,depDataSetId+'-cc-rerun-link.cif')
         #
         # store the assignments in the instance directory -- 
