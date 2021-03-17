@@ -69,7 +69,6 @@ class ChemCompDpUtility(object):
 
             # initializing the ligand state monitor
             self._ligState.init()
-            self._progress = 0.0
 
             # first we get the data dict from the cc assign file
             rDict = self._processCcAssignFile()
@@ -91,7 +90,7 @@ class ChemCompDpUtility(object):
             if len(instIdList) == 0:
                 # if we get an empty list here, there nothing else to do
                 self._logger.warning('Empty assignment keys')
-                self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_STOPPED)
+                self._ligState.finish()
                 return
             
             ccIdAlreadySeenList=[]
@@ -128,8 +127,7 @@ class ChemCompDpUtility(object):
                     self._imagingSetupForTopHit(authAssignedId, topHitCcId, fitTupleDict)
                     ccIdAlreadySeenList.append(topHitCcId)
                 
-                self._progress += updateStep
-                self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_RUNNING, instId)
+                self._ligState.addProgress(updateStep, instId)
             
             self._genAligned2dImages(fitTupleDict)
 
@@ -143,13 +141,13 @@ class ChemCompDpUtility(object):
             self._saveLigModState('intermittent')
 
             ccAD = ChemCompAssignDepictLite(self._reqObj, self._verbose, self._lfh)
-            oL = ccAD.generateInstancesMainHtml(ccAssignDataStore, origCcId)
+            ccAD.generateInstancesMainHtml(ccAssignDataStore, origCcId)
 
-            self._progress += .3 # to finish up the last bit
-            self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_FINISHED)
+            self._ligState.addProgress(.3)
+            self._ligState.finish()
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
-            self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_STOPPED)
+            self._ligState.abort()
 
     def _processCcAssignFile(self):
         """Interrogate resulting assign results file for desired match data.
@@ -322,13 +320,13 @@ class ChemCompDpUtility(object):
                 self._logger.warning('WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s', masterImgPath, ccid)
                 redoCcidLst.append(ccid)
             
-            self._progress += updateStep
-            self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_RUNNING, ccid)
+            self._ligState.addProgress(updateStep, ccid)
         
         # generate non-aligned images for those cases where exception occurred due to timeout/error
         pathList = []
         for ccid in redoCcidLst:
             self._logger.info('Performing image generation tasks for %s.', ccid)
+
             try:
                 imgTupl = fitTupleDict[ccid]['masterAlignRef']
                 pathList.append(imgTupl)
@@ -344,8 +342,7 @@ class ChemCompDpUtility(object):
             except:
                 self._logger.error('Error generating non-aligned images for ligand "%s"', ccid, exc_info=True)
             finally:
-                self._progress += updateStep
-                self._ligState.updateProgress(self._progress, LigandAnalysisState.STATE_RUNNING, ccid)
+                self._ligState.addProgress(updateStep, ccid)
         
         return
     

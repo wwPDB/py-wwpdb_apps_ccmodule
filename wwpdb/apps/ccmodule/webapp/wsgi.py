@@ -39,10 +39,6 @@ logger.setLevel(logging.DEBUG)
 
 l2 = logging.getLogger('wwpdb.apps.msgmodule.io.MessagingDataImport')
 l2.setLevel(logging.INFO)
-l2 = logging.getLogger('wwpdb.apps.msgmodule.io.MessagingDataExport')
-l2.setLevel(logging.INFO)
-
-
 class MyRequestApp(object):
     """  Handle server interaction using FCGI/WSGI and WebOb Request
          and Response objects.
@@ -116,6 +112,7 @@ class MyRequestApp(object):
         ccmodule_lite= ChemCompWebAppLite(parameterDict=myParameterDict, verbose=self.__verbose, 
                            log=self.__lfh, siteId=siteId)
         rspD=ccmodule_lite.doOp()
+
         myResponse.content_type=rspD['CONTENT_TYPE']
 
         if sys.version_info[0] > 2:

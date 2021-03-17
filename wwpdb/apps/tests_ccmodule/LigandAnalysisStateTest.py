@@ -36,7 +36,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         cls._verbose = False
         cls._depId = 'D_0'
 
-        cls._reportDir = os.path.join(configInfo['SITE_DEPOSIT_STORAGE_PATH'], cls._depId, 'cc_analysis')
+        cls._reportDir = os.path.join(configInfo['SITE_DEPOSIT_STORAGE_PATH'], 'deposit', cls._depId, 'cc_analysis')
         os.makedirs(cls._reportDir, exist_ok=True)
 
         cls._progressFile = os.path.join(cls._reportDir, 'state.json')
@@ -72,25 +72,30 @@ class ReportFilesRequestTest(unittest.TestCase):
         os.makedirs(self._reportDir, exist_ok=True)
 
     def testInitStateFile(self):
+        os.remove(self._progressFile)
         self._ligState.init()
         os.path.exists(self._progressFile)
 
         with self.assertRaises(LigandStateError):
             self._ligState.init()
         
-    def testUpdateProgress(self):
+    def testAddProgress(self):
         self._ligState.init()
-        self._ligState.updateProgress(progress=.813, state=LigandAnalysisState.STATE_RUNNING, current_ligand='AAA')
+        self._ligState.addProgress(step=.13, current_ligand='AAA')
+        self._ligState.addProgress(step=.33, current_ligand='AAA')
+
+        self.assertEqual(self._ligState._progress, .46)
 
         with open(self._progressFile) as fp:
             state = json.load(fp)
 
             self.assertEqual(state['state'], 'running')
-            self.assertEqual(state['progress'], .813)
+            self.assertEqual(state['progress'], .46)
             self.assertEqual(state['current_ligand'], 'AAA')
             self.assertIsNotNone(state.get('last_updated'))
     
-        self._ligState.updateProgress(progress=1.3, state=LigandAnalysisState.STATE_RUNNING)
+        self._ligState.addProgress(step=1.3)
+        self.assertEqual(self._ligState._progress, 1.0)
 
         with open(self._progressFile) as fp:
             state = json.load(fp)
@@ -100,8 +105,43 @@ class ReportFilesRequestTest(unittest.TestCase):
             self.assertIsNotNone(state.get('last_updated'))
         
         os.remove(self._progressFile)
-        self._ligState.updateProgress(progress=0, state=LigandAnalysisState.STATE_RUNNING)
+        self._ligState = LigandAnalysisState(self._depId)
+        self._ligState.addProgress(step=0.66)
+
+        with self.assertRaises(LigandStateError):
+            self._ligState.addProgress(step=-0.17)
 
         os.remove(self._progressFile)
         with self.assertRaises(LigandStateError):
-            self._ligState.updateProgress(progress=0.5, state=LigandAnalysisState.STATE_RUNNING)
+            self._ligState.addProgress(step=0.5)
+    
+    @unittest.skip
+    def testSetState(self):
+        self._ligState.init()
+        self._ligState.setState(LigandAnalysisState.STATE_RUNNING)
+
+        self.assertEqual(self._ligState._progress, .46)
+
+        with open(self._progressFile) as fp:
+            state = json.load(fp)
+
+            self.assertEqual(state['state'], 'running')
+            self.assertEqual(state['progress'], .46)
+            self.assertEqual(state['current_ligand'], 'AAA')
+            self.assertIsNotNone(state.get('last_updated'))
+    
+        self._ligState.addProgress(progress=1.3, state=LigandAnalysisState.STATE_RUNNING)
+
+        with open(self._progressFile) as fp:
+            state = json.load(fp)
+
+            self.assertEqual(state['state'], 'running')
+            self.assertEqual(state['progress'], 1.0)
+            self.assertIsNotNone(state.get('last_updated'))
+        
+        os.remove(self._progressFile)
+        self._ligState.addProgress(progress=0, state=LigandAnalysisState.STATE_RUNNING)
+
+        os.remove(self._progressFile)
+        with self.assertRaises(LigandStateError):
+            self._ligState.addProgress(progress=0.5, state=LigandAnalysisState.STATE_RUNNING)

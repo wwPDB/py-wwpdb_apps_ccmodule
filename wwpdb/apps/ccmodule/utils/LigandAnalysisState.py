@@ -28,6 +28,9 @@ class LigandAnalysisState:
         self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
         self._ccReportPath = os.path.join(self._depositPath, self._depId, 'cc_analysis')
         self._ccStateFilePath = os.path.join(self._ccReportPath, self._CC_STATE_FILE)
+
+        self._progress = None
+        self._state = None
     
     def init(self):
         """Initialize the ligand analysis state for this deposition.
@@ -40,13 +43,26 @@ class LigandAnalysisState:
             # be trying to create a new one
             raise LigandStateError('Trying to create a new ligand state file for deposition {}'.format(self._depId))
         
-        initialState = self._createStateDescriptor(0, self.STATE_RUNNING)
+        self._progress = 0
+        self._state = self.STATE_RUNNING
 
         if self._verbose:
             self._logging.debug('Creating state file %s for deposition %s', self._ccStateFilePath, self._depId)
 
-        with open(self._ccStateFilePath, 'w') as fp:
-            json.dump(initialState, fp)
+        self._saveState()
+    
+    def __del__(self):
+        if self._state == self.STATE_RUNNING:
+            if self._progress < 1.0:
+                self._logging.warning('LigandAnalysisState leaving with RUNNING state. Trying to set it to STOPPED.')
+                self._state = self.STATE_STOPPED
+            else:
+                self._state = self.STATE_FINISHED
+            
+            try:
+                self._saveState()
+            except:
+                pass
     
     def getProgress(self):
         """Get the current state of the ligand analysis.
@@ -57,7 +73,7 @@ class LigandAnalysisState:
         currentState = { 'state': 'unknown' }
 
         if not os.access(self._ccStateFilePath, os.R_OK):
-            # maybe a better checking would be appropriate, i.e.
+            # maybe a better check would be appropriate, i.e.
             # checking somehow if the analysis is running
             return currentState
         
@@ -69,29 +85,56 @@ class LigandAnalysisState:
         finally:
             return currentState
     
-    def updateProgress(self, progress, state, current_ligand=None):
+    def addProgress(self, step, current_ligand=None):
         """Update the current state of the ligand analysis.
 
         TODO: This should NOT access the file system directly, but
         set the state through an API (as WfDataObject) instead.
 
         Args:
-            progress (float): ratio of completion, must be calculated by caller
-            state (str): should be either STATE_RUNNING, STATE_STOPPED, STATE_UNKNOWN or STATE_FINISHED
+            step (float): ratio of completion, must be calculated by caller
             current_ligand (str, optional): current ligand being analysed. Defaults to None.
 
         Raises:
             LigandStateError: in case that it can't access the state.json file
         """
         if not os.access(self._ccStateFilePath, os.R_OK):
-            if progress == 0:
+            if not self._progress:
                 # maybe the caller forgot to call 'init'
                 self._logging.warning('Did not find a state.json file. Did you forget to call init()?')
                 self.init()
             else:
                 raise LigandStateError('Could not find state.json file. Analysis may need to be restarted.')
 
-        state = self._createStateDescriptor(progress, state, current_ligand)
+        if step < 0:
+            raise LigandStateError('Step must be positive.')
+        
+        if step > 1:
+            self._logging.warning('Received a step value greater than 1.0. Check addProgress calls.')
+
+        if self._progress + step > 1.0:
+            self._progress = 1.0
+        else:
+            self._progress += step
+    
+        self._saveState(current_ligand=current_ligand)
+
+    def finish(self):
+        """Method to inform LiganAnalysisState that the analysis is
+        complete.
+        """
+        if self._progress < 1.0:
+            self._logging.warning('Finishing with progress under 1.0.')
+        
+        self._state = self.STATE_FINISHED
+        self._saveState()
+    
+    def abort(self):
+        self._state = self.STATE_STOPPED
+        self._saveState()
+
+    def _saveState(self, current_ligand=None):
+        state = self._createStateDescriptor(self._progress, self._state, current_ligand)
 
         with open(self._ccStateFilePath, 'w') as fp:
             json.dump(state, fp)
