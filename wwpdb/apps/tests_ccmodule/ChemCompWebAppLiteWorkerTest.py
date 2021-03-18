@@ -12,12 +12,32 @@ __email__     = "wbueno@ebi.ac.uk"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V1.0"
 
+import json
+import tempfile
 import sys, unittest, traceback
 import time, os, os.path, json
-from unittest.mock import MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
+
+sessionsTopDir = tempfile.mkdtemp()
+configInfo = {
+    'SITE_DEPOSIT_STORAGE_PATH': tempfile.mkdtemp(),
+    'SITE_PREFIX': 'PDBE_LOCALHOST',
+    'SITE_WEB_APPS_TOP_SESSIONS_PATH': sessionsTopDir,
+    'SITE_WEB_APPS_SESSIONS_PATH': os.path.join(sessionsTopDir, 'sessions'),
+    'SITE_CC_APPS_PATH': tempfile.mkdtemp(),
+    'SITE_CC_CVS_PATH': tempfile.mkdtemp(),
+}
+
+configInfoMockConfig = {
+    'return_value': configInfo,
+}
+
+configMock = MagicMock(**configInfoMockConfig)
+
+sys.modules['wwpdb.utils.config.ConfigInfo'] = Mock(ConfigInfo=configMock)
 
 from wwpdb.utils.config.ConfigInfo                          import ConfigInfo
-from wwpdb.apps.ccmodule.utils                              import Exceptions
+from wwpdb.apps.ccmodule.utils.Exceptions                   import LigandStateError, InvalidLigandIdError, InvalidDepositionIdError
 from wwpdb.utils.session.WebRequest                         import InputRequest
 from wwpdb.utils.testing.Features                           import Features
 from wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite          import ChemCompWebAppLiteWorker
@@ -165,18 +185,17 @@ class LigandSummaryTest(unittest.TestCase):
     def setUp(self):
         self.__verbose=False
         self.__lfh=sys.stderr
-        self.__topPath=os.getenv('WWPDB_CCMODULE_TOP_PATH')
         #
         # Create a request object and session directories for test cases
         #
+        self.__cI = ConfigInfo('PDBE_DEV')
+
         self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
         self.__reqObj.setValue("WWPDB_SITE_ID",  "PDBE_DEV")
-        self.__reqObj.setValue("TopSessionPath", self.__topPath)
-        self.__reqObj.setValue("TopPath",        self.__topPath)
+        self.__reqObj.setValue("TopSessionPath", self.__cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH'))
+        self.__reqObj.setValue("TopPath",        self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'))
         self.__reqObj.setValue("identifier",    "D_800001")
 
-        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
-        self.__cI = ConfigInfo(self.__siteId)
         self.__depositPath = os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
 
     def testLigSummaryDict(self):
@@ -238,7 +257,7 @@ class LigandSummaryTest(unittest.TestCase):
         self.__reqObj.setValue('ligids', '')
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         
-        with self.assertRaises(Exceptions.InvalidLigandId):
+        with self.assertRaises(InvalidLigandIdError):
             stw._getLigandInstancesData()
         
         # passing rubbish
@@ -259,6 +278,71 @@ class LigandSummaryTest(unittest.TestCase):
         self.assertEqual(json_summary['AAA']['totlInstncsInGrp'], 1)
         self.assertEqual(json_summary['AAA']['bGrpRequiresAttention'], False)
         self.assertEqual(json_summary['AAA']['instIdLst'], ['AAA'])
+
+class RunAnalysisTest(unittest.TestCase):
+    """Tests for the endpoint that fires the ligand analysis
+    workflow.
+    """
+    mock_ccad = MagicMock()
+    
+    def setUp(self):
+        self.__verbose=False
+        self.__lfh=sys.stderr
+
+        self.__cI = ConfigInfo('PDBE_DEV')
+
+        self.__reqObj=InputRequest(paramDict={},verbose=self.__verbose,log=self.__lfh)
+        self.__reqObj.setValue("WWPDB_SITE_ID",  "PDBE_DEV")
+        self.__reqObj.setValue("TopSessionPath", self.__cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH'))
+        self.__reqObj.setValue("TopPath",        self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'))
+
+        self.__depositPath = os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
+        self.chemCompApp = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+    
+    @patch('wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.WfDbApi')
+    def testDepositionIds(self, mockWfDbApi):
+        mockWfDbApi.return_value.runUpdateSQL.return_value = 2
+
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = ''
+        with self.assertRaises(InvalidDepositionIdError):
+            self.chemCompApp._runAnalysis()
+        
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = None
+        with self.assertRaises(InvalidDepositionIdError):
+            self.chemCompApp._runAnalysis()
+        
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_"001'
+        with self.assertRaises(InvalidDepositionIdError):
+            self.chemCompApp._runAnalysis()
+        
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_80000W'
+        with self.assertRaises(InvalidDepositionIdError):
+            self.chemCompApp._runAnalysis()
+
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_\' drop status.communication;'
+        with self.assertRaises(InvalidDepositionIdError):
+            self.chemCompApp._runAnalysis()
+        
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_800001'
+        response = json.loads(self.chemCompApp._runAnalysis().get()['RETURN_STRING'])
+        self.assertEqual(response['status'], 'success')
+    
+    @patch('wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.WfDbApi')
+    def testWfDb(self, mockWfDbApi):
+        mockWfDbApi.return_value.isConnected.return_value = False
+        with self.assertRaises(Exception):
+            self.chemCompApp._runAnalysis()
+    
+        mockWfDbApi.return_value.isConnected.return_value = True
+        mockWfDbApi.return_value.runUpdateSQL.return_value = None
+        with self.assertRaises(Exception):
+            self.chemCompApp._runAnalysis()
+        
+        mockWfDbApi.return_value.isConnected.return_value = True
+        mockWfDbApi.return_value.runUpdateSQL.return_value = 1
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_800001'
+        response = json.loads(self.chemCompApp._runAnalysis().get()['RETURN_STRING'])
+        self.assertEqual(response['status'], 'success')
 
 if __name__ == '__main__':
     unittest.main()

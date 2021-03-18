@@ -83,8 +83,9 @@ from coverage import Coverage
 import os, re, sys, time, traceback, ntpath, shutil
 from http import HTTPStatus
 from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
+from datetime import datetime
 
-from wwpdb.apps.ccmodule.utils                          import Exceptions
+from wwpdb.apps.ccmodule.utils.Exceptions               import InvalidLigandIdError, LigandStateError, InvalidDepositionIdError
 from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
 from wwpdb.utils.session.WebRequest                     import InputRequest,ResponseContent
 #
@@ -109,6 +110,11 @@ from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExpor
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 #
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
+
+from wwpdb.apps.wf_engine.engine.WFEapplications        import runLigandAnalysis
+from wwpdb.utils.wf.dbapi.WfDbApi                       import WfDbApi
+from wwpdb.apps.wf_engine.engine.dbAPI                  import dbAPI
+from wwpdb.utils.wf.dbapi.WFEtime                       import getTimeNow
 
 class ChemCompWebAppLite(object):
     """Handle request and response object processing for the chemical component lite module application.
@@ -273,7 +279,7 @@ class ChemCompWebAppLiteWorker(object):
                          '/service/cc_lite/wf/exit_not_finished':                '_exit_notFinished',
                          '/service/cc_lite/wf/exit_finished':                    '_exit_Finished',
                          # report endpoints
-                         '/service/cc_lite/report/create':                       '_getLigandInstancesData',
+                         '/service/cc_lite/report/create':                       '_runAnalysis',
                          '/service/cc_lite/report/file':                         '_getReportFile',
                          '/service/cc_lite/report/summary':                      '_getLigandInstancesData',
                          '/service/cc_lite/report/status':                       '_getLigandAnalysisStatus',
@@ -320,8 +326,8 @@ class ChemCompWebAppLiteWorker(object):
         """
         reqPath = ''
         # cov = Coverage(auto_data=True, config_file=False, debug=['config', 'sql'])
-        cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
-        cov.start()
+        # cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
+        # cov.start()
         # cov.load()
         #
         try:
@@ -343,13 +349,14 @@ class ChemCompWebAppLiteWorker(object):
             rC.setError(errMsg='Operation failure')
             return rC
         finally:
-            cov.stop()
+            pass
+            # cov.stop()
             # cov.save()
 
-            try:
-                cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
-            except:
-                pass
+            # try:
+            #     cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
+            # except:
+            #     pass
             # if 'write_coverage' in reqPath:
             #     self.__lfh.write('>>> WRITING COVERAGE REPORT')
 
@@ -629,8 +636,60 @@ class ChemCompWebAppLiteWorker(object):
         #
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
+    
+    def _runAnalysis(self):
+        """Run ligand analysis workflow.
+
+        Raises:
+            InvalidDepositionIdError: in case an invalid dep id was provided
+
+        Returns:
+            ResponseContent: ResponseContent object
+        """
+        now = getTimeNow()
+        wfApi = WfDbApi(verbose=True, log=self.__lfh)
+        status = 'success'
+
+        if not self.__depId or not re.fullmatch('D_[0-9]+', self.__depId):
+            raise InvalidDepositionIdError('Invalid deposition ID')
+        
+        try:
+            wfName = 'wf_op_ligand_analysis.xml'
+            query = "update status.communication set " \
+                "  sender = 'DEP' " \
+                ", receiver = 'WFE' " \
+                ", wf_class_file = 'wf_op_ligand_analysis.xml' " \
+                ", wf_class_id = 'DEP' " \
+                ", command = 'runWF' " \
+                ", status = 'PENDING' " \
+                ", actual_timestamp = '{}' " \
+                ", parent_dep_set_id = '{}' " \
+                ", parent_wf_class_id = 'DepUpload' " \
+                ", parent_wf_inst_id = 'W_001' " \
+                "where dep_set_id = '{}'".format(now, self.__depId, self.__depId)
+            
+            if self.__verbose:
+                self.__logger.debug('Running sql query %s', query)
+
+            nrow = wfApi.runUpdateSQL(query)
+
+            self.__logger.info('Result %d', nrow)
+        except Exception as e:
+            self.__logger.error('Error trying to register workflow task', e)
+            status = 'error'
+
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat('jsonData')
+        rC.setData({ 'status': status })
+
+        return rC
 
     def _getLigandAnalysisStatus(self):
+        """Get the state of ligand analysis for this deposition.
+
+        Returns:
+            ResponseContent: response object with state in json
+        """
         depId = str(self.__reqObj.getValue('identifier')).upper()
         ligState = LigandAnalysisState(depId, self.__verbose, self.__lfh)
         state = ligState.getProgress()
@@ -648,7 +707,7 @@ class ChemCompWebAppLiteWorker(object):
         the info provided.
 
         Raises:
-            Exceptions.InvalidLigandId: raised when an empty lig id is
+            InvalidLigandId: raised when an empty lig id is
                 provided
 
         Returns:
@@ -659,7 +718,7 @@ class ChemCompWebAppLiteWorker(object):
         ligIds = str(self.__reqObj.getValue('ligids'))
 
         if not ligIds or ligIds == '':
-            raise Exceptions.InvalidLigandId()
+            raise InvalidLigandIdError()
 
         # allowing only alphanum, ",", and _ chars
         ligIds = re.sub('[^a-zA-Z0-9_,]+', '', ligIds)
