@@ -1,0 +1,7 @@
+<!-- BEGIN FOOTER -->
+<br class="clearfloat" />
+<div id="footer">
+   <p>&copy; 2012 wwPDB Chemical Component Lite Module V0.01</p>
+</div>
+<!-- END   FOOTER -->
+

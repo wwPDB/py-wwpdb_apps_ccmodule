@@ -1,0 +1,33 @@
+<div id="HOH_capture_rsrch_data" class="%(hide_HOH_section)s" style="width: 60%%;"><h2>Please provide the following data for water as focus of research</h2>
+	<div class="save_rsrch_btn_align_HOH">
+		<input id="capture_rsrch_data_submit_HOH_1_" name="HOH" value="%(donebtnlabel)s" class="c_HOH capture_rsrch_data_submit_HOH save_rsrch_data fltrgt" type="button" %(donebtndisabled)s>
+	</div>
+	<br class="clearfloat"/>
+	<form name="capture_rsrch_data_frm_HOH" id="capture_rsrch_data_frm_HOH" class="" method="post">
+		<input type="hidden" name="auth_assgnd_grp" id="auth_assgnd_grp_HOH" value="HOH" class="c_HOH capture_rsrch_data" />
+		<input type="hidden" name="identifier" id="identifier_HOH" value="%(identifier)s" class="c_HOH capture_rsrch_data" />
+		<input type="hidden" name="filesource" id="filesource_HOH" value="%(filesource)s" class="c_HOH capture_rsrch_data" />
+		<input type="hidden" name="sessionid" id="sessionid_HOH" value="%(sessionid)s" class="c_HOH capture_rsrch_data" />
+		<input type="hidden" name="mode" id="rsrch_mode_HOH" value="" class="c_HOH capture_rsrch_data" />
+	
+		<div id="rsrch_data_set_HOH_0_" class="rsrch_data_set" >
+			<fieldset id="fieldset_binding_data_HOH_0_" class="" style="padding-right: 50px;">
+				<legend><h3 style="background-color:#fff;">Site - 1</h3></legend>							
+				<br /><label for="residuenum_HOH_0_">Residue Number:&nbsp;</label><input id="residuenum_HOH_0_" class="c_HOH capture_rsrch_data_input residuenum" type="text" name="residuenum_0_" value="%(residuenum_0_)s" size="8" %(disabled)s />&nbsp;&nbsp;&nbsp;&nbsp;
+				<label for="chain_id_HOH_0_">Chain ID:&nbsp;</label><input id="chain_id_HOH_0_" class="c_HOH capture_rsrch_data_input chain_id" type="text" name="chain_id_0_" value="%(chain_id_0_)s" size="10" %(disabled)s /><br /><br />
+				<br />
+				<div id="binding_dataset_actions_HOH_0_" class="binding_dataset_actions">
+					<input id="deletethis_rsrch_HOH_0_" class="deletethis_rsrch c_HOH capture_rsrch_data_input displaynone" type='button' value='Remove this set of data' %(disabled)s>
+					<input id="addanother_rsrch_HOH_0_" class="addanother_rsrch c_HOH capture_rsrch_data_input fltrgt" type='button' value='Add another set of data' %(disabled)s>
+				</div>
+				<br class="clearfloat"/><br />
+			</fieldset>
+		</div>
+		%(multi_datasets)s
+	</form>
+	<br />
+	<div class="save_rsrch_btn_align_HOH">
+		<input id="capture_rsrch_data_submit_HOH_2_" name="HOH" value="%(donebtnlabel)s" class="c_HOH capture_rsrch_data_submit_HOH save_rsrch_data fltrgt" type="button" %(donebtndisabled)s>
+	</div>
+</div>
+

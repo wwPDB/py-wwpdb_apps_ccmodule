@@ -1,0 +1,13 @@
+<applet width="100%%" height="100%%" name="jmolApplet_%(instanceid)s%(ccid)s" id="jmolApplet_%(instanceid)s%(ccid)s" code="JmolApplet" archive="JmolApplet0.jar" codebase="%(jmol_code_base)s" mayscript="true">
+		<param name="progressbar" value="true" />
+		<param name="progresscolor" value="blue" />
+		<param name="boxbgcolor" value="white" />
+		<param name="boxfgcolor" value="black" />
+		<param name="boxmessage" value="Downloading JmolApplet ..." />
+		<param name="script" value="load %(3dpath_ref)s_ideal.cif; labels off; set showHydrogens FALSE; background [xD3D3D3];" />
+</applet>
+<form id="reload_jmol_%(instanceid)s%(ccid)s_frm" target="_blank" method="get">
+	<input type="hidden" name="instanceid" id="instance1_%(instanceid)s%(ccid)s" value="%(instanceid)s" />
+	<input type="hidden" name="3dpath" id="3dpath_%(instanceid)s%(ccid)s" value="%(3dpath_ref)s" />
+	<input id="reload_jmol_%(instanceid)s%(ccid)s" name="reload_jmol_%(instanceid)s%(ccid)s" value="Reload" class="reload_jmol fltlft displaynone ref" type="button" />
+</form>

@@ -1,0 +1,39 @@
+<!-- BEGIN HEADER -->
+
+<div id="header">
+    <div id="logo"> <a href="/ccmodule/index.html" title="Home"> <img src="/ccmodule/images/wwpdb_logo.gif" width="187" height="58" alt="logo" /> </a> </div>
+
+    <div id="headerCont">
+      <h1>Chemical Component Editor Module</h1>
+
+      <!--       <div class="loading"> </div> <span id="help" class="ui-icon ui-icon-info fltrgt"></span>  -->
+
+    </div>
+    <br class="clearfloat" /> 
+    <!-- end #header -->
+</div>
+
+      <!-- begin menu bar -->
+      <br class="clearfloat" />
+      <div id="menu">
+        <ul class="sf-menu">
+          <li class="current"> <a href="/ccmodule/index.html" class="first">Home</a> </li>
+
+
+	  <li> <a  href="/ccmodule/cc-view.html">View</a> </li>
+	  <li> <a  href="/ccmodule/cc-extract.html">Extract</a> </li> 
+          <li> <a  href="/ccmodule/cc-dohlc.html">DOHLC</a> </li> 
+          <li> <a  href="/ccmodule/cc-search.html">Search</a> </li>
+          <li> <a  href="/ccmodule/cc-sketch.html">Sketch</a> </li>
+          <li> <a  href="/ccmodule/cc-admin.html">Admin</a>  </li>
+          <li> <a  href="/ccmodule/cc-assign.html">Assignment</a>  </li>
+          <li> <a  href="/ccmodule/help.html">Help</a> </li>
+          <li> <a  href="mailto:jwest@rcsb.rutgers.edu">Feedback</a>  </li>
+        </ul>
+
+      </div>
+      <br class="clearfloat" />
+<br/>
+
+
+<!-- END   HEADER -->

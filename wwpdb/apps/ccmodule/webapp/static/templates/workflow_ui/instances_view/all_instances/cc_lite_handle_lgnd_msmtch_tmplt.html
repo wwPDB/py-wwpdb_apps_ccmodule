@@ -1,0 +1,119 @@
+<a id="%(auth_assgnd_grp)s_hdr" class="head ui-corner-all %(auth_assgnd_grp)s_hdr %(is_rslvd)s all_instances" href="#"><span class="ui-icon fltlft ui-icon-circle-arrow-e"></span> Address mismatched instances of: %(auth_assgnd_grp)s<span class="resolve_status %(auth_assgnd_grp)s %(mismtch_rslvd_display)s"> -- Mismatch(es) now addressed </span></a>
+	<div class="all_instances" id="all_instncs_%(auth_assgnd_grp)s" name="%(auth_assgnd_grp)s" style="display: block;">
+		<div id="%(auth_assgnd_grp)s">
+			<!-- #########################  content for all instances below ################################################################### -->
+					<div class="all_instncs_profile">
+					<br class="clearfloat"/><br />
+					<table id="allinst_match_tbl_%(auth_assgnd_grp)s" class="all_instncs_match_rslts">
+						<tbody>
+							<tr>
+								<th class="instanceid">Instance ID</th>
+								<th class="entityid">Proposed Ligand ID</th>
+								<th class="status"><span class="match_status target">Match status</span></th>
+							</tr>
+							%(cc_lite_srch_rslts_tbl)s
+						</tbody>
+					</table>
+					<div class="save_descr_btn_align">
+						<input id="descr_new_lgnd_submit_1_%(auth_assgnd_grp)s" name="%(auth_assgnd_grp)s" value="%(donebtnlabel)s" class="c_%(auth_assgnd_grp)s %(dsply_dscrnwlgnd)s descr_new_lgnd_submit_%(auth_assgnd_grp)s save_descr fltrgt" type="button" %(donebtndisabled)s>
+					</div>
+					<br class="clearfloat"/>
+					<div class="addrss_msmtch_opts c_%(auth_assgnd_grp)s %(dsply_addrss_msmtch_opts)s" >
+						<form name="addrss_msmtch_opts_frm_%(auth_assgnd_grp)s" id="addrss_msmtch_opts_frm_%(auth_assgnd_grp)s" class="addrss_msmtch_opts_frm" style="width: 75%%;" method="post">
+							
+							<input type="hidden" name="auth_assgnd_grp" id="auth_assgnd_grp_%(auth_assgnd_grp)s" value="%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="identifier" id="identifier_%(auth_assgnd_grp)s" value="%(depositionid)s" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="instance" id="instance_%(auth_assgnd_grp)s" value="%(instance)s" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="filesource" id="filesource_%(auth_assgnd_grp)s" value="%(filesource)s" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="sessionid" id="sessionid_%(auth_assgnd_grp)s" value="%(sessionid)s" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="exactmatchid" id="exactmatchid_%(auth_assgnd_grp)s" value="" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="origproposedid" id="origproposedid_%(auth_assgnd_grp)s" value="" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							<input type="hidden" name="mode" id="exactmatchid_mode_%(auth_assgnd_grp)s" value="" class="c_%(auth_assgnd_grp)s addrss_msmtch_opts" />
+							
+							<fieldset>
+								<legend><h3>Choose how you'd like to address the mismatches for %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s)</h3></legend>
+								<div id="%(auth_assgnd_grp)s_2d_auth_assgnd" class="displaynone"><img src="%(2dpath_auth_assgnd_id)s"></img></div>
+								<input id="use_orig_proposed_id_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_orig_proposed_id" type="radio" name="addrss_msmtch_chc" value="use_orig_proposed_id" %(use_orig_proposed_id_checked)s %(disabled)s /><label for="use_orig_proposed_id_%(auth_assgnd_grp)s">Use originally proposed ID of <span style="color: #000099;" class="author_assgnd_id strong" >%(auth_assgnd_grp)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(auth_assgnd_grp)s&operation=ccid" target="_blank">See Definition</a>)</label><br />
+								%(use_exact_match_id_list)s
+								<!-- <input id="use_exact_mtch_id_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s">Use exact match ID of <span style="color: #F00;" class="strong">%(hndle_msmtch_tophit_id)s</span> instead of originally proposed ID</label><br /> -->
+								<input id="dscr_nw_lgnd_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s addrss_msmtch dscr_new_lgnd" type="radio" name="addrss_msmtch_chc" value="dscr_nw_lgnd" %(dscr_nw_lgnd_checked)s %(disabled)s /><label for="dscr_nw_lgnd_%(auth_assgnd_grp)s">Provide us with information about the ligand</label><br />
+							</fieldset>
+
+								<br />
+								<input id="addrss_msmtch_opts_submit_%(auth_assgnd_grp)s" name="%(auth_assgnd_grp)s" value="%(exct_mtch_sv_btn_label)s" class="c_%(auth_assgnd_grp)s fltrgt save_exact_mtch_id %(dsply_exct_mtch_sv_btn)s" type="button" %(exct_mtch_btn_disabled)s></p>
+						</form>
+					</div>
+					<div class="no_match_instrctns c_%(auth_assgnd_grp)s %(dsply_no_match_instrctns)s">
+						<h3>Please use the section below to describe the ligand corresponding to %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s)</h3>
+					</div>
+					<div class="dscr_nw_lig_actions c_%(auth_assgnd_grp)s %(dsply_dscrnwlgnd)s">
+						<form name="descr_nw_lgnd_frm_%(auth_assgnd_grp)s" id="descr_nw_lgnd_frm_%(auth_assgnd_grp)s" class="descr_nw_lgnd_frm" style="width: 95%%;" enctype="multipart/form-data" method="post" >
+							
+							<input type="hidden" name="auth_assgnd_grp" id="auth_assgnd_grp_%(auth_assgnd_grp)s" value="%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							<input type="hidden" name="identifier" id="identifier_%(auth_assgnd_grp)s" value="%(depositionid)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							<input type="hidden" name="instance" id="instance_%(auth_assgnd_grp)s" value="%(instance)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							<input type="hidden" name="filesource" id="filesource_%(auth_assgnd_grp)s" value="%(filesource)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							<input type="hidden" name="sessionid" id="sessionid_%(auth_assgnd_grp)s" value="%(sessionid)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							<input type="hidden" name="mode" id="mode_%(auth_assgnd_grp)s" value="" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							<input type="hidden" name="vldtmode" id="vldtmode_%(auth_assgnd_grp)s" value="" class="c_%(auth_assgnd_grp)s descr_nw_lgnd" />
+							
+							<div id="lgnd_type_%(auth_assgnd_grp)s" class="dscr_nw_lig" style="padding-left:0px;">
+							<fieldset id="fieldset_lgnd_type_%(auth_assgnd_grp)s" class="reqd">
+								<legend><h3 style="background-color:#fff;">First confirm the type of ligand for %(auth_assgnd_ccname)s (%(auth_assgnd_ccformula)s) - REQUIRED</h3></legend>
+								<input id="peptide_like_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input lgnd_type" type="radio" name="lgnd_type" value="peptide_like" %(peptide_like_checked)s %(disabled)s /><label for="peptide_like_%(auth_assgnd_grp)s">peptide-like</label><br />
+								<input id="carbohydrate_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input lgnd_type" type="radio" name="lgnd_type" value="carbohydrate" %(carbohydrate_checked)s %(disabled)s /><label for="carbohydrate_%(auth_assgnd_grp)s">carbohydrate</label><br />
+								<input id="lipid_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input lgnd_type" type="radio" name="lgnd_type" value="lipid" %(lipid_checked)s %(disabled)s /><label for="lipid_%(auth_assgnd_grp)s">lipid</label><br />
+								<input id="heterogen_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input lgnd_type" type="radio" name="lgnd_type" value="heterogen" %(heterogen_checked)s %(disabled)s /><label for="heterogen_%(auth_assgnd_grp)s">heterogen</label><br />
+								<input id="none_of_abv_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input lgnd_type" type="radio" name="lgnd_type" value="none_of_abv" %(none_of_abv_checked)s %(disabled)s /><label for="none_of_abv_%(auth_assgnd_grp)s">none of the above</label><br />
+							</fieldset>
+							</div>
+
+							<div id="next_data_set_%(auth_assgnd_grp)s" class="%(displaynextreqdset)s dscr_nw_lig" style="padding-left:0px;">
+								<fieldset id="fieldset_reqd_assrtd_%(auth_assgnd_grp)s" class="reqd">
+									<legend><h3 style="background-color:#fff;">Next at least ONE of the following is REQUIRED:</h3></legend>							
+									<br /><label for="alt_ccid_%(auth_assgnd_grp)s">1. Alternate Ligand ID:</label><input id="alt_ccid_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s alt_ccid descr_nw_lgnd_input reqd" style="text-transform: uppercase;" type="text" name="alt_ccid" value="%(alt_ccid)s" size="3" %(disabled)s /><br /><br />
+									<br /><label for="file_img_%(auth_assgnd_grp)s">2. Submit a Chemical Diagram (%(accepted_img_file_types)s):</label><span style="margin-left: 15px;" id="filesonrecord_img_%(auth_assgnd_grp)s" class="strong"></span><br /><br />
+									<span id="file_img_span_%(auth_assgnd_grp)s"><input type='file' size='50' id="file_img_%(auth_assgnd_grp)s" name="file_img"  style="margin-left: 15px;" class="c_%(auth_assgnd_grp)s file_upload descr_nw_lgnd_input fltlft reqd" %(disabled)s/><input id="clear_file_img_%(auth_assgnd_grp)s" name="clear" value="Clear" class="c_%(auth_assgnd_grp)s fltlft clearupld descr_nw_lgnd_input displaynone" style="padding: 0.3px; margin-left: 5px;" type="button"  %(disabled)s/></span><br /><br />
+									<br />
+									<input id="component-image_%(auth_assgnd_grp)s" class="checkuploadedfiles c_%(auth_assgnd_grp)s descr_nw_lgnd_input" type='button' style="margin-left: 15px;" value='Check for/withdraw any files already submitted' %(disabled)s><br /><br />
+									<br />
+									<label for="dscrptr_type_%(auth_assgnd_grp)s">3. Descriptor string in</label><select id="dscrptr_type_%(auth_assgnd_grp)s" name="dscrptr_type" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input reqd" %(disabled)s >
+										<option value="smiles" %(smiles_selected)s>SMILES</option>
+										<option value="inchi" %(inchi_selected)s>InChI</option>
+										</select>&nbsp;<label for="dscrptr_str_%(auth_assgnd_grp)s">format:</label><input id="dscrptr_str_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input dscrptr_str reqd" type="text" name="dscrptr_str" value="%(dscrptr_str)s" size="50" %(disabled)s />
+										<br /><br /><br />
+									<br /><br />
+								</fieldset>
+								<br /><br />
+								<fieldset>
+									<legend><h3>The following items are optional:</h3></legend>
+									<br /><label for="chem_name_%(auth_assgnd_grp)s">1. Enter chemical name:</label><input id="chem_name_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input " type="text" name="chem_name" value="%(chem_name)s" size="50" %(disabled)s /><br /><br />
+									<label for="chem_frmla_%(auth_assgnd_grp)s">2. Enter chemical formula:</label><input id="chem_frmla_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input" type="text" name="chem_frmla" value="%(chem_frmla)s" size="50" %(disabled)s /><br /><br />
+									<label for="comments_%(auth_assgnd_grp)s">3. Enter comments:</label><br /><textarea id="comments_%(auth_assgnd_grp)s" class="c_%(auth_assgnd_grp)s descr_nw_lgnd_input" cols="80" rows="5" name="comments" %(disabled)s >%(comments)s</textarea><br /><br />
+								</fieldset>
+								<br /><br />
+								<fieldset>
+									<legend><h3>Component Definition File</h3></legend>
+									<label for="file_refdict_%(auth_assgnd_grp)s">Submit a refinement dictionary file (optional %(accepted_def_file_types)s):</label><span style="margin-left: 15px;" id="filesonrecord_refdict_%(auth_assgnd_grp)s" class="strong"></span><br />
+									<span id="file_refdict_span_%(auth_assgnd_grp)s"><input type='file' size='50' id="file_refdict_%(auth_assgnd_grp)s" name="file_refdict" class="c_%(auth_assgnd_grp)s file_upload descr_nw_lgnd_input file_refdict fltlft" %(disabled)s /><input id="clear_file_refdict_%(auth_assgnd_grp)s" name="clear" value="Clear" class="c_%(auth_assgnd_grp)s fltlft clearupld descr_nw_lgnd_input displaynone" style="padding: 0.3px; margin-left: 5px;" type="button" %(disabled)s/></span><br /><br />
+									<br class="clearfloat"/>
+									<br />
+									<input id="component-definition_%(auth_assgnd_grp)s" class="checkuploadedfiles c_%(auth_assgnd_grp)s descr_nw_lgnd_input" type='button' value='Check for/withdraw any files already submitted' %(disabled)s><br /><br />
+								</fieldset>
+							</div>
+						</form>
+						<br /><br />
+					</div>
+					<div class="save_descr_btn_align">
+						<input id="descr_new_lgnd_submit_2_%(auth_assgnd_grp)s" name="%(auth_assgnd_grp)s" value="%(donebtnlabel)s" class="c_%(auth_assgnd_grp)s %(dsply_dscrnwlgnd)s descr_new_lgnd_submit_%(auth_assgnd_grp)s fltrgt save_descr" type="button" %(donebtndisabled)s>
+					</div>
+				</div>
+					<br class="clearfloat"/>
+					<!-- <script type="text/javascript">launchSketcher3( '%(auth_assgnd_grp)s', 600 );</script> -->
+					<!-- <input id="launchmarvin_%(auth_assgnd_grp)s" class="launchmarvin" type='button' value='Test Marvin Sketch'><br /> -->
+					<br/>
+		<!-- #########################  content for all instances above ################################################################### -->
+				</div>
+	</div><!--  end of class="all_instances" div-->
+	<br class="clearfloat" />
+	

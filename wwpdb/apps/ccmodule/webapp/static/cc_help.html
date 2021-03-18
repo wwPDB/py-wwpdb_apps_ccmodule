@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Help : Chemical Component Module</title>
+<link rel="stylesheet" type="text/css" media="all" href="/ccmodule/styles/general.css" />
+<link rel="stylesheet" type="text/css" media="all" href="/ccmodule/styles/oneColLiqCtrHdr.css" />
+<link rel="stylesheet" type="text/css" media="all" href="/ccmodule/styles/superfish.css" />
+</head>
+<body class="oneColLiqCtrHdr">
+<div id="container">
+<!-- begin #header-->
+	<div id="header">
+    	<div id="logo"><img src="/images/wwpdb_logo.gif" width="187" height="58" alt="logo" /> </div>
+    	<div id="headerCont">
+      		<h1>Help Page</h1>
+		</div>
+    	<br class="clearfloat" /> 
+	</div>
+<!-- #header ends above-->
+    <br class="clearfloat" />
+	<br />
+<!-- #mainContent begins -->
+	<div id="mainContent">
+		<div id="cmpst_score">
+			<div class="fltrgt">
+	        	<a href="javascript:void($('#help_cmpst_scr').btOff());"><img src="/images/close.gif" alt="close" width="12" height="12" /></a>
+			</div>
+	            <h4>"COMPOSITE SCORE"</h4>
+	            <p>Indicates the score of the particular instance (from the deposition) compared to the dictionary for the particular candidate.</p>
+				<p>The scoring for the ligand matching system provides a tuple of five values (A/B/C/D/E). In all cases they are based on a matching of atoms in the instance against the reference dictionary and calculating statistics.</p>
+				<p>A = heavy atom match (%)</p>
+				<p>B = match of chiral centers present, independent of handness (%)</p>
+				<p>C = match of the handness of the chiral centers (%)</p>
+				<p>D = match of aromatic flags</p>
+				<p>E = match of bond order</p>
+		</div>
+		<div id="match_status">
+			<h4>"MATCH STATUS" -- Possible values as defined below</h4>
+				
+				<p>Ligand Match {chem component ID}: exact match with {chem component ID} for all atom types, number of atoms, connectivity, chirality and 3 letter code</p>
+				<p>No Match: treated as a new ligand.</p>
+		</div>
+		<div id="summary">
+	    	<div class="fltrgt">
+	        	<a href="javascript:void($('#help_glbl_smmry_vw').btOff());"><img src="/images/close.gif" alt="close" width="12" height="12" /></a>
+			</div>
+			<span class="strong">DEV TESTING: providing this as an alternative means for help text regarding buttons below. Please feedback as to whether this is desirable.</span>
+			<div id="save">
+	            <h4>"Save (and come back later)" button</h4>
+	            <p>If you wish to stop and continue ligand validation at a later point, this button will preserve any work you have saved for individual ligands so that you may resume work at another time.</p>
+	        </div>
+			<div id="finish">
+	            <h4>"Finish (all issues are addressed)" button</h4>
+	            <p>Once all the mismatches are addressed, click "Finish" to complete the ligand validation.</p>
+			</div>
+			<div id="instnc_srch_scrn">
+	            <h4>"Inspect Selected Ligands" button</h4>
+	            <p>Press this button to examine in more detail any of the ligands "selected for inspection" in the summary table.</p>
+	        </div>
+    	</div>
+    	<div id="instance">
+	    	<div class="fltrgt">
+	        	<a href="javascript:void($('#help_instnc_srch_vw').btOff());"><img src="/images/close.gif" alt="close" width="12" height="12" /></a>
+			</div>
+			<div id="lgnd_summry_scrn">
+	            <h4>"Back to Summary View" button</h4>
+	            <p>Press this button to return to higher level summary view, which provides inventory of the ligands found in your deposition and their match status.</p>
+	        </div>
+	        <div id="save_btn">
+	            <h4>"Save"/"Edit" button for current ligand</h4>
+	            <p>Button toggles between "Save" and "Edit" to allow user to alternatively:</p>
+	            <p>"Save" and lock data entered for the ligand in current view.</p>
+	            <p>or</p>
+	            <p>"Edit" to unlock the data entered and make additional changes for the ligand in current view.</p>
+	        </div>
+	        <div id="all_instncs">
+	            <h4>"Work With All Instances of" section</h4>
+	            <p>This section allows the annotator to work simultaneously on all instances of a given chemical component group (based on ID). Any actions (assignment, comparison, etc.) taken in this section will therefore pertain to all instances in that group.</p>
+			</div>
+			<div id="top_hit">
+	            <h4>"TOP HIT"</h4>
+	            <p>For the given ligand instance, signifies the best matching candidate from the ligand dictionary.</p>
+	        </div>
+	        <div id="assignmnt_status">
+	            <h4>"ASSIGNMENT STATUS"</h4>
+	            <p>Indicates the current assignment of the given ligand instance.</p>
+	        </div>
+			<div id="cmpr_boxes_allinst">
+	            <h4>"COMPARE" boxes</h4> 
+	            <p>Selecting the comparison box will open up a "Comparison Panel" section with a display of the individual instance so that they may be compared with each other.</p>
+	        </div>
+	        <div id="assignmnt_tbl">
+	            <h4>"ASSIGNMENT" table</h4>
+	            <p>Use this table to assign all instances of a particular ligand to a particular code.</p>
+	        </div>
+	        <div id="frc_assign_bx_allinst">
+	            <h4>"Force Assign As:" box</h4>
+	            <p>In this section, will assign a particular ligand code that may not be present in the list (usually due to missing atoms) to all instances of the group.</p>
+	        </div>
+	        <div id="show_rerun">
+	        <h4>"Show rerun Search Form" button</h4>
+				<p>Pressing this button will open a box in which one may change the default link radius (bond between ???) and bond radius (distance between ??? and ???). The numbers are a value added to the default built in values.  Pressing the "submit" button will rerun the search on this particular instance.</p>
+			</div>
+			<div id="assign_unassign_allinst">
+			<h4>"Assign"/"Un-Assign" button</h4>
+				<p>Will assign/deassign all instances as the same ligand ID.</p>
+			</div>
+			<hr />
+			<div id="cmprsn_pnl">
+	            <h4>"Comparison Panel"</h4>
+	            <p>In the "Work with All Instances" section, this panel will allow comparison of individual author instances with each other. In the "Instance:" specific section, the panel allows comparison of individual instances with the dictionary candidates. The color of the column header indicates either the model (green) or dictionary (cyan).</p>
+	        </div>
+			<div id="viz_2d">
+	            <h4>"2D" button</h4>
+	            <p>Pressing this button will display a 2D representation of the instances and dictionary.</p>
+			</div>
+			<div id="viz_3d">
+	           <h4>"3D" button</h4>
+	            <p>Pressing this button will open up JMOL panels of the instance/dictionary.</p>
+	        </div>
+	        <div id="atm_mp">
+	            <h4>"Atom Map"</h4> 
+	            <p>Pressing this button will open a panel matching equivalent atoms in the entry. If the 3D representation is open, then pressing a particular atom will zoom in on the specific atom.</p>
+	        </div>
+	        <hr />
+			<div id="instnc_pnl">
+	            <h4>"Instance: [instance ID]" section</h4> 
+	            <p>This section will allow assignment of an individual instance. The top table displays the top candidates that are closest matches to the instance.</p>
+	        </div>
+	        <div id="assign_as_btn">
+	            <h4>"ASSIGN AS" button</h4>
+	            <p>This radio button will allow assignment of the ligand. Selecting a particular candidate id and pressing the "Assign" button will make the assignment.</p>
+	        </div>
+	        <div id="cmpr_btns_instnc">
+	            <h4>"COMPARE" buttons</h4>
+	            <p>Selecting the comparison box will add dictionary items to the "Comparison Panel" section which allows comparison of author's ligand instance with dictionary candidates.</p>
+	        </div>
+	        <div id="frc_assign_bx_instnc">
+	            <h4>"Force Assign As:" box</h4>
+	            <p>In this section, will assign a particular ligand code that may not be present in the list (usually due to missing atoms) to just this ligand instance.</p>
+	        </div>
+	        <div id="assign_unassign_instnc">
+			<h4>"Assign"/"Un-Assign" button</h4>
+				<p>Will assign/deassign just this ligand instance the given ligand ID.</p>
+			</div>
+			<div id="edt_nw_lgnd">
+	        <h4>"Edit / Create New Ligand"</h4>
+				<p>This will start the "Chemical Component Editor Module" After creating a new ligand, you need to use the "Show Rerun Search Form"
+				</p>
+			</div>
+			<div id="save_rsrch_btn">
+	            <h4>"Save"/"Edit" button for capture of research data</h4>
+	            <p>Button toggles between "Save" and "Edit" to allow user to alternatively:</p>
+	            <p>"Save" and lock data entered for the research data in current view.</p>
+	            <p>or</p>
+	            <p>"Edit" to unlock the data entered and make additional changes for the research data in current view.</p>
+	        </div>
+			<div id="binding_target_seq">
+	            <p>Provide one-letter code sequence of the protein or nucleic acid target to which the ligand binds, if the target in binding assay is 
+	            different from that in this strucure. E.g. if the model belongs to a mutated human hemoglobin subunit beta, but the assay was performed 
+	            on the wild type protein, one should provide the wild type sequence of the following:</p>
+	            <p>MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAF<br />
+	            SDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH</p>
+	        </div>
+	        <div id="rsrch_dscrptr_str">
+	            <p>Provide the SMILES or InChi string of the ligand used in the binding assay. If the binding assay was performed on a compound close but not identical to 
+	            the modeled ligand in the structure being deposited, the descriptor should pertain to the subject of the assay.</p>
+	        </div>
+	        <div id="rsrch_ph">
+	            <p>Provide numeric value only, which may include up to one decimal place. e.g. 6.5</p>
+	        </div>
+	        <div id="rsrch_temp">
+	            <p>Please provide numeric value only, in Kelvin. e.g. 293</p>
+	        </div>
+	        <div id="rsrch_measurement_type">
+	            <p>Provide the type of value that was measured by the binding assay, e.g. Kd, IC50.</p>
+	        </div>
+	        <div id="rsrch_measured_value">
+	            <p>Provide the value of the measurement in nM</p>
+	        </div>
+	        <div id="rsrch_details">
+	            <p>Provide details of the binding assay that is relevant to the deposited model. The ligand 3-letter code is provided as default. 
+	            E.g. if there are two instances of the ligand in the model, but only one site is biologically relevant to the binding assay, one 
+	            should provide the chain ID and residue number of the ligand at the relevant site, such as LIG A 500</p>
+	        </div>
+	        <div id="rsrch_hdr">
+	            <p>If applicable, please provide experimental binding data for the ligand of focus.  Please provide the sequence of the binding target 
+	            if it is different from the sequence that was crystallized.  In addition, please provide a descriptor for the binding ligand, especially 
+	            for those ligands whose bound form in the crystal differs in any way from the form used in the binding assay, e.g., enantiomer, 
+	            racemic mixture, or reagent prior to reaction.</p>
+	        </div>
+			<hr />
+			<div id="close">
+	            <h4>"Close" button</h4>
+	            <p>Press this button to indicate that you would like to close this window. Any changes made in this window are saved within the session and seen in other windows.</p>
+	        </div>
+    	</div>
+	</div>
+<!-- #mainContent ends above -->
+<!-- #footer begins -->
+	<br class="clearfloat" />
+	<div id="footer">
+   		<p>&copy; 2010 wwPDB Chemical Component Editor Module Editor V0.01</p>
+	</div>
+<!-- #footer ends above -->
+</div>
+<!-- #container ends above-->
+</body>
+</html>

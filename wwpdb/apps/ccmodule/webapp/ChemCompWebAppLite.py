@@ -78,8 +78,6 @@ __email__     = "rsala@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-from coverage import Coverage
-
 import os, re, sys, time, traceback, ntpath, shutil
 from http import HTTPStatus
 from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
@@ -140,7 +138,9 @@ class ChemCompWebAppLite(object):
         self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
         self.__topSessionPath  = self.__cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH')
         self.__sessionsPath=self.__cI.get('SITE_WEB_APPS_SESSIONS_PATH')
-        self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule_lite")
+        self.__ccLiteWebAppsDir=os.path.dirname(os.path.realpath(__file__))
+        self.__templatePath = os.path.join(self.__ccLiteWebAppsDir,"static")
+        # self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule_lite")
         #
 
         if isinstance(parameterDict, dict):
@@ -325,11 +325,6 @@ class ChemCompWebAppLiteWorker(object):
             Operation output is packaged in a ResponseContent() object.
         """
         reqPath = ''
-        # cov = Coverage(auto_data=True, config_file=False, debug=['config', 'sql'])
-        # cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
-        # cov.start()
-        # cov.load()
-        #
         try:
             reqPath=self.__reqObj.getRequestPath()
             self.__lfh.write("+%s.%s() original request path is %r\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, reqPath) )
@@ -348,17 +343,6 @@ class ChemCompWebAppLiteWorker(object):
             rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
             rC.setError(errMsg='Operation failure')
             return rC
-        finally:
-            pass
-            # cov.stop()
-            # cov.save()
-
-            # try:
-            #     cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
-            # except:
-            #     pass
-            # if 'write_coverage' in reqPath:
-            #     self.__lfh.write('>>> WRITING COVERAGE REPORT')
 
     def __normalizeReqPath(self,p_reqPath):
         # special handling required for some sites which have custom prefixes in url request

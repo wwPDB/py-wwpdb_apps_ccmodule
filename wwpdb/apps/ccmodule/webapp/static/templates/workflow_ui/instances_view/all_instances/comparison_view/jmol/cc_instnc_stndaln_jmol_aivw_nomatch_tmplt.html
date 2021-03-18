@@ -1,0 +1,26 @@
+<object name="jmolApplet_aivw_%(instanceid)s" id="jmolApplet_aivw_%(instanceid)s" type="application/x-java-applet" width="100%%" height="100%%">
+	<param name="progressbar" value="true" />
+	<param name="progresscolor" value="blue" />
+	<param name="boxbgcolor" value="white" />
+	<param name="boxfgcolor" value="black" />
+	<param name="boxmessage" value="Downloading JmolApplet ..." />
+	<param name="archive" value="JmolApplet0.jar" />
+	<param name="mayscript" value="true" />
+	<param name="codebase" value="%(jmol_code_base)s" />
+	<param name="code" value="JmolApplet" />
+	<param name="script" value="load %(3dpath)s_model.cif; labels off; set showHydrogens FALSE; background [xD3D3D3];" />
+</object>
+<input id="threeD_environ_vw_1_aivw_%(instanceid)s" name="threeD_environ_vw_1_%(instanceid)s" value="Environment View" class="threeD_environ_vw_btn type1 nomatch aivw fltlft" type="button" />
+<form id="threeD_environ_vw_aivw_%(instanceid)s_frm" action="/service/cc/assign/view/instance/3d_environ" target="_blank" method="post">
+	<input type="hidden" name="sessionid" id="sessionid_aivw_%(instanceid)s" value="%(sessionid)s" />
+  	<input type="hidden" name="instanceid" id="instance1_aivw_%(instanceid)s" value="%(instanceid)s" />
+	<input type="hidden" name="filesource" id="filesource_aivw_%(instanceid)s" value="%(filesource)s" />
+	<input type="hidden" name="instance" id="instance_aivw_%(instanceid)s" value="%(instance)s" />
+	<input type="hidden" name="identifier" id="identifier_aivw_%(instanceid)s" value="%(identifier)s" />
+	<input type="hidden" name="3dpath_environ" id="3dpath_environ_aivw_%(instanceid)s" value="%(3dpath_environ)s" />
+	<input type="hidden" name="3dpath_standalone" id="3dpath_standalone_aivw_%(instanceid)s" value="%(3dpath)s" />
+	<input type="hidden" name="residue_num" id="residue_num_aivw_%(instanceid)s" value="%(residue_num)s" />
+	<input type="hidden" name="chain_id" id="chain_id_aivw_%(instanceid)s" value ="%(chain_id)s" />
+	<input id="btn_lbls_on_off_aivw_%(instanceid)s" name="btn_lbls_on_off_%(instanceid)s" value="Labels Off" class="threeD_environ_vw_btn lbls_on_off aivw fltlft displaynone" type="button" />
+	<input id="threeD_environ_vw_2_aivw_%(instanceid)s" name="threeD_environ_vw_%(instanceid)s" value="Environment View - New Window" class="threeD_environ_vw_btn type2 aivw fltlft" type="submit" >
+</form>

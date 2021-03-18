@@ -23,7 +23,10 @@ import sys
 import traceback
 import logging
 
-from webob import Request, Response
+# from webob import Request, Response
+import werkzeug.urls
+from werkzeug.wrappers import Request, Response
+from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 #  - URL mapping and application specific classes are launched from ChemCompLiteWebApp()
 from wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite import ChemCompWebAppLite
@@ -88,12 +91,12 @@ class MyRequestApp(object):
             for name,value in environment.items():
                 self.__lfh.write("+MyRequestApp.__call__() - ENVIRON parameter:    %s:  %r\n" % (name,value))
             '''
-            for name, value in myRequest.params.items():
+            for name, value in myRequest.values.items():
                 if name not in myParameterDict:
                     myParameterDict[name] = []
                 myParameterDict[name].append(value)
                 self.__lfh.write("+MyRequestApp.__call__() - REQUEST parameter:    %s:  %r\n" % (name, value))
-            myParameterDict['request_path'] = [myRequest.path.lower()]
+            myParameterDict['request_path'] = [myRequest.script_root.lower() + myRequest.path.lower()]
         except:
             traceback.print_exc(file=self.__lfh)
             self.__lfh.write("+MyRequestApp.__call__() - contents of request data\n")
@@ -101,27 +104,14 @@ class MyRequestApp(object):
 
         ###
         #  At this point we have everything needed from the request !
-        ###
-        myResponse = Response()
-        myResponse.status = '200 OK'
-        myResponse.content_type = 'text/html'
-        ###
-        #   Application specific functionality called here --
-        #   Application receives path and parameter info only!
-        ###
+
         ccmodule_lite= ChemCompWebAppLite(parameterDict=myParameterDict, verbose=self.__verbose, 
                            log=self.__lfh, siteId=siteId)
         rspD=ccmodule_lite.doOp()
 
-        myResponse.content_type=rspD['CONTENT_TYPE']
-
-        if sys.version_info[0] > 2:
-            if isinstance(rspD['RETURN_STRING'], str):
-                myResponse.text = rspD['RETURN_STRING']
-            else:
-                myResponse.body = rspD['RETURN_STRING']
-        else:
-            myResponse.body = rspD['RETURN_STRING']
+        myResponse = Response(rspD['RETURN_STRING'])
+        myResponse.mimetype = rspD['CONTENT_TYPE']
+        myResponse.status = '200 OK'
 
         ####
         ###
@@ -130,4 +120,8 @@ class MyRequestApp(object):
 ##  NOTE -  Path to top of the web application tree and verbose setting are set here ONLY! 
 ##
 application = MyRequestApp(textString="doServiceRequest() - WebOb version",verbose=True,log=sys.stderr)
-#
+application = SharedDataMiddleware(application, {
+    '/ccmodule_lite': ('wwpdb.apps.ccmodule.webapp', 'static'), # this is to work with gunicorn
+    '/': ('wwpdb.apps.ccmodule.webapp', 'static'), # this is to work with apache...
+})
+

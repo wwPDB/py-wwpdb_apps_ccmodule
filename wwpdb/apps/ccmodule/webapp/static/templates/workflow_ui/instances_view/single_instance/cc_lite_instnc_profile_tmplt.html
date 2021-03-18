@@ -1,0 +1,24 @@
+		<div class="instance_profile">
+		<!-- #########################  content for the single instance below ################################################################### -->
+			<br />
+			<div class="msmtch_explain"><h3>%(msmtch_explain)s</h3></div>
+			<br />
+			<div class="viz_compare" id="viz_compare_%(instanceid)s">
+				<div class="viz_compare_hdr">Comparison Panel<span class="%(dsplyvizopt)s" ><label for="twoD_chck_bx_%(instanceid)s">2D</label><input id="twoD_chck_bx_%(instanceid)s" checked="checked" name="%(instanceid)s" class="twoD_chck_bx" type="checkbox"></span><span class="%(dsplyvizopt)s" ><label for="threeD_chck_bx_%(instanceid)s">3D</label><input id="threeD_chck_bx_%(instanceid)s" name="%(instanceid)s" class="threeD_chck_bx" type="checkbox"></span></div>
+				<ul id="instance_data_%(instanceid)s" class="viz_compare_ul_instnc">
+					<li id="vizcmp_%(instanceid)s" class="viz_cmp fltlft">
+						<div class="viz_compare_subhdr"><table><tr><td nowrap="nowrap">Auth Instance ID:</td><td nowrap="nowrap">%(instanceid)s</td></tr><tr><td nowrap="nowrap">Name:</td><td nowrap="nowrap">%(name)s</td></tr><tr><td nowrap="nowrap">Formula:</td><td nowrap="nowrap" title="%(formula)s">%(formula_displ)s</td></tr></table></div>
+						<div id="twoD_%(instanceid)s" class="twoDviz"><img src="%(2dpath)s" /></div>
+						<div id="threeD_%(instanceid)s" name="%(auth_assgnd_grp)s" class="threeDviz exp" style="display: none;"></div>
+					</li>
+					<li id="vizcmp_%(instanceid)s_%(exact_match_ccid)s" class="viz_cmp fltlft top_hit">
+						<div class="viz_compare_subhdr ref"><table><tr><td nowrap="nowrap">Exact match for:</td><td nowrap="nowrap">%(exact_match_ccid)s</td></tr><tr><td nowrap="nowrap">Name:</td><td nowrap="nowrap" title="%(exact_match_ccname)s">%(exact_match_ccname_displ)s</td></tr><tr><td nowrap="nowrap">Formula:</td><td nowrap="nowrap" title="%(exact_match_ccformula)s">%(exact_match_ccformula_displ)s</td></tr></table></div>
+						<div id="twoD_%(exact_match_ccid)s" class="twoDviz ref"><img src="%(2dpath_top_hit)s" /></div>
+						<div id="threeD_%(instanceid)s_ref" name="%(exact_match_ccid)s" class="threeDviz ref" style="display: none;"></div>
+					</li>
+				</ul>
+				<br class="clearfloat" />
+			</div>
+		<!-- #########################  content for the single instance above ################################################################### -->	
+		</div>
+		

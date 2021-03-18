@@ -1,0 +1,39 @@
+<!-- BEGIN HEADER -->
+
+<div id="top">
+   <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+     <td width="210"><a href="http://www.rcsb.org/" target="_blank">
+         <img alt="RCSB PDB Protein Data Bank" src="images/header/pdblogo.gif" width="198" border="0"></a></td>
+     <td align="right" class="headertop" colspan="2" width="100%">
+      <br/>Chemical Components Toolbox</td>
+    </tr>
+    <tr>
+     <td style="vertical-align:top;padding-top:0.2em;">
+      <a href="http://www.pdb.org" class="px9 gray" target="_blank">PDB Home</a> | 
+      <a href="mailto:jwest@rcsb.rutgers.edu" class="px9 gray">Contact Us <img src="images/header/email.png"/></a>
+     </td>
+     <td style="background-image:url('images/header/header_bg2.jpg'); background-repeat: repeat-x;vertical-align:top;background-position: 0% 100%;" width="37" rowspan="2" height="33"><img src="images/spacer.gif" alt="" width="37" height="33" border="0"></td>
+     <td style="background-image:url('images/header/header_bg3.jpg');background-repeat: repeat-x;background-color:#3333FF;background-position: 0% 100%;padding-right:2px;vertical-align:bottom;width:500px;padding-bottom:9px;" class="topnavlinks white px11" rowspan="2" valign="bottom">
+        <a class="topnav" href="index.html">Home</a> &nbsp;|&nbsp;
+        <a class="topnav" href="cc-view.html">View</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="cc-extract.html">Extract</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="cc-dohlc.html">DOHLC</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="cc-search.html">Search</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="cc-sketch.html">Sketch</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="cc-admin.html">Admin</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="help.html">Help</a>  &nbsp;|&nbsp;
+        <a class="topnav" href="mailto:jwest@rcsb.rutgers.edu">Feedback <img src="images/header/email.png" 
+                   style="vertical-align:top;" /></a>  
+
+     </td></tr>
+    <tr>
+     <td style="background-image:url('images/header/header_bg1.jpg');text-align:left;background-repeat: repeat-x;vertical-align:top;background-position: 0% 100%;"><img src="images/spacer.gif" alt="" width="37" height="13" border="0">
+     </td>
+    </tr>
+   </table>
+</div>
+
+
+
+<!-- END   HEADER -->

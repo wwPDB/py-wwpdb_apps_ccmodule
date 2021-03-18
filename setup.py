@@ -53,9 +53,10 @@ setup(
                       'wwpdb.utils.session >= 0.2',
                       'mysqlclient'],
     packages=find_packages(exclude=['wwpdb.apps.tests_ccmodule']),
+    include_package_data=True,
     package_data={
         # If any package contains *.md or *.rst ...  files, include them:
-        '': ['*.md', '*.rst', "*.txt", "*.cfg"]
+        '': ['*.md', '*.rst', '*.txt', '*.cfg']
     },
     #
     # These basic tests require no database services -
@@ -67,7 +68,7 @@ setup(
         'consumer': ['wwpdb.utils.oe_util >= 0.2'],
         'dev': ['check-manifest'],
         'test': ['coverage'],
-        'server': ['webob'],
+        'server': ['webob', 'Werkzeug'],
     },
     # Added for
     command_options={

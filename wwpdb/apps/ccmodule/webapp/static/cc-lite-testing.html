@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Chemical Component Lite Module</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" media="all" href="styles/ccLiteModCommon.css" />
+</head>
+<body>
+<div id="container">
+<!-- begin #header-->
+	<div id="header">
+    	<div id="logo"><img src="/images/wwpdb_logo.gif" width="187" height="58" alt="logo" /> </div>
+    	<div id="headerCont">
+      		<h1>Chemical Component Lite Module</h1>
+		</div>
+    	<br class="clearfloat" /> 
+	</div>
+<!-- #header ends above-->
+    <br class="clearfloat" />
+	<br/>
+<!-- #mainContent begins -->
+	<div id="maincontent" style="padding-left: 15px;" >
+		<h1>Chemical Component Lite Module</h1>
+		
+		<p>
+		The chemical component lite module will provide a verification of chemical components found in the uploaded coordinate file.  
+		</p>
+		<br />
+		
+		<div id="kickoff">	
+			<div style="width: 40%;">
+				<h3>Upload a CIF file for testing</h3>		
+				<form method="post" action="/service/cc_lite/testfile"  enctype="multipart/form-data">
+					<fieldset>
+						<label for="file">File name: </label><input class="formInputText" type='file' size='50' name="file"/>
+						<input class="formInputButton" type = 'submit' value = 'Go'><br>
+						<input type="hidden" name="filesource" id="filesource" value="upload" />
+						<br />
+				 	</fieldset>
+				</form>
+			</div>
+			<br />
+		</div>
+	</div>
+<!-- #mainContent div ends above -->	
+<br /><br />
+<!--#include virtual="styles/common/footer.txt"-->
+</div>
+
+</body>
+</html>

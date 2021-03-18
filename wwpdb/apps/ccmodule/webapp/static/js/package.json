@@ -1,0 +1,12 @@
+{
+    "name": "cc-module-lite",
+    "version": "0.1.0",
+    "devDependencies": {
+        "grunt": "^1.2.0",
+        "grunt-contrib-jshint": "^1.1.0",
+        "grunt-contrib-uglify": "^3.4.0",
+        "grunt-contrib-watch": "^1.1.0",
+        "grunt-jsbeautifier": "^0.2.13",
+        "package.json": "^2.0.1"
+    }
+}

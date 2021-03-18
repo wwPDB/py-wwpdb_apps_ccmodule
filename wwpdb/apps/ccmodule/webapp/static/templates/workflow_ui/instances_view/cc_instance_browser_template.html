@@ -1,0 +1,42 @@
+<div id="cc_instance_browser">
+    <h4>Browse Chem Components by Ligand Group</h4>
+    <div id="pagi" class="noprint fltlft"></div>
+    <br class="clearfloat" />
+
+    <div id="cc_instance_browse_content">
+        {{#ligands}}
+        <div id="p{{index}}" class="{{tabStyle}} tabscount">
+            <div class="cmpnt_grp displaynone">{{ligGroup}}</div>
+            <div class="inneraccordion" id="{{ligGroup}}_inneraccordion">
+                <div>
+                    <h3>
+                        {{dynamicText.totalText}} {{dynamicText.copy}} of {{ligGroup}} {{data.ccName}}
+                        ({{data.ccFormula}}) {{dynamicText.have}} been identified in your coordinates.
+                        {{{dynamicText.mismatchMessage}}}
+                    </h3>
+                </div>
+
+                {{#data.instIdLst}}
+                <div>
+                    <a id="{{.}}_hdr" class="lazyload head ui-corner-all {{ligGroup}}_hdr {{data.isResolvedClass}} {{data.bGrpRequiresAttention}}" href="#">
+                        <span class="ui-icon fltlft ui-icon-circle-arrow-e"></span> Instance: {{.}} <span class="attn_reqd {{ligGroup}} {{data.bGrpRequiresAttentionDisplay}}">requires attention </span>
+                    </a>
+                    <div class="single_instance lazyload" data-ajax="{{getReportFileServiceUrl}}?identifier={{depId}}&source=report&ligid={{.}}&file={{.}}instnc_profile.html" name="{{.}}" style="display: block;">
+                    </div>
+                    <br class="clearfloat" />
+                </div>
+                {{/data.instIdLst}}
+
+                <div id="mismatch_section" class="lazyload" data-ajax="{{mismatchUrl}}" name="{{ligGroup}}" style="display: block;"></div>
+
+                <br /><br />
+                <div id="" class="nav_buttons">
+                    <div title="" class="fltrgt savedone" style="padding-left: 0px;"><input id="" name="savedone" value="Finish (all issues are addressed)" title="" class="fltrgt savedone" type="button" disabled="disabled"></div>
+                    <input style="margin-right: 10px;" id="" name="back_to_summary_vw" value="Back to Summary View" class="fltrgt displaynone back_to_summary_vw" type="button" disabled="disabled">
+                    <input style="margin-right: 10px;" id="" name="instance_browser_ui" value="Inspect Selected Ligands" type="button" class="fltrgt instance_browser_ui" disabled="disabled" >
+                </div>
+            </div>
+        </div>
+        {{/ligands}}
+    </div>
+</div>

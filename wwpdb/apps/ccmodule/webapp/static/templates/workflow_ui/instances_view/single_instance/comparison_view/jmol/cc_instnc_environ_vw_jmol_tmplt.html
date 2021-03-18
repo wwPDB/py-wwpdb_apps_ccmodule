@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>%(identifier)s - 3D of %(instanceid)s in Full Structure View</title>
+<link rel="stylesheet" type="text/css" media="all" href="/ccmodule/styles/general.css" />
+<link rel="stylesheet" type="text/css" media="all" href="/ccmodule/styles/oneColLiqCtrHdr.css" />
+<link rel="stylesheet" type="text/css" media="all" href="/styles/themes/south-street/jquery-ui-1.8.2.custom.min.css" />
+<script type="text/javascript">
+var sessionID="%(sessionid)s";
+var residueNum = "%(residue_num)s"
+var chainId = "%(chain_id)s"
+</script>
+<script type="text/javascript" src="/js/jquery/core/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery/plugins/jquery.form.min.js"></script>
+<script type='text/javascript'>
+$(document).ready(function() {
+	$('#btn_lbls_on_off').click(function() {
+		var cmd = $(this).attr('value');
+		var viewerCmd;
+    	if( cmd == "Labels Off" ){
+    		$(this).attr('value','Labels On');
+    		viewerCmd = "label off;";
+			document.jmolApplet0.script(viewerCmd);
+    	}
+    	else{
+    		$(this).attr('value','Labels Off');
+    		viewerCmd = "select (%(residue_num)s:%(chain_id)s); label '%%a';";
+    		document.jmolApplet0.script(viewerCmd);
+    	}
+    });
+});
+</script>
+</head>
+<body class="oneColLiqCtrHdr">
+<div id="container">
+<!-- begin #header-->
+	<div id="header">
+    	<div id="logo"><img src="/images/wwpdb_logo.gif" width="187" height="58" alt="logo" /> </div>
+    	<div id="headerCont">
+      		<h1>Chemical Component Editor Module</h1>
+      		<span id="help" class="ui-icon ui-icon-info fltrgt"></span>
+		</div>
+    	<br class="clearfloat" /> 
+	</div>
+<!-- #header ends above-->
+    <br class="clearfloat" />
+	<br />
+<!-- #mainContent begins -->
+	<div id="mainContent">
+			<br />
+			<br />
+			<div id="auth_environ_jmol_%(instanceid)s" class="threeD_environ_vw">
+				<h2>View of %(instanceid)s within 6&#197 of Deposition Structure Environment</h2>
+				<object name="jmolApplet0" id="jmolApplet0" type="application/x-java-applet" height="90%%" width="90%%">
+					<param name="progressbar" value="true" />
+					<param name="progresscolor" value="blue" />
+					<param name="boxbgcolor" value="white" />
+					<param name="boxfgcolor" value="black" />
+					<param name="boxmessage" value="Downloading JmolApplet ..." />
+					<param name="archive" value="JmolApplet0.jar" />
+					<param name="mayscript" value="true" />
+					<param name="codebase" value="%(jmol_code_base)s" />
+					<param name="code" value="JmolApplet" />
+					<param name="script" value="load %(3dpath)s.cif; background [xD3D3D3]; wireframe only; wireframe 0.05; labels off; slab 100; depth 40; slab on; display within(6.0, %(residue_num)s:%(chain_id)s); zoomto (%(residue_num)s:%(chain_id)s) 800; select (%(residue_num)s:%(chain_id)s); wireframe only; wireframe 0.10; spacefill 15%%; label '%%a';" />
+				</object>
+			</div>
+			<div class="threeD_environ_vw_cntrls">
+				<input id="btn_lbls_on_off" name="btn_lbls_on_off" value="Labels Off" type="button" />
+			</div>
+			<br />			
+	</div>
+<!-- #mainContent ends above -->
+<!-- #footer begins -->
+	<br class="clearfloat" />
+	<div id="footer">
+   		<p>&copy; 2010 wwPDB Chemical Component Editor Module Editor V0.01</p>
+	</div>
+<!-- #footer ends above -->
+</div>
+<!-- #container ends above-->
+</body>
+</html>

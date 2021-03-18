@@ -1,0 +1,18 @@
+/*!
+ * jQuery UI CSS Framework 1.8.20
+ *
+ * Copyright 2012, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Theming/API
+ */
+
+
+
+/* Icons
+----------------------------------*/
+
+/* states and images */
+/**.ui-icon { width: 16px; height: 16px; background-image: url(images/ui-icons_ccffff_256x240.png); }  RPS, original image as specified at left is being replaced with use of icon with gray color from older south-street theme  as per below***/
+.ui-icon { width: 16px; height: 16px; background-image: url(/ccmodule_lite/styles/themes/south-street/images/ui-icons_808080_256x240.png); }

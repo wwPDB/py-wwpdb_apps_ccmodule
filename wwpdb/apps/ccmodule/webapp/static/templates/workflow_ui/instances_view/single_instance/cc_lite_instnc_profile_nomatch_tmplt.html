@@ -1,0 +1,21 @@
+		<div class="instance_profile">
+		<!-- #########################  content for the single instance below ################################################################### -->
+			<br />
+			<div class="msmtch_explain"><h3>%(msmtch_explain)s</h3></div>
+			<br />
+			<div class="viz_compare" id="viz_compare_%(instanceid)s">
+				<div class="viz_compare_hdr">Comparison Panel<span class="%(dsplyvizopt)s" ><label for="twoD_chck_bx_%(instanceid)s">2D</label><input id="twoD_chck_bx_%(instanceid)s" checked="checked" name="%(instanceid)s" class="twoD_chck_bx" type="checkbox"></span><span class="%(dsplyvizopt)s" ><label for="threeD_chck_bx_%(instanceid)s">3D</label><input id="threeD_chck_bx_%(instanceid)s" name="%(instanceid)s" class="threeD_chck_bx" type="checkbox"></span></div>
+				<ul id="instance_data_%(instanceid)s" class="viz_compare_ul_instnc">
+					<li id="vizcmp_%(instanceid)s" class="viz_cmp fltlft">
+						<div class="viz_compare_subhdr"><table><tr><td nowrap="nowrap">Auth Instance ID:</td><td nowrap="nowrap">%(instanceid)s</td></tr><tr><td nowrap="nowrap">Name:</td><td nowrap="nowrap">%(name)s</td></tr><tr><td nowrap="nowrap">Formula:</td><td nowrap="nowrap" title="%(formula)s">%(formula_displ)s</td></tr></table></div>
+						<div id="twoD_%(instanceid)s" class="twoDviz"><img src="%(2dpath)s" /></div>
+						<div id="threeD_%(instanceid)s" name="%(auth_assgnd_grp)s" class="threeDviz exp" style="display: none;">[JMOL PLACEHOLDER]</div>
+					</li>
+					<li id="vizcmp_%(instanceid)s_notophit" class="viz_cmp fltlft notophit">
+					</li>
+				</ul>
+				<br class="clearfloat" />
+			</div>
+		<!-- #########################  content for the single instance above ################################################################### -->	
+		</div>
+		

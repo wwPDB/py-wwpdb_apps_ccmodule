@@ -1,0 +1,38 @@
+<div id="rsrch_data_set_%(auth_assgnd_grp)s_%(index)s_" class="rsrch_data_set" >
+	<fieldset id="fieldset_binding_data_%(auth_assgnd_grp)s_%(index)s" class="" style="padding-right: 50px;">
+		<legend><h3 style="background-color:#fff;">Assay Data - %(dataset_disply_index)s</h3></legend>							
+		<br /><label for="assay_type_%(auth_assgnd_grp)s_%(index)s_">Type of Assay:&nbsp;</label>
+			<select id="assay_type_%(auth_assgnd_grp)s_%(index)s_" name="assay_type_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input assay_type reqd_rsrch" %(disabled_1)s >
+				<option value="">-- Please select assay type --</option>
+				<option value="competitive_binding" %(competitive_binding_selected)s>competitive binding</option>
+				<option value="functional_antagonist" %(functional_antagonist_selected)s>functional antagonist</option>
+				<option value="saturation_binding" %(saturation_binding_selected)s>saturation binding</option>
+				<option value="fluorescence_polarization" %(fluorescence_polarization_selected)s>fluorescence polarization</option>
+				<option value="fluorescence_resonance_energy_transfer" %(fluorescence_resonance_energy_transfer_selected)s>fluorescence resonance energy transfer</option>
+				<option value="surface_plasmon_resonance" %(surface_plasmon_resonance_selected)s>surface plasmon resonance</option>
+			</select><br /><br />
+		<br /><label for="measurement_type_%(auth_assgnd_grp)s_%(index)s_" class="measurement_type_lbl">Measurement type:&nbsp;</label><select id="measurement_type_%(auth_assgnd_grp)s_%(index)s_" name="measurement_type_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input measurement_type disabled_2 measurement_grp reqd_rsrch" %(disabled_2)s >
+			<option value="">-- Select type --</option>
+			%(measurement_type_options)s
+			</select>&nbsp;<label for="measured_value_%(auth_assgnd_grp)s_%(index)s_" class="measured_value_lbl">value:&nbsp;</label><input id="measured_value_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input measured_value measurement_grp disabled_3 reqd_rsrch" type="text" name="measured_value_%(index)s_" value="%(measured_value)s" size="8" %(disabled_2)s />&nbsp;nM<br />
+		<br /><label for="ph_%(auth_assgnd_grp)s_%(index)s_" class="ph_lbl">pH of Assay:&nbsp;</label><input id="ph_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input ph disabled_3 " type="text" name="ph_%(index)s_" value="%(ph)s" size="3" %(disabled_2)s />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<label for="assay_temp_%(auth_assgnd_grp)s_%(index)s_" class="assay_temp_lbl">Temperature of Assay:&nbsp;</label><input id="assay_temp_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input temp disabled_3 " type="text" name="assay_temp_%(index)s_" value="%(assay_temp)s" size="5" %(disabled_2)s />&nbsp;Kelvin<br /><br />
+		<br />
+		<br /><label for="target_sequence_%(auth_assgnd_grp)s_%(index)s_" class="target_sequence_lbl">Sequence of Binding Target, if Different From the Sequence in the Model:</label><br /><textarea id="target_sequence_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input target_seq disabled_3" cols="80" rows="2" style="text-transform: uppercase;" name="target_sequence_%(index)s_" %(disabled_2)s>%(target_sequence)s</textarea><br /><br />
+		<br />
+		<input id="copy_dscrptr_from_ligvrfy_sectn_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input copy_rsrch_dscrptr_str disabled_3" type='button' value='Copy SMILES/InChi From Ligand Verification Section' %(disabled_2)s />&nbsp;<label for="rsrch_dscrptr_type_%(auth_assgnd_grp)s_%(index)s_" class="rsrch_dscrptr_type_lbl">or Provide Descriptor String in</label>&nbsp;<select id="rsrch_dscrptr_type_%(auth_assgnd_grp)s_%(index)s_" name="rsrch_dscrptr_type_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input dscrptr_type disabled_3" %(disabled_2)s >
+			<option value="">-- Select type --</option>
+			<option value="smiles" %(smiles_selected)s>SMILES</option>
+			<option value="inchi" %(inchi_selected)s>InChI</option>
+			</select>&nbsp;<label for="rsrch_dscrptr_str_%(auth_assgnd_grp)s_%(index)s_" class="rsrch_dscrptr_str_lbl">Format:&nbsp;</label><br />
+			<input id="rsrch_dscrptr_str_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input rsrch_dscrptr_str disabled_4" type="text" name="rsrch_dscrptr_str_%(index)s_" value="%(rsrch_dscrptr_str)s" size="80" %(disabled_2)s /><br />
+			<br /><br />
+		<label for="details_%(auth_assgnd_grp)s_%(index)s_" class="details_lbl">Details:</label><br /><textarea id="details_%(auth_assgnd_grp)s_%(index)s_" class="c_%(auth_assgnd_grp)s capture_rsrch_data_input details disabled_3" cols="80" rows="5" name="details_%(index)s_" %(disabled_2)s >%(details)s</textarea><br /><br />
+		<br />
+		<div id="binding_dataset_actions_%(auth_assgnd_grp)s_%(index)s_" class="binding_dataset_actions">
+			<input id="deletethis_rsrch_%(auth_assgnd_grp)s_%(index)s_" class="deletethis_rsrch c_%(auth_assgnd_grp)s capture_rsrch_data_input " type='button' value='Remove this set of assay data' %(disabled_1)s>
+			<input id="addanother_rsrch_%(auth_assgnd_grp)s_%(index)s_" class="addanother_rsrch c_%(auth_assgnd_grp)s capture_rsrch_data_input fltrgt disabled_3" type='button' value='Add another set of assay data' %(disabled_2)s>
+		</div>
+		<br class="clearfloat"/><br />
+	</fieldset>
+</div>
