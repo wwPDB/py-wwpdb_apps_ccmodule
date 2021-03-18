@@ -132,6 +132,21 @@ class LigandAnalysisState:
     def abort(self):
         self._state = self.STATE_STOPPED
         self._saveState()
+    
+    def reset(self):
+        """Remove the progress file to start a new anaysis.
+
+        Raises:
+            LigandStateError: if tried to delete the progress file
+                while there is an analysis going on
+        """
+        currentState = self.getProgress()
+
+        if 'state' in currentState and currentState['state'] == self.STATE_RUNNING:
+            raise LigandStateError('Tried to delete progress file of running analysis.')
+        
+        if os.access(self._ccStateFilePath, os.R_OK):
+            os.remove(self._ccStateFilePath)
 
     def _saveState(self, current_ligand=None):
         state = self._createStateDescriptor(self._progress, self._state, current_ligand)

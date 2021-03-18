@@ -74,7 +74,7 @@ class ReportFilesRequestTest(unittest.TestCase):
     def testInitStateFile(self):
         os.remove(self._progressFile)
         self._ligState.init()
-        os.path.exists(self._progressFile)
+        self.assertTrue(os.path.exists(self._progressFile))
 
         with self.assertRaises(LigandStateError):
             self._ligState.init()
@@ -115,33 +115,15 @@ class ReportFilesRequestTest(unittest.TestCase):
         with self.assertRaises(LigandStateError):
             self._ligState.addProgress(step=0.5)
     
-    @unittest.skip
-    def testSetState(self):
+    def testReset(self):
+        self._ligState = LigandAnalysisState(self._depId)
         self._ligState.init()
-        self._ligState.setState(LigandAnalysisState.STATE_RUNNING)
+        self.assertTrue(os.path.exists(self._progressFile))
 
-        self.assertEqual(self._ligState._progress, .46)
-
-        with open(self._progressFile) as fp:
-            state = json.load(fp)
-
-            self.assertEqual(state['state'], 'running')
-            self.assertEqual(state['progress'], .46)
-            self.assertEqual(state['current_ligand'], 'AAA')
-            self.assertIsNotNone(state.get('last_updated'))
-    
-        self._ligState.addProgress(progress=1.3, state=LigandAnalysisState.STATE_RUNNING)
-
-        with open(self._progressFile) as fp:
-            state = json.load(fp)
-
-            self.assertEqual(state['state'], 'running')
-            self.assertEqual(state['progress'], 1.0)
-            self.assertIsNotNone(state.get('last_updated'))
-        
-        os.remove(self._progressFile)
-        self._ligState.addProgress(progress=0, state=LigandAnalysisState.STATE_RUNNING)
-
-        os.remove(self._progressFile)
         with self.assertRaises(LigandStateError):
-            self._ligState.addProgress(progress=0.5, state=LigandAnalysisState.STATE_RUNNING)
+            self._ligState.reset()
+        
+        self._ligState.abort()
+        self._ligState.reset()
+
+        self.assertFalse(os.path.exists(self._progressFile))

@@ -652,31 +652,30 @@ class ChemCompWebAppLiteWorker(object):
 
         if not self.__depId or not re.fullmatch('D_[0-9]+', self.__depId):
             raise InvalidDepositionIdError('Invalid deposition ID')
+
+        wfName = 'wf_op_ligand_analysis.xml'
+        query = "update status.communication set " \
+            "  sender = 'DEP' " \
+            ", receiver = 'WFE' " \
+            ", wf_class_file = 'wf_op_ligand_analysis.xml' " \
+            ", wf_class_id = 'DEP' " \
+            ", command = 'runWF' " \
+            ", status = 'PENDING' " \
+            ", actual_timestamp = '{}' " \
+            ", parent_dep_set_id = '{}' " \
+            ", parent_wf_class_id = 'DepUpload' " \
+            ", parent_wf_inst_id = 'W_001' " \
+            "where dep_set_id = '{}'".format(now, self.__depId, self.__depId)
         
-        try:
-            wfName = 'wf_op_ligand_analysis.xml'
-            query = "update status.communication set " \
-                "  sender = 'DEP' " \
-                ", receiver = 'WFE' " \
-                ", wf_class_file = 'wf_op_ligand_analysis.xml' " \
-                ", wf_class_id = 'DEP' " \
-                ", command = 'runWF' " \
-                ", status = 'PENDING' " \
-                ", actual_timestamp = '{}' " \
-                ", parent_dep_set_id = '{}' " \
-                ", parent_wf_class_id = 'DepUpload' " \
-                ", parent_wf_inst_id = 'W_001' " \
-                "where dep_set_id = '{}'".format(now, self.__depId, self.__depId)
-            
-            if self.__verbose:
-                self.__logger.debug('Running sql query %s', query)
+        if self.__verbose:
+            self.__logger.debug('Running sql query %s', query)
 
-            nrow = wfApi.runUpdateSQL(query)
+        nrow = wfApi.runUpdateSQL(query)
 
-            self.__logger.info('Result %d', nrow)
-        except Exception as e:
-            self.__logger.error('Error trying to register workflow task', e)
-            status = 'error'
+        self.__logger.info('Result %d', nrow)
+
+        analysisState = LigandAnalysisState(self.__depId)
+        analysisState.reset()
 
         rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         rC.setReturnFormat('jsonData')
