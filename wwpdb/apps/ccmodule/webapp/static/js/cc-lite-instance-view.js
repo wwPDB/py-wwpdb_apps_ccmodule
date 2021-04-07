@@ -102,6 +102,27 @@ function loadFileJsmol(appName, id, filePath, jmolMode) {
     Jmol.script(jsmolAppDict[appName], jmolCmds);
 }
 
+function loadFileMolstar(containerId, fileUrl) {
+	if (!PDBeMolstarPlugin) {
+		console.error('PDBeMolstarPlugin not loaded.');
+		return;
+	}
+	
+	var viewerInstance = new PDBeMolstarPlugin();
+
+	var options = {
+		customData: {
+			url: fileUrl,
+			format: 'cif',
+			binary: false,
+		},
+		hideControls: true,
+	};
+
+	var viewerContainer = document.getElementById(containerId);
+	viewerInstance.render(viewerContainer, options);
+}
+
 function toggleChemCompDisplay(sInstId,sRefId,sCntxt,bShow){
 	var id_1, id_2, jmolHtmlSuffix, atmMpHtmlSuffix;
 	if( sCntxt == ChemCompLiteMod.SNGL_INSTNC ){
@@ -796,21 +817,18 @@ $(document).on("click",".single_instance .threeD_chck_bx", function(){
 	if( checked ){
 		var uniqeId = getUniqueIdForJsmol(instid);
 		//invoke jsmol for experimental data
-		if( !( $('#e'+uniqeId+'_appletinfotablediv').length ) ){
+		if ($('#'+expThreeDdivId).length && !$('#'+expThreeDdivId).hasClass('molstar-loaded')) {
 			authAssgndGrp = $('#'+expThreeDdivId).attr('name');
 			loadFilePath = CC_LITE_SESSION_DATA.servicePathPrefix + ChemCompLiteMod.URL.GET_REPORT_FILE + '?identifier=' + CC_LITE_SESSION_DATA.depId + '&source=author&ligid=' + instid + '&file=' + authAssgndGrp + '_model.cif';
-			loadFileJsmol("e"+uniqeId,expThreeDdivId,loadFilePath,"default");
-			$('#e'+uniqeId+"_appletinfotablediv").css({'padding-left':'0px', 'border-style':'none'});
-			$('#e'+uniqeId+"_appletdiv").css({'padding-left':'0px', 'border-style':'none'});
+			loadFileMolstar(expThreeDdivId, loadFilePath);
+			$('#'+expThreeDdivId).addClass('molstar-loaded');
 		}
 		//invoke jsmol for dictionary reference
-		if( !($('#r'+uniqeId+'_appletinfotablediv').length ) ) {
+		if (!$('#'+refThreeDdivId).hasClass('molstar-loaded')) {
 			if( $('#'+refThreeDdivId).length ){
 				refCcId = $('#'+refThreeDdivId).attr('name');
 				loadFilePath = CC_LITE_SESSION_DATA.servicePathPrefix + ChemCompLiteMod.URL.GET_REPORT_FILE + '?identifier=' + CC_LITE_SESSION_DATA.depId + '&source=ccd&ligid=' + refCcId + '&file=' + refCcId + '_ideal.cif';
-				loadFileJsmol('r'+uniqeId,refThreeDdivId,loadFilePath,"default");
-				$('#r'+uniqeId+'_appletinfotablediv').css({'padding-left':'0px', 'border-style':'none'});
-				$('#r'+uniqeId+'_appletdiv').css({'padding-left':'0px', 'border-style':'none'});
+				loadFileMolstar(refThreeDdivId, loadFilePath);
 			}
 		}
 		$(threeDdivElemLocator).css('display', 'block');

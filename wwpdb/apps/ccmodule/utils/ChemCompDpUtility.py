@@ -7,6 +7,7 @@ import os
 import sys
 import shutil
 import traceback
+import pkg_resources
 from logging                                            import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from threading                                          import Timer
 from subprocess                                         import Popen, PIPE
@@ -42,7 +43,7 @@ class ChemCompDpUtility(object):
         self._cI = ConfigInfo()
 
         # templates path
-        self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
+        self._templatePath = pkg_resources.resource_filename('wwpdb.apps.ccmodule.webapp', 'static')
 
         # setting up session object
         self._setupSession(self._depId)
@@ -632,6 +633,9 @@ class ChemCompDpUtility(object):
         self._reqObj.setValue('identifier', depId)
         self._reqObj.setValue('filesource', 'deposit')
         self._reqObj.setValue('TemplatePath', self._templatePath)
+
+        if self._verbose:
+            self._logger.debug('Session: %s', str(self._reqObj))
 
     def _setupLog(self, log_file):
         """Setup a Logger instance to use the same file as provided

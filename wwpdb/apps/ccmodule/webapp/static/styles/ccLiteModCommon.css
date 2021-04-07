@@ -173,10 +173,14 @@ input[type=text].descr_nw_lgnd_input{
 .single_instance .instnc_actions .rerun_srch_frm .errmsg{
 	color: #F00;
 }
-.threeDviz{
-	/**width: 300px;
-	height: 300px;**/
-	background-color: #D3D3D3;
+div.threeDviz {
+	float: left;
+	width: 310px;
+	height: 310px;
+	position: relative;
+}
+div.threeDviz div.msp-plugin-content.msp-layout-standard.msp-layout-standard-outside {
+	border: none;
 }
 div.viz_compare_hdr{
 	width: 98%;
@@ -224,7 +228,9 @@ li.atm_mp{
 .ref li.atm_mp{
 	border-bottom-color: #069;
 }
-.viz_compare ul li div{
+.viz_compare ul li div.viz_compare_subhdr,
+.viz_compare ul li div.twoDviz,
+.viz_compare ul li div.threeDviz {
 	border-width: 1px;
 	border-style: solid;
 	border-color: #696;
@@ -295,7 +301,7 @@ div.dscr_nw_lig {
 fieldset.reqd{ border-color:#F00; border-style: solid; border-width: 2px; }
 .threeD_environ_vw{width:650px; height:650px; overflow:auto; margin-left: auto; margin-right: auto;}
 .threeD_environ_vw_cntrls{width:650px; overflow:auto; margin-left: auto; margin-right: auto; text-align: center;}
-.inneraccordion div{padding-left: 10px}
+div.inneraccordion {padding-left: 10px}
 .head{display:block; width:98%; text-decoration:none; font-weight:bold; font-size: 110%; border:#CCC 1px solid; padding:5px; margin:5px 0;}
 .attn_reqd{background-color: #FF9;}
 ul.jPag-pages li.attn_reqd{background-color: #FF0;}
