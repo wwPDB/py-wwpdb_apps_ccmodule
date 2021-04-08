@@ -109,7 +109,6 @@ from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 #
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 
-from wwpdb.apps.wf_engine.engine.WFEapplications        import runLigandAnalysis
 from wwpdb.utils.wf.dbapi.WfDbApi                       import WfDbApi
 from wwpdb.apps.wf_engine.engine.dbAPI                  import dbAPI
 from wwpdb.utils.wf.dbapi.WFEtime                       import getTimeNow

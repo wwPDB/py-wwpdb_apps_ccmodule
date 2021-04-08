@@ -75,6 +75,7 @@ class LigandAnalysisState:
         if not os.access(self._ccStateFilePath, os.R_OK):
             # maybe a better check would be appropriate, i.e.
             # checking somehow if the analysis is running
+            currentState['state'] = 'missing_file'
             return currentState
         
         try:

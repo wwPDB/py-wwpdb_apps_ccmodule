@@ -635,10 +635,16 @@ function getAnalysisState() {
 					$('.loading_msg').get(0).innerText = 'Analysis still in progress... ' + Number.parseFloat(r.progress*100).toFixed(2) + '% complete.';
 					break;
 				case 'finished':
+					clearInterval(window.stateHandle);
 					loadSummaryData();
+					break;
+				case 'missing_file':
+					$('.loading_msg').get(0).innerText = 'Running pre-analysis operations. This may take a while.';
+					break;
 				case 'stopped':
 				case 'unknown':
 					clearInterval(window.stateHandle);
+					$('.loading_msg').get(0).innerHtml = 'Something went wrong. Please, run the analysis again.';
 					break;
 				default:
 					break;
@@ -651,7 +657,7 @@ function getAnalysisState() {
 getAnalysisState()
 	.then(function (r) {
 		if (r.state == 'running') {
-			window.stateHandle = setInterval(getAnalysisState, 2000);
+			window.stateHandle = setInterval(getAnalysisState, 3000);
 		}
 	});
 

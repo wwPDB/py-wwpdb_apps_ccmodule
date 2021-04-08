@@ -661,20 +661,3 @@ class ChemCompDpUtility(object):
             logger.setLevel(INFO)
 
         return logger
-    
-if __name__ == '__main__':
-    from coverage import Coverage
-    # cov = Coverage(data_file='/nfs/public/release/msd/services/onedep/coverage_report/.coverage', auto_data=True, config_file=False, debug=['config', 'sql'])
-    # cov.start()
-
-    dp=ChemCompDpUtility(sys.argv[1],True,sys.__stderr__)
-    dp.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, sys.argv[2])
-    dp.doAnalysis()
-
-    # cov.stop()
-    # # cov.save()
-
-    # try:
-    #     cov.html_report(directory='/nfs/public/release/msd/services/onedep/deployments/local/source/onedep-webfe/webapps/htdocs/html_report')
-    # except:
-    #     pass
