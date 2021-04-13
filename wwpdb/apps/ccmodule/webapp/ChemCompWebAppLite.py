@@ -139,7 +139,6 @@ class ChemCompWebAppLite(object):
         self.__sessionsPath=self.__cI.get('SITE_WEB_APPS_SESSIONS_PATH')
         self.__ccLiteWebAppsDir=os.path.dirname(os.path.realpath(__file__))
         self.__templatePath = os.path.join(self.__ccLiteWebAppsDir,"static")
-        # self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule_lite")
         #
 
         if isinstance(parameterDict, dict):
@@ -641,7 +640,7 @@ class ChemCompWebAppLiteWorker(object):
             "  sender = 'DEP' " \
             ", receiver = 'WFE' " \
             ", wf_class_file = 'wf_op_ligand_analysis.xml' " \
-            ", wf_class_id = 'DEP' " \
+            ", wf_class_id = 'ligandAnalysis' " \
             ", command = 'runWF' " \
             ", status = 'PENDING' " \
             ", actual_timestamp = '{}' " \
