@@ -829,6 +829,7 @@ $(document).on("click",".single_instance .threeD_chck_bx", function(){
 				refCcId = $('#'+refThreeDdivId).attr('name');
 				loadFilePath = CC_LITE_SESSION_DATA.servicePathPrefix + ChemCompLiteMod.URL.GET_REPORT_FILE + '?identifier=' + CC_LITE_SESSION_DATA.depId + '&source=ccd&ligid=' + refCcId + '&file=' + refCcId + '_ideal.cif';
 				loadFileMolstar(refThreeDdivId, loadFilePath);
+				$('#'+refThreeDdivId).addClass('molstar-loaded');
 			}
 		}
 		$(threeDdivElemLocator).css('display', 'block');
