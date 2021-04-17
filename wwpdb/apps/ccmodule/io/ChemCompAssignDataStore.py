@@ -205,9 +205,7 @@ class ChemCompAssignDataStore(object):
             else:
                 self.__fileName = depId.lower()+self.__fileNameSuffix
             #
-            
-            self.__filePath = self.getFileObject(depId, 'deposit', 'chem-comp-assign-details', 'pic').getFilePathReference()
-            self.__lfh.write("+ChemCompAssignStore.__setup() - assign details file path %s \n" % self.__filePath)
+            self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
             if os.access(self.__filePath,os.R_OK):
                 self.deserialize()
