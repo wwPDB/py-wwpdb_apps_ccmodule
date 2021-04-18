@@ -24,7 +24,8 @@ import os, sys, time, types, string, shutil, traceback
 
 from wwpdb.apps.ccmodule.utils.ChemCompConfig      import ChemCompConfig
 from wwpdb.utils.config.ConfigInfo                 import ConfigInfo
-
+from pathlib                                       import Path
+from wwpdb.io.locator.PathInfo                     import PathInfo
 
 class ChemCompReport(object):
     """Create web report from chemical component definitions.
@@ -60,7 +61,7 @@ class ChemCompReport(object):
 
         self.__siteId=str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI=ConfigInfo(self.__siteId)
-        self.__depositPath=os.path.join(self.__cI.get("SITE_DEPOSIT_STORAGE_PATH"), 'deposit')
+        self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
 

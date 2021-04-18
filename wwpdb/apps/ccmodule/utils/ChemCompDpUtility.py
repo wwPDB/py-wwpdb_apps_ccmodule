@@ -20,6 +20,8 @@ from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssig
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
 from wwpdb.utils.session.WebRequest                     import InputRequest
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
+from pathlib                                            import Path
+from wwpdb.io.locator.PathInfo                          import PathInfo
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
@@ -50,7 +52,7 @@ class ChemCompDpUtility(object):
 
         # setting up chem comp config
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
-        self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
+        self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
         self._ligState = LigandAnalysisState(self._depId, self._verbose, self._lfh)

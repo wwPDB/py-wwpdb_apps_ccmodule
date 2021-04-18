@@ -102,7 +102,8 @@ from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 from wwpdb.utils.wf.DataReference                       import DataFileReference
 from mmcif.io.PdbxReader                                import PdbxReader
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
-
+from pathlib                                            import Path
+from wwpdb.io.locator.PathInfo                          import PathInfo
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -142,11 +143,12 @@ class ChemCompAssign(object):
         self.__cI=ConfigInfo()
         #
         self.__setup()
+        self.__pathInfo = PathInfo()
         #
 
     def __setup(self):
         self.__depId = self.__reqObj.getValue('identifier')
-        self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
+        self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
 
@@ -660,7 +662,7 @@ class ChemCompAssign(object):
                 #    set up access to instance level assignment data
                 #######################################################
                 # below is instance specific chem comp cif file for data at cc *instance* level
-                chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'),'deposit',depDataSetId.upper(),'assign',srchId,srchId+".cif")
+                chemCompFilePathAbs = os.path.join(self.__pathInfo.getDepositPath(depDataSetId),'assign',srchId,srchId+".cif")
                 if not os.access(chemCompFilePathAbs,os.R_OK):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area

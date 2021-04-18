@@ -112,6 +112,8 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from wwpdb.utils.wf.dbapi.WfDbApi                       import WfDbApi
 from wwpdb.apps.wf_engine.engine.dbAPI                  import dbAPI
 from wwpdb.utils.wf.dbapi.WFEtime                       import getTimeNow
+from pathlib                                            import Path
+from wwpdb.io.locator.PathInfo                          import PathInfo
 
 class ChemCompWebAppLite(object):
     """Handle request and response object processing for the chemical component lite module application.
@@ -239,7 +241,8 @@ class ChemCompWebAppLiteWorker(object):
         self.__siteConfigDir = self.__cI.get('TOP_WWPDB_SITE_CONFIG_DIR')
         self.__siteLoc = self.__cI.get('WWPDB_SITE_LOC')
         self.__ccConfig = ChemCompConfig(reqObj,verbose=self.__verbose,log=self.__lfh)
-        self.__depositPath = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
+        self.__pathInfo = PathInfo()
+        self.__depositPath = Path(self.__pathInfo.getDepositPath(self.__depId)).parent
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis') # should we add 'cc_analysis' in a variable in site-config?
         self.__logger = self._setupLog(log)
@@ -1737,7 +1740,7 @@ class ChemCompWebAppLiteWorker(object):
                 self.__lfh.write("+ChemCompWebAppLiteWorker.__saveLigModState() ---- WARNING ---- No path obtained for CC assign details export file, id %s \n" % depId )
                 
             ##################################### chem comp depositor progress file #################################################
-            pathDict['dpstrPrgrssFileFlPth']=os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'),'deposit',depId,'cc-dpstr-progress')
+            pathDict['dpstrPrgrssFileFlPth']=os.path.join(Path(self.__pathInfo.getDepositPath(depId)),'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = ( os.path.split(pathDict['dpstrPrgrssFileFlPth']) )[0]
             
             if (self.__verbose):

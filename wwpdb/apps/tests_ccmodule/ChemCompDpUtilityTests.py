@@ -26,6 +26,8 @@ from wwpdb.apps.ccmodule.utils.ChemCompDpUtility import ChemCompDpUtility, ChemC
 from wwpdb.apps.ccmodule.utils.ChemCompConfig    import ChemCompConfig
 from wwpdb.utils.session.WebRequest              import InputRequest
 from wwpdb.utils.config.ConfigInfo               import ConfigInfo
+from pathlib                                     import Path
+from wwpdb.io.locator.PathInfo                   import PathInfo
 
 unittest.TestLoader.sortTestMethodsUsing = None
 
@@ -72,7 +74,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         """Create the required paths
         """
         cls._ccDictPath = os.path.join(cls._ccConfig.getPath('chemCompCachePath'), '0', '0G7')
-        cls._depositPath = os.path.join(cls._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
+        cls._depositPath = Path(PathInfo().getDepositPath(cls._depId)).parent
         cls._ccReportPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_REPORT_DIR)
         cls._depositAssignPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_ASSIGN_DIR)
 

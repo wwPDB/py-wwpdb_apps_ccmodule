@@ -6,7 +6,8 @@ from logging import DEBUG, INFO, Formatter, StreamHandler, getLogger
 
 from wwpdb.apps.ccmodule.utils.Exceptions import LigandStateError
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
-
+from pathlib import Path
+from wwpdb.io.locator.PathInfo import PathInfo
 
 class LigandAnalysisState:
     """Class to track progress of operations in ligand
@@ -25,12 +26,12 @@ class LigandAnalysisState:
         
         self._cI = ConfigInfo()
         self._depId = depId
-        self._depositPath = os.path.join(self._cI.get('SITE_DEPOSIT_STORAGE_PATH'), 'deposit')
+        self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
         self._ccReportPath = os.path.join(self._depositPath, self._depId, 'cc_analysis')
         self._ccStateFilePath = os.path.join(self._ccReportPath, self._CC_STATE_FILE)
 
-        self._progress = None
-        self._state = None
+        self._progress = 0
+        self._state = 'unknown'
     
     def init(self):
         """Initialize the ligand analysis state for this deposition.
