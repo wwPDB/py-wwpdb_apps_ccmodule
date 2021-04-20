@@ -1,1 +1,0 @@
-../plugins-src/jquery.paginate.my.js

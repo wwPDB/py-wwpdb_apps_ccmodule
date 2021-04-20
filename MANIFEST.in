@@ -1,1 +1,0 @@
-recursive-include wwpdb/apps/ccmodule/webapp/static* *.html *.js *.css *.txt *.png *.jpg *.gif *.ico
