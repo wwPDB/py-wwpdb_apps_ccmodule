@@ -45,7 +45,7 @@ class ChemCompDpUtility(object):
         self._cI = ConfigInfo()
 
         # templates path
-        self._templatePath = pkg_resources.resource_filename('wwpdb.apps.ccmodule.webapp', 'static')
+        self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
 
         # setting up session object
         self._setupSession(self._depId)

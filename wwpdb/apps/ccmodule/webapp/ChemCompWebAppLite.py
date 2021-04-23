@@ -139,8 +139,7 @@ class ChemCompWebAppLite(object):
         self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
         self.__topSessionPath  = self.__cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH')
         self.__sessionsPath=self.__cI.get('SITE_WEB_APPS_SESSIONS_PATH')
-        self.__ccLiteWebAppsDir=os.path.dirname(os.path.realpath(__file__))
-        self.__templatePath = os.path.join(self.__ccLiteWebAppsDir,"static")
+        self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule_lite")
         #
 
         if isinstance(parameterDict, dict):
