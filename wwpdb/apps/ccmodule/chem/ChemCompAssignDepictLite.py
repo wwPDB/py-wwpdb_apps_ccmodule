@@ -112,7 +112,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__siteId  = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI=ConfigInfo(self.__siteId)
         self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
-        self.__pathPdbxDictFile  = self.__cI.get("SITE_MMCIF_DICT_FILE_PATH")
         self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__workingRltvAssgnSessionPath=''
         

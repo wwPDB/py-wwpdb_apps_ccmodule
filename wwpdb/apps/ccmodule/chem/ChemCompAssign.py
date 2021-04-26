@@ -75,6 +75,7 @@
 # 2017-05-03    RPS    Updates so that LOI tracking can succeed even in cases where annotator reruns ligand search and consequently changes value for "author" assigned CCID
 # 2017-05-24    RPS    Corrected for missing variable initialization in updateWithDepositorInfo().
 # 2017-09-19    ZF     Add runMultiAssignValidation() and change doAssignValidation() to multiprocessing mode
+# 2021-02-25    ZF     Add self.__origUpdIdMap & self.__sortCompositeMatchScore()
 ##
 """
 Residue-level chemical component extraction operations.
@@ -139,6 +140,8 @@ class ChemCompAssign(object):
         #
         self.__ccValidateInstIdList=None
         self.__ccValidationRefFilePth=None
+        #
+        self.__origUpdIdMap = {}
         #
         self.__cI=ConfigInfo()
         #
@@ -742,7 +745,11 @@ class ChemCompAssign(object):
         if( len(rnkdMtchL) > 0 ):
             if self.__verbose:
                 self.__lfh.write("+ChemCompAssign.getTopHitsDataForInstnc() - rnkdMtchL is: %r\n" % rnkdMtchL )
-            rnkdMtchL.sort(key=lambda match: match[1])
+            #
+            #rnkdMtchL.sort(key=lambda match: match[1])
+            if len(rnkdMtchL) > 1:
+                rnkdMtchL = self.__sortCompositeMatchScore(rnkdMtchL)
+            #
             p_ccAssgnDataStr.setTopHitsList(p_instId,rnkdMtchL)
                 
     def validCcId(self,ccId):
@@ -1061,7 +1068,6 @@ class ChemCompAssign(object):
         #dpstrFileSource = "deposit"   #in interim getting file from deposit storage until transfer from deposit to annotation storage is stable
         
         if( not self.__isWorkflow() ):
-            #dpstrInfoFlPth = '/wwpdb_da/da_top/wwpdb_da_test/source/python/wwpdb/apps/ccmodule/data/D_013067-cc-dpstr-info.cif'
             dpstrInfoFlPth = None
         else:
             ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
@@ -1083,7 +1089,8 @@ class ChemCompAssign(object):
                     if (self.__verbose ):
                         self.__lfh.write("+++%s.%s() key[%s] and value, %s\n" %(className, methodName, k, v) )
                         self.__lfh.flush()
-
+                    #
+                #
                 authAssgndGrp = dpstrInfoD['comp_id']
                 dpstrCcType = dpstrInfoD['type']
                 dpstrAltCcId = dpstrInfoD['alt_comp_id']
@@ -1102,7 +1109,22 @@ class ChemCompAssign(object):
                 p_ccAssgnDtaStr.setDpstrCcName(authAssgndGrp,dpstrCcName)
                 p_ccAssgnDtaStr.setDpstrCcFrmla(authAssgndGrp,dpstrCcFrmla)
                 p_ccAssgnDtaStr.setDpstrComments(authAssgndGrp,dpstrComments)
-            
+                #
+                if authAssgndGrp in self.__origUpdIdMap:
+                    for updId in self.__origUpdIdMap[authAssgndGrp]:
+                        p_ccAssgnDtaStr.addGrpToGlbllyRslvdLst(updId)
+                        p_ccAssgnDtaStr.initializeGrpInfo(updId)
+                        p_ccAssgnDtaStr.setDpstrCcType(updId,dpstrCcType)
+                        p_ccAssgnDtaStr.setDpstrAltCcId(updId,dpstrAltCcId.upper())
+                        p_ccAssgnDtaStr.setDpstrCcDscrptrStr(updId,dpstrCcDscptrStr)
+                        p_ccAssgnDtaStr.setDpstrCcDscrptrType(updId,dpstrCcDscptrType)
+                        p_ccAssgnDtaStr.setDpstrCcName(updId,dpstrCcName)
+                        p_ccAssgnDtaStr.setDpstrCcFrmla(updId,dpstrCcFrmla)
+                        p_ccAssgnDtaStr.setDpstrComments(updId,dpstrComments)
+                    #
+                #
+            #
+        #
         if( dpstrUploadL ):
             for dpstrUpldD in dpstrUploadL:
                 
@@ -1134,16 +1156,31 @@ class ChemCompAssign(object):
                 # handling sdf files
                 if( upldFileType == 'sdf'):
                     self.__registerFilePaths('component-sketch', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
-                    
+                    #
+                    if authAssgndGrp in self.__origUpdIdMap:
+                        for updId in self.__origUpdIdMap[authAssgndGrp]:
+                            self.__registerFilePaths('component-sketch', upldFileName, upldFileType, p_ccAssgnDtaStr, updId, dpstrFileSource)
+                        #
+                    #
                 else:
                 # handling of any files that were uploaded. we will register filename/path info with chemCompDataStore so that these can be recalled
                 # by ChemCompWebApp when it looks to load any files provided by the depositor into the session directory for working use.
                     if( upldFileType in contentTypeDict['component-image'][0] ):
                         self.__registerFilePaths('component-image', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
-                                    
+                        #
+                        if authAssgndGrp in self.__origUpdIdMap:
+                            for updId in self.__origUpdIdMap[authAssgndGrp]:
+                                self.__registerFilePaths('component-image', upldFileName, upldFileType, p_ccAssgnDtaStr, updId, dpstrFileSource)
+                            #
+                        #
                     elif( upldFileType in contentTypeDict['component-definition'][0] ):
                         self.__registerFilePaths('component-definition', upldFileName, upldFileType, p_ccAssgnDtaStr, authAssgndGrp, dpstrFileSource)
-                            
+                        #
+                        if authAssgndGrp in self.__origUpdIdMap:
+                            for updId in self.__origUpdIdMap[authAssgndGrp]:
+                                self.__registerFilePaths('component-definition', upldFileName, upldFileType, p_ccAssgnDtaStr, updId, dpstrFileSource)
+                            #
+                        #
                     else:
                         if( self.__verbose ):
                             self.__lfh.write("+%s.%s() ---------------WARNING---------------: Processing skipped for unexpected file type '%s' found for file(s) uploaded for ligid '%s'.\n" %(className, methodName, upldFileType, authAssgndGrp) )
@@ -1238,33 +1275,33 @@ class ChemCompAssign(object):
             
         if fpModel and os.access(fpModel, os.R_OK):
             cifObj = mmCIFUtil(filePath=fpModel)
-
-            clist = cifObj.GetValue('pdbx_branch_scheme')
-            for dir in clist:
-                if ('pdb_mon_id' not in dir) or ('auth_mon_id' not in dir):
-                    continue
+            #
+            for category in ( 'pdbx_branch_scheme', 'pdbx_nonpoly_scheme' ):
+                clist = cifObj.GetValue(category)
+                for Dict in clist:
+                    if ('pdb_mon_id' not in Dict) or ('auth_mon_id' not in Dict):
+                        continue
+                    #
+                    pdbWorkingCcid = Dict['pdb_mon_id'].upper()
+                    dpstrOrigCcid = Dict['auth_mon_id'].upper()
+                    #
+                    if( pdbWorkingCcid == 'HOH' ):
+                        continue
+                    #
+                    rtrnDict[pdbWorkingCcid]=dpstrOrigCcid
+                    #
+                    if pdbWorkingCcid != dpstrOrigCcid:
+                        if dpstrOrigCcid in self.__origUpdIdMap:
+                            if pdbWorkingCcid not in self.__origUpdIdMap[dpstrOrigCcid]:
+                                self.__origUpdIdMap[dpstrOrigCcid].append(pdbWorkingCcid)
+                            #
+                        else:
+                            self.__origUpdIdMap[dpstrOrigCcid] = [ pdbWorkingCcid ]
+                        #
+                    #
                 #
-                pdbWorkingCcid = dir['pdb_mon_id'].upper()
-                dpstrOrigCcid = dir['auth_mon_id'].upper()
-                
-                if( pdbWorkingCcid == 'HOH' ):
-                    continue
-                
-                rtrnDict[pdbWorkingCcid]=dpstrOrigCcid
-
-            clist = cifObj.GetValue('pdbx_nonpoly_scheme')
-            for dir in clist:
-                if ('pdb_mon_id' not in dir) or ('auth_mon_id' not in dir):
-                    continue
-                #
-                pdbWorkingCcid = dir['pdb_mon_id'].upper()
-                dpstrOrigCcid = dir['auth_mon_id'].upper()
-                
-                if( pdbWorkingCcid == 'HOH' ):
-                    continue
-                
-                rtrnDict[pdbWorkingCcid]=dpstrOrigCcid
-                
+            #
+        #
         return rtrnDict
             
     def __synchronizeDataStore(self,p_dataDict,p_ccAssgnDataStore,p_instId=None,p_exactOption=False):
@@ -1392,7 +1429,10 @@ class ChemCompAssign(object):
                                         # currently annotators asking to see only up to top 5 hits
                                         break
                             #
-                            rnkdMtchL.sort(key=lambda match: match[1])   #sorting by composite match score
+                            #rnkdMtchL.sort(key=lambda match: match[1])   #sorting by composite match score
+                            if len(rnkdMtchL) > 1:
+                                rnkdMtchL = self.__sortCompositeMatchScore(rnkdMtchL)
+                            #
                             topHitCcId = (len(rnkdMtchL) and [(rnkdMtchL[0][0])] or ['None'])[0]
                             topHitCcIdScore = (len(rnkdMtchL) and [(rnkdMtchL[0][1])] or ['n.a.'])[0]
                         ##
@@ -1941,6 +1981,39 @@ class ChemCompAssign(object):
         else:
             #else we are in the standalone dev environment
             return False                
+
+    def __sortCompositeMatchScore(self, inMatchList):
+        """
+        """
+        scale = ( 10000.0, 1000.0, 100.0, 10.0, 1.0 )
+        #
+        matchListWithFloatScore = []
+        for matchTup in inMatchList:
+            total_score = 0.0
+            compositeList = matchTup[1].split(" / ") 
+            if len(compositeList) == 5:
+                for i in range(len(compositeList)):
+                    match_val = compositeList[i]
+                    local_score = 0.0
+                    try:
+                        local_score = float(compositeList[i])
+                    except:
+                        if compositeList[i] == "match":
+                            local_score = 100.0
+                        #
+                    #
+                    total_score += (scale[i] * local_score) / 100.0
+                #
+            #
+            matchListWithFloatScore.append(( matchTup, total_score ))
+        #
+        matchListWithFloatScore.sort(reverse=True, key=lambda match: match[1])
+        #
+        outMatchList = []
+        for matchTup in matchListWithFloatScore:
+            outMatchList.append(matchTup[0])
+        #
+        return outMatchList
         
 if __name__ == '__main__':
     pass
