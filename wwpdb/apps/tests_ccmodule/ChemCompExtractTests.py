@@ -74,7 +74,7 @@ class ChemCompExtractTests(object):
             ccE=ChemCompExtract(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
             rD=ccE.doExtract()
             for k,v in rD.items():
-                self.__lfh.write("+ChemCompExtractTests.testCifOne() key %30s   value %s\n" (k,v))
+                self.__lfh.write("+ChemCompExtractTests.testCifOne() key %30s   value %s\n" % (k,v))
             ccExD=ChemCompExtractDepict(self.__verbose,self.__lfh)
             oL=ccExD.doRender(rD['extractlist'])
             self.__lfh.write("%s" % "\n".join(oL))                            

@@ -78,21 +78,25 @@ __email__     = "rsala@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-import os, sys, time, types, string, traceback, ntpath, threading, signal, shutil
-from json import loads, dumps
-from time import localtime, strftime
+import os, re, sys, time, traceback, ntpath, shutil
+from http import HTTPStatus
+from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
+from datetime import datetime
 
-from wwpdb.utils.session.WebRequest              import InputRequest,ResponseContent
+from wwpdb.apps.ccmodule.utils.Exceptions               import InvalidLigandIdError, LigandStateError, InvalidDepositionIdError
+from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
+from wwpdb.utils.session.WebRequest                     import InputRequest,ResponseContent
 #
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
-from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
+try:
+    from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
+except Exception as e:
+    print('++ChemCompWebAppLite -- Error importing ChemCompAssignDepictLite\n%s' % str(e))
 #
 from wwpdb.apps.ccmodule.search.ChemCompSearch          import ChemCompSearch
 from wwpdb.apps.ccmodule.search.ChemCompSearchDepict    import ChemCompSearchDepict
 from wwpdb.apps.ccmodule.search.ChemCompSearchDb        import ChemCompSearchDb
 from wwpdb.apps.ccmodule.search.ChemCompSearchDbDepict  import ChemCompSearchDbDepict
-#
-from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport,ChemCompCheckReport
 #
 from wwpdb.utils.wf.dbapi.WfTracking                    import WfTracking
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
@@ -100,20 +104,16 @@ from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImport
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
-from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
-from wwpdb.utils.wf.DataReference                       import DataFileReference
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 #
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
-#
-from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils                import OeDepictMCSAlignSingle
-from wwpdb.utils.oe_util.oedepict.OeDepict                          import OeDepict
-from wwpdb.utils.oe_util.build.OeChemCompIoUtils                    import OeChemCompIoUtils
-#
-import datetime, stat
-import socket, shlex
-from subprocess import call,Popen,PIPE
+
+from wwpdb.utils.wf.dbapi.WfDbApi                       import WfDbApi
+from wwpdb.apps.wf_engine.engine.dbAPI                  import dbAPI
+from wwpdb.utils.wf.dbapi.WFEtime                       import getTimeNow
+from pathlib                                            import Path
+from wwpdb.io.locator.PathInfo                          import PathInfo
 
 class ChemCompWebAppLite(object):
     """Handle request and response object processing for the chemical component lite module application.
@@ -203,7 +203,7 @@ class ChemCompWebAppLite(object):
                ``list`` of formatted text lines 
         """
         retL=[]
-        retL.append("\n\-----------------ChemCompWebAppLite().__dumpRequest()-----------------------------\n")
+        retL.append("\n-----------------ChemCompWebAppLite().__dumpRequest()-----------------------------\n")
         retL.append("Parameter dictionary length = %d\n" % len(self.__myParameterDict))            
         for k,vL in self.__myParameterDict.items():
             retL.append("Parameter %30s :" % k)
@@ -232,6 +232,7 @@ class ChemCompWebAppLiteWorker(object):
         self.__sessionId=None
         self.__sessionPath=None
         self.__rltvSessionPath=None
+        self.__depId = self.__reqObj.getValue("identifier").upper()
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
         self.__deployPath = self.__cI.get('SITE_DEPLOY_PATH')
@@ -239,12 +240,18 @@ class ChemCompWebAppLiteWorker(object):
         self.__siteConfigDir = self.__cI.get('TOP_WWPDB_SITE_CONFIG_DIR')
         self.__siteLoc = self.__cI.get('WWPDB_SITE_LOC')
         self.__ccConfig = ChemCompConfig(reqObj,verbose=self.__verbose,log=self.__lfh)
+        self.__pathInfo = PathInfo()
+        self.__depositPath = Path(self.__pathInfo.getDepositPath(self.__depId)).parent
+        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
+        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis') # should we add 'cc_analysis' in a variable in site-config?
+        self.__logger = self._setupLog(log)
+
         #
         self.__pathInstncsVwTmplts="templates/workflow_ui/instances_view"
         self.__pathSnglInstcTmplts=self.__pathInstncsVwTmplts+"/single_instance"
         self.__pathSnglInstcEditorTmplts=self.__pathSnglInstcTmplts+"/editor"
         #
-        self.__appPathD={'/service/environment/dump':                       '_dumpOp',
+        self.__appPathD={'/service/environment/dump':                            '_dumpOp',
                          '/service/cc_lite/extract':                             '_extractOp',
                          '/service/cc_lite/view':                                '_viewOp',
                          '/service/cc_lite/adminops':                            '_dumpOp',
@@ -257,21 +264,25 @@ class ChemCompWebAppLiteWorker(object):
                          '/service/cc_lite/new-session/wf':                      '_ligandSrchSummary',
                          '/service/cc_lite/new_session/wf':                      '_ligandSrchSummary',
                          '/service/cc_lite/save/newligdescr':                    '_saveNwLgndDscrptn',
-                         '/service/cc_lite/save/exactmtchid':                     '_saveExactMtchId',
-                         '/service/cc_lite/save/rsrchdata':                         '_saveRsrchData',
-                         '/service/cc_lite/updatersrchlst':                         '_updateResearchList',
-                         '/service/cc_lite/validate_ccid':                          '_validateCcId',
-                         '/service/cc_lite/check_uploaded_files':                    '_checkForUploadedFiles',
-                         '/service/cc_lite/remove_uploaded_file':                   '_removeUploadedFile',
+                         '/service/cc_lite/save/exactmtchid':                    '_saveExactMtchId',
+                         '/service/cc_lite/save/rsrchdata':                      '_saveRsrchData',
+                         '/service/cc_lite/updatersrchlst':                      '_updateResearchList',
+                         '/service/cc_lite/validate_ccid':                       '_validateCcId',
+                         '/service/cc_lite/check_uploaded_files':                '_checkForUploadedFiles',
+                         '/service/cc_lite/remove_uploaded_file':                '_removeUploadedFile',
                          ###############  below are URLs created for WFM/common tool development effort######################
-                         #'/service/cc_lite/assign/wf/new_session':                 '_ccAssign_BatchSrchSummary',
-                         '/service/cc_lite/wf/new_session':                         '_ligandSrchSummary',
-                         '/service/cc_lite/view/ligandsummary':                     '_generateSummaryData',
-                         '/service/cc_lite/view/ligandsummary/data_check':          '_checkForSummaryData',
-                         '/service/cc_lite/view/ligandsummary/data_load':           '_loadSummaryData',
-                         '/service/cc_lite/view/instancebrowser':                   '_generateInstncBrowser',
-                         '/service/cc_lite/wf/exit_not_finished':                   '_exit_notFinished',
-                         '/service/cc_lite/wf/exit_finished':                       '_exit_Finished'
+                         '/service/cc_lite/wf/new_session':                      '_ligandSrchSummary',
+                         '/service/cc_lite/view/ligandsummary':                  '_loadSummaryData',
+                         '/service/cc_lite/view/ligandsummary/data_check':       '_checkForSummaryData',
+                         '/service/cc_lite/view/ligandsummary/data_load':        '_loadSummaryData',
+                         '/service/cc_lite/view/instancebrowser':                '_generateInstncBrowser',
+                         '/service/cc_lite/wf/exit_not_finished':                '_exit_notFinished',
+                         '/service/cc_lite/wf/exit_finished':                    '_exit_Finished',
+                         # report endpoints
+                         '/service/cc_lite/report/create':                       '_runAnalysis',
+                         '/service/cc_lite/report/file':                         '_getReportFile',
+                         '/service/cc_lite/report/summary':                      '_getLigandInstancesData',
+                         '/service/cc_lite/report/status':                       '_getLigandAnalysisStatus',
                          ###################################################################################################
                          }
         
@@ -313,7 +324,7 @@ class ChemCompWebAppLiteWorker(object):
 
             Operation output is packaged in a ResponseContent() object.
         """
-        #
+        reqPath = ''
         try:
             reqPath=self.__reqObj.getRequestPath()
             self.__lfh.write("+%s.%s() original request path is %r\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, reqPath) )
@@ -351,6 +362,87 @@ class ChemCompWebAppLiteWorker(object):
         rC.setHtmlList(self.__reqObj.dump(format='html'))
         return rC
     
+    def _getReportFile(self):
+        """ Get files generated by the report operation.
+
+            :Helpers:
+                wwpdb.apps.ccmodule.
+
+            :Returns:
+                Operation output is packaged in a ResponseContent() object.
+                The output will vary depending on the type of requested file, which
+                will affect the Content-Type HTTP header. For now it supports getting
+                svg, gif and cif files.
+        """
+        supportedSources = ["ccd", "author", "report"] # this will tell from where we should get the file
+        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+
+        sessionId    = self.__sessionId
+        depId        = self.__reqObj.getValue("identifier").upper()
+        source       = self.__reqObj.getValue("source").lower()
+        ligandId     = self.__reqObj.getValue("ligid").upper()
+        filename     = self.__reqObj.getValue("file")
+
+        ccReportPath = os.path.join(self.__depositPath, depId, "cc_analysis")
+        fileType     = filename.split(".")[-1]
+        filePath     = None
+
+        if (self.__verbose):
+            self.__lfh.write("+%s.%s() Requesting file '%s' from '%s' for deposition '%s'\n" % (
+                self.__class__.__name__, sys._getframe().f_code.co_name, filename, source, depId
+            ))
+
+        # allowing only alphanum, _ and . characters
+        filename = re.sub('[^a-zA-Z0-9_.-]+', '', filename)
+
+        if source not in supportedSources:
+            rC.setError(errMsg="Source should be either 'ccd', 'author' or 'report'")
+            rC.setStatusCode(HTTPStatus.BAD_REQUEST)
+            return rC
+
+        if source == "ccd" and ligandId == "":
+            rC.setError(errMsg="You must pass a valid ligand ID")
+            rC.setStatusCode(HTTPStatus.BAD_REQUEST)
+            return rC
+
+        if fileType == "svg":
+            # all svgs, afaik, are located in the root folder of reports
+            filePath = os.path.join(ccReportPath, filename)
+
+            # even though svg can be considered a text file, we set as binary
+            # so ResponseContent can set the correct Content-Type header
+            # TODO: test for possible encondig issues
+            rC.setReturnFormat("binary")
+            rC.setBinaryFile(filePath)
+        elif fileType == "cif":
+            if source == "ccd":
+                filePath = os.path.join(ccReportPath, "rfrnc_reports", ligandId, filename)
+            elif source == "author":
+                filePath = os.path.join(ccReportPath, ligandId, "report", filename)
+
+            rC.setReturnFormat("text")
+            rC.setTextFile(filePath)
+        elif fileType == "gif":
+            if source == "ccd":
+                filePath = os.path.join(ccReportPath, "rfrnc_reports", ligandId, filename)
+
+            rC.setReturnFormat("binary")
+            rC.setBinaryFile(filePath)
+        elif fileType == "html":
+            filePath = os.path.join(ccReportPath, "html", ligandId, filename)
+
+            rC.setReturnFormat("html")
+            rC.setTextFile(filePath)
+            rC._cD["htmlcontent"] = rC._cD["textcontent"]
+        else:
+            rC.setReturnFormat("text")
+
+        if rC.get()["RETURN_STRING"] == "" or rC.get()["RETURN_STRING"] == None:
+            rC.setError(errMsg="File not found")
+            rC.setStatusCode(HTTPStatus.NOT_FOUND)
+
+        return rC
+
     def _ligandSrchSummary(self):
         """ Launch chemical component "lite" module interface
             
@@ -414,184 +506,6 @@ class ChemCompWebAppLiteWorker(object):
         rC.setHtmlText( '\n'.join(oL) )
         #
         return rC
-
-    def _generateSummaryData(self):
-        """ Generate chem comp lite summary results for entire deposition data set
-            Child process is spawned to allow summary results to be gathered
-            while parent process completes simply by returning status of "running"
-            to the client.
-            
-            :Helpers:
-                wwpdb.apps.ccmodule.chem.ChemCompAssign.ChemCompAssign
-                
-            :Returns:
-                JSON object with status code of "running" returned.
-        """
-        self.__getSession()
-        depId       =str(self.__reqObj.getValue("identifier"))
-        #
-        bReusingPriorDataStore=True
-        #
-        if (self.__verbose):
-            self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
-            self.__lfh.write("+%s.%s() identifier   %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, depId) )
-            self.__lfh.write("+%s.%s() workflow instance     %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj.getValue("instance")) )
-            self.__lfh.write("+%s.%s() file source  %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj.getValue("filesource")) )
-            self.__lfh.write("+%s.%s() sessionId  %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, self.__sessionId ) )       
-            self.__lfh.flush()
-        #
-        sph=self.__setSemaphore()
-        if (self.__verbose):
-                self.__lfh.write("+%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
-        pid = os.fork()
-        if pid == 0:
-            # if here, means we are in the child process
-            os.setsid()
-            sub_pid = os.fork()
-            if sub_pid:
-                # Parent of second fork
-                os._exit(0)
-            
-            # determine if currently operating in Workflow Managed environment
-            bIsWorkflow = self.__isWorkflow()
-            #
-            if( bIsWorkflow ):
-                depId = depId.upper()
-            else:
-                depId = depId.lower()
-            #
-            sys.stdout = RedirectDevice()
-            sys.stderr = RedirectDevice()
-            os.setpgrp()
-            os.umask(0)
-            #
-            # redirect the logfile            
-            self.__openSemaphoreLog(sph)
-            sys.stdout = self.__lfh
-            sys.stderr = self.__lfh
-            #
-            if (self.__verbose):
-                self.__lfh.write("+%s.%s() Child Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, os.getpid()) )
-            #
-            try:
-                # check if there was work already done by depositor in editing chem comp assignments
-                # if so, we generate a cc-assign data store based on these updates
-                ccAssignDataStore = self.__checkForExistingCcAssignments()
-
-                if ccAssignDataStore is None: # i.e. no work had previously been done and saved by depositor
-                    # if we don't have any data store then we need to generate a data store from scratch
-                    # which requires that we fill it with data as parsed from the cc-assign results cif file 
-                    
-                    # create instance of ChemCompAssign class
-                    ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-                    
-                    # we expect that Dep UI code would have run cc-assign search already
-                    # so we will attempt to import the already existing cc-assign.cif file into local session directory
-                    # and parse these for results
-                    ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-                    ccAssignWfFlPth = ccI.getChemCompAssignFilePath() # the path to copy of the cc-assign results file held by workflow/depUI 
-                    ccAssignLclFlPath = os.path.join(self.__sessionPath,depId+'-cc-assign.cif') # path to local copy of the cc-assign file that we will create
-                    if ccAssignWfFlPth is not None and os.access(ccAssignWfFlPth,os.R_OK):
-                        shutil.copyfile(ccAssignWfFlPth, ccAssignLclFlPath)
-                        if os.access(ccAssignLclFlPath,os.R_OK):
-                            assignRsltsDict=ccA.processCcAssignFile(ccAssignLclFlPath)
-                        else:
-                            # If for some reason there was problem getting pre-existing CC assignment results file, we must then call on ChemCompAssign to generate ligand summary results 
-                            assignRsltsDict = self.__runChemCompSearch(ccA)
-                        #
-                    else:
-                        #########################################################################################################################################################
-                        #    if we are in standalone test context then we must then call on ChemCompAssign to generate ligand summary results 
-                        #########################################################################################################################################################
-                        assignRsltsDict = self.__runChemCompSearch(ccA)
-                                                    
-                    if (self.__verbose):
-                        for k,v in assignRsltsDict.items():
-                            self.__lfh.write("+%s.%s() key %30s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, k) )
-                    
-                    # generate a datastore to serve as representation of chem component assignment results data required/updated by annotator during current session.
-                    ccAssignDataStore = self.__genCcAssignDataStore(assignRsltsDict,ccA)
-                    bReusingPriorDataStore=False
-
-                if( ccAssignDataStore is None ): # if this is true here, then we have failed to create a ccAssignDataStore either from scratch or based on previous depositor efforts
-                    self.__postSemaphore(sph,"FAIL")
-                    self.__lfh.flush()
-                else:
-                    self.__generateInstanceLevelData(ccAssignDataStore,bReusingPriorDataStore,sph)
-                    #self.__postSemaphore(sph,"OK")
-                    self.__importDepositorFiles(ccAssignDataStore)
-            except:
-                traceback.print_exc(file=self.__lfh)
-                self.__lfh.write("+%s.%s() Failing for child Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )    
-                self.__postSemaphore(sph,"FAIL")
-                self.__lfh.flush()
-                self.__verbose = False
-            
-            self.__saveLigModState("intermittent") # now invoking this on startup to generate cc-dpstr-prgrss file for depui monitoring purposes
-            
-            self.__lfh.write("+%s.%s() Process: PID# %s completed\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
-            self.__lfh.flush()    
-            os._exit(0)
-            self.__verbose = False
-            return
-        
-        else:
-            # we are in parent process and we will return status code to client to indicate that data processing is "running"
-            self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
-
-            # Wait for first fork
-            os.waitpid(pid, 0)
-
-            self.__reqObj.setReturnFormat(return_format="json")
-            rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-            rC.setStatusCode('running')
-            self.__lfh.write("+%s.%s() Parent process completed\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
-            return rC
-    
-    def _checkForSummaryData(self):
-        """Performs a check on the contents of a semaphore file and returns the associated status.
-
-           This method currently supports both rcsb and wf filesources.
-        """
-        #
-        self.__getSession()
-        sessionId   =self.__sessionId
-        #
-        if (self.__verbose):
-            self.__lfh.write("--------------------------------------------\n")                    
-            self.__lfh.write("+%s.%s - starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name))
-            self.__lfh.write("+%s.%s() sessionId  %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )       
-            self.__lfh.flush()
-        #
-        try:
-            sph=self.__reqObj.getSemaphore()
-            #
-            if (self.__verbose):
-                self.__lfh.write("+%s.%s Checking status of semaphore %s \n" %(self.__class__.__name__, sys._getframe().f_code.co_name, sph))    
-            self.__reqObj.setReturnFormat(return_format="json")
-            rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-            #
-            if (self.__semaphoreExists(sph)):
-                status=self.__getSemaphore(sph)
-                if (self.__verbose):
-                    self.__lfh.write("+%s.%s status value for semaphore %s is %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, sph, str(status)))
-                if (status =="OK"):
-                    rC.setStatusCode('completed')
-                else:
-                    rC.setStatusCode('failed')                
-            else:
-                if (self.__verbose):
-                    self.__lfh.write("+%s.%s semaphore %s not posted yet.\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, sph))
-                rC.setStatusCode('running')
-        except:
-            self.__lfh.write("+%s.%s() Exception encountered!!\n" %(self.__class__.__name__, sys._getframe().f_code.co_name ) )
-            traceback.print_exc(file=self.__lfh)
-            self.__lfh.flush()
-            return rC
-              
-        #
-        return rC        
     
     def _loadSummaryData(self):
         """ Call for loading content displayed in summary of chem component inventory results
@@ -625,74 +539,173 @@ class ChemCompWebAppLiteWorker(object):
         #
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
+    
+    def _runAnalysis(self):
+        """Run ligand analysis workflow.
 
-    def _generateInstncBrowser(self):
-        """ Generate content for "Instance Browser" view
-            This view allows user to navigate ligand instance data via entity CCID groupings
-            
-            :Helpers:
-            
-                + wwpdb.apps.ccmodule.chem.ChemCompAssign.ChemCompAssign
-                + wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite.ChemCompAssignDepictLite
-                + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
-                
-            :Returns:
-                Operation output is packaged in a ResponseContent() object.
-                The output contains HTML markup that is used to populate the
-                HTML container that had already been delivered to the browser
-                in the prior request for the Batch Search Summary content.
-                This output represents the "Instance-Level" display interface.
+        Raises:
+            InvalidDepositionIdError: in case an invalid dep id was provided
+
+        Returns:
+            ResponseContent: ResponseContent object
         """
-        ligIdsL=[]
-        if (self.__verbose):
-            self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
-        # determine if currently operating in Workflow Managed environment
-        self.__getSession()
-        #
-        sessionId   = self.__sessionId
-        depId       = str(self.__reqObj.getValue("identifier")).upper()
-        ligIds     = str(self.__reqObj.getValue("ligids"))
-        ligIdsRsrch = str(self.__reqObj.getValue("ligids_rsrch"))
-        wfInstId    = str(self.__reqObj.getValue("instance")).upper()
-        classId     = str(self.__reqObj.getValue("classID")).lower()
-        fileSource  = str(self.__reqObj.getValue("filesource")).lower()
-        #
-        if (self.__verbose):
-            self.__lfh.write("+%s.%s() identifier   %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, depId) )
-            self.__lfh.write("+%s.%s() instance     %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId) )
-            self.__lfh.write("+%s.%s() file source  %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, fileSource) )
-            self.__lfh.write("+%s.%s() sessionId  %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )       
-            self.__lfh.flush()
- 
-        #
-        ligIdsL = ligIds.split(',')
-        ligIdsRsrchL = ligIdsRsrch.split(',')
-        #
-        self.__reqObj.setDefaultReturnFormat(return_format="html")
-        #        
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-        #
-        ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        # unpickle assign data from ccAssignDataStore
-        if (self.__verbose):
-            self.__lfh.write("+%s.%s() ----- unpickling ccAssignDataStore\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
-        ccADS=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
-        ccADS.dumpData(self.__lfh);
-        #
-        instncIdLst=ccADS.getAuthAssignmentKeys()
-        srtdInstncLst = sorted(instncIdLst);
-        ccA.getDataForInstncSrch(srtdInstncLst,ccADS)
-        #
-        ccADS.dumpData(self.__lfh);
-        ccADS.serialize()
-        # call render() methods to generate data unique to this deposition data set
-        ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-        ccAD.setSessionPaths(self.__reqObj)
-        oL=ccAD.doRender_InstanceBrwsr(ligIdsL,ligIdsRsrchL,ccADS,self.__reqObj)
-        #
-        rC.setHtmlText( ''.join(oL) )
+        now = getTimeNow()
+        wfApi = WfDbApi(verbose=True, log=self.__lfh)
+        status = 'success'
+
+        if not self.__depId or not re.fullmatch('D_[0-9]+', self.__depId):
+            raise InvalidDepositionIdError('Invalid deposition ID')
+
+        wfName = 'wf_op_ligand_analysis.xml'
+        query = "update status.communication set " \
+            "  sender = 'DEP' " \
+            ", receiver = 'WFE' " \
+            ", wf_class_file = 'wf_op_ligand_analysis.xml' " \
+            ", wf_class_id = 'ligandAnalysis' " \
+            ", command = 'runWF' " \
+            ", status = 'PENDING' " \
+            ", actual_timestamp = '{}' " \
+            ", parent_dep_set_id = '{}' " \
+            ", parent_wf_class_id = 'DepUpload' " \
+            ", parent_wf_inst_id = 'W_001' " \
+            "where dep_set_id = '{}'".format(now, self.__depId, self.__depId)
+        
+        if self.__verbose:
+            self.__logger.debug('Running sql query %s', query)
+
+        nrow = wfApi.runUpdateSQL(query)
+
+        self.__logger.info('Result %d', nrow)
+
+        analysisState = LigandAnalysisState(self.__depId)
+        analysisState.reset()
+
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat('jsonData')
+        rC.setData({ 'status': status })
+
         return rC
+
+    def _getLigandAnalysisStatus(self):
+        """Get the state of ligand analysis for this deposition.
+
+        Returns:
+            ResponseContent: response object with state in json
+        """
+        depId = str(self.__reqObj.getValue('identifier')).upper()
+        ligState = LigandAnalysisState(depId, self.__verbose, self.__lfh)
+        state = ligState.getProgress()
+
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat('jsonData')
+        rC.setData(state)
+
+        return rC
+
+    
+    def _getLigandInstancesData(self):
+        """Endpoint to get a summary dictionary for requested
+        ligand ids. See _generateLigGroupSummaryDict() below for
+        the info provided.
+
+        Raises:
+            InvalidLigandId: raised when an empty lig id is
+                provided
+
+        Returns:
+            ResponseContent: ResponseContent object with format "jsonData"
+        """
+        ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+
+        ligIds = str(self.__reqObj.getValue('ligids'))
+
+        if not ligIds or ligIds == '':
+            raise InvalidLigandIdError()
+
+        # allowing only alphanum, ",", and _ chars
+        ligIds = re.sub('[^a-zA-Z0-9_,]+', '', ligIds)
+        ligIdsList = ligIds.split(',')
+
+        if self.__verbose:
+            self.__logger.debug('Getting summary data for ligands %s', ligIds)
+
+        ligandInstancesData = self._generateLigGroupSummaryDict(ccAssignDataStore, ligIdsList)
+
+        rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        rC.setReturnFormat('jsonData')
+        rC.setData(ligandInstancesData)
+
+        return rC
+    
+    def _generateLigGroupSummaryDict(self, ccAssignDataStore, ligIdList):
+        """Generate utility dictionary to hold info for chem comp
+        groups indicated in depositor's data. I copied this method
+        to this class because I intend to remove any dependency of
+        ChemCompWebAppLite on ChemCompAssignDepictLite.
+
+        Args:
+            ccAssignDataStore (ChemCompAssignDataStore): assign data
+                store with latest version of cc assign details file
+
+        Returns:
+            dict: Currently returning two-tier dictionary with primary
+                key of chem comp ID and following secondary keys:
+
+                totlInstncsInGrp: total number of chem component
+                    instances with same ligand ID as given ID
+                bGrpRequiresAttention: boolean indicating whether
+                    or not the given ligand ID group has any instances
+                    for which top hit does not match author provided ligand ID
+                grpMismatchCnt: total number of chem component instances
+                    where mismatch detected
+                instidLst: list of instanceIds for all instances of the
+                    chem component found in the depositor data 
+        """
+        returnDict = {}
+        instanceIdList = ccAssignDataStore.getAuthAssignmentKeys()
+        ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+
+        for inst in instanceIdList:
+            authorAssignedId = ccAssignDataStore.getAuthAssignment(inst)
+
+            if authorAssignedId not in ligIdList:
+                continue
+
+            if not authorAssignedId:
+                # this should never happen
+                continue
+
+            if authorAssignedId not in returnDict:
+                returnDict[authorAssignedId] = {
+                    'totlInstncsInGrp': 0,
+                    'bGrpRequiresAttention': False,
+                    'bGrpMismatchAddressed': False,
+                    'grpMismatchCnt': 0,
+                    'mismatchLst': [],
+                    'instIdLst': [],
+                    'ccName': ccAssignDataStore.getCcName(inst),
+                    'ccFormula': ccAssignDataStore.getCcFormula(inst),
+                }
+                
+                if ccA.validCcId(authorAssignedId) == 1:
+                    ccAssignDataStore.addLigIdToInvalidLst(authorAssignedId)
+                
+            returnDict[authorAssignedId]['totlInstncsInGrp'] += 1
+            returnDict[authorAssignedId]['instIdLst'].append(inst)
+            returnDict[authorAssignedId]['instIdLst'].sort
+            topHitCcId = ccAssignDataStore.getBatchBestHitId(inst)
+
+            if topHitCcId.upper() != authorAssignedId.upper():
+                returnDict[authorAssignedId]['bGrpRequiresAttention'] = True
+                returnDict[authorAssignedId]['grpMismatchCnt'] += 1
+                returnDict[authorAssignedId]['mismatchLst'].append(inst)
+                returnDict[authorAssignedId]['mismatchLst'].sort
+            
+            isResolved = authorAssignedId in ccAssignDataStore.getGlbllyRslvdGrpList()
+            returnDict[authorAssignedId]['bGrpMismatchAddressed'] = isResolved
+            returnDict[authorAssignedId]['isResolved'] = isResolved
+
+        return returnDict
     
     def _saveExactMtchId(self):
         """ Register depositor's choice to use exact match CC ID instead of original lig ID with ChemCompAssignDataStore
@@ -1399,28 +1412,7 @@ class ChemCompWebAppLiteWorker(object):
     # ------------------------------------------------------------------------------------------------------------
     #      Private helper methods
     # ------------------------------------------------------------------------------------------------------------
-    #
-    def __runChemCompSearch(self,p_ccA):
-        
-        #########################################################################################################################################################
-        #    If for some reason there was no pre-existing CC assignment results data, we must then call on ChemCompAssign to generate ligand summary results 
-        #########################################################################################################################################################
-        if (self.__verbose):
-                now = strftime("%H:%M:%S", localtime()) 
-                self.__lfh.write("+ChemCompWebAppLiteWorker ----TIMECHECK------------------------------------------ time before calling doAssign task is %s\n" % now)
-        
-        assignRsltsDict=p_ccA.doAssign(exactMatchOption=True) # NOTE this method generates the "global" cc-assign file *and* creates instance-level directories/chem-component files
-        #########################################################################################################################################################
-        #    in assignRsltsDict we now have a repository of assignment information for this deposition corresponding to
-        #    cif categories: 'pdbx_entry_info','pdbx_instance_assignment','pdbx_match_list','pdbx_atom_mapping','pdbx_missing_atom'
-        #########################################################################################################################################################
-        
-        if (self.__verbose):
-                now = strftime("%H:%M:%S", localtime()) 
-                self.__lfh.write("+ChemCompWebAppLiteWorker ----TIMECHECK------------------------------------------ time after calling doAssign task is %s\n" % now)
-        #
-        return assignRsltsDict
-    
+    #    
     
     def __removeUploadedFile(self,p_ccID,p_fileName):
         """
@@ -1521,14 +1513,18 @@ class ChemCompWebAppLiteWorker(object):
         depId = str(self.__reqObj.getValue("identifier")).upper()
         ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         fpAssignDtlsWfmArchive =  ccI.getChemCompAssignDetailsFilePath()
+
         if (self.__verbose):
             self.__lfh.write("+%s.%s() ---- checking for existence of cc-assign-details.pic file in path: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, fpAssignDtlsWfmArchive) )
+
         if( fpAssignDtlsWfmArchive is not None and os.access(fpAssignDtlsWfmArchive,os.R_OK) ):
                 assignDtlsLclPath = os.path.join(self.__sessionPath,'assign')
                 if( not os.access(assignDtlsLclPath,os.R_OK)):
                     os.makedirs(assignDtlsLclPath)
+
                 fpAssignDtlsLcl = os.path.join(assignDtlsLclPath,depId+'-cc-assign-details.pic')
                 shutil.copyfile(fpAssignDtlsWfmArchive,fpAssignDtlsLcl)
+
                 if( os.access(fpAssignDtlsLcl,os.R_OK) ):
                     #########################################################################################################################################################
                     #    If we have a pickle file of cc assign details this means that the annotator had saved previous ligand assignment work
@@ -1539,456 +1535,7 @@ class ChemCompWebAppLiteWorker(object):
                     if (self.__verbose):
                             self.__lfh.write("+%s.%s() prior cc assign details file being used to populate cc data store: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, fpAssignDtlsLcl) )
                             
-        return rtrnCcAssgnDtStr      
-
-    def __genCcAssignDataStore(self,p_ccAssignRsltsDict,p_ccAssignObj):
-        """ Private method to generate a ChemCompAsssignDataStore object.
-            The ChemCompAsssignDataStore serves as a representation of any 
-            chem component assignment results data required/updated by the 
-            depositor during the current session.
-            
-            :Params:
-            
-                + ``p_ccAssignRsltsDict``: Dictionary containing chem comp assignment results
-                + ``p_ccAssignObj``: ChemCompAssign object created in calling method
-                    
-            :Helpers:
-            
-                + wwpdb.apps.ccmodule.chem.ChemCompAssign.ChemCompAssign
-                + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
-                
-            :Returns:
-                A ChemCompAssignDataStore object.
-        """
-        # data store for return to calling code
-        ccAssignDataStore = None
-        #
-        # Since no pickled cc assign details file existed previously we must 
-        # create a DataStore for chem comp assignments
-        if (self.__verbose):
-            self.__lfh.write("++++%s.%s() ---- creating new datastore because no prior cc-assign-details.pic file existed.\n" %( self.__class__.__name__, sys._getframe().f_code.co_name) )
-        ccAssignDataStore=p_ccAssignObj.createDataStore(p_ccAssignRsltsDict,p_exactMatchOption=True)
-
-        return ccAssignDataStore
-    
-
-    def __generateInstanceLevelData(self,p_ccAssignDataStore,p_bReusingPriorDataStore,p_semaphore):
-        """ Generate report material that will support 2D,3D renderings.
-            Also, populate ChemCompAssignDataStore with datapoints required for
-            instance-level browsing.
-            
-            Delegates processing to a child process
-            
-            :Params:           
-                ``p_ccAssignDataStore``: ChemCompAssignDataStore object
-                ``p_bReusingPriorDataStore``: boolean flag indicating whether there was
-                                                a pre-existing datastore for us to reuse. 
-            
-            :Helpers:
-            
-                + wwpdb.apps.ccmodule.reports.ChemCompReports.ChemCompReport
-                + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
-        """
-        instIdLst = []
-        depId       = str(self.__reqObj.getValue("identifier")).upper()
-        wfInstId    = str(self.__reqObj.getValue("instance")).upper()
-        sessionId   = self.__reqObj.getSessionId()
-        fileSource  = str(self.__reqObj.getValue("filesource")).lower()
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        if (self.__verbose):
-                self.__lfh.write("++%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n"%(className, methodName) )
-                self.__lfh.flush()
-        pid = os.fork()
-        if pid == 0:
-            #
-            sys.stdout = RedirectDevice()
-            sys.stderr = RedirectDevice()
-            os.setpgrp()
-            os.umask(0)
-            #
-            # redirect the logfile
-            self.__openChildProcessLog("RPRT_CHLD_PROC")            
-            sys.stdout = self.__lfh
-            sys.stderr = self.__lfh
-            #
-            if (self.__verbose):
-                self.__lfh.write("+++%s.%s() Child Process: PID# %s\n" %(className, methodName, os.getpid()) )
-            #
-            try:
-                ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-                    
-                instIdLst = p_ccAssignDataStore.getAuthAssignmentKeys()
-                if( self.__verbose ):
-                    for i in instIdLst:
-                        if( self.__verbose ):
-                            self.__lfh.write("+++%s.%s() -- instIdLst item %30s\n" %(className, methodName, i) )
-                        
-                if( len(instIdLst) > 0):
-                    ccIdAlrdySeenLst=[]
-                    fitTuplDict={}
-                    
-                    for instId in instIdLst:
-                        
-                        authAssgndId = p_ccAssignDataStore.getAuthAssignment(instId)
-                        topHitCcId = p_ccAssignDataStore.getBatchBestHitId(instId)
-                        
-                        if authAssgndId not in fitTuplDict:
-                            fitTuplDict[authAssgndId] = {}
-                            fitTuplDict[authAssgndId]["alignList"] = []
-                            fitTuplDict[authAssgndId]["masterAlignRef"] = None 
-                        
-                        instncChemCompFilePth = os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'),'deposit',depId,'assign',instId,instId+".cif")
-                        if not os.access(instncChemCompFilePth,os.R_OK):
-                            # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
-                            # and therefore produced cc-assign results file in local session area
-                            instncChemCompFilePth = os.path.join(self.__sessionPath,'assign',instId,instId+".cif")                        
-                        #
-                        
-                        # First generate report material for this experimental lig instance
-                        self.__genRprtMaterialForLgndInstance(instId,instncChemCompFilePth)
-                        
-                        # gather data required for generating 2D images for this experimental lig instance
-                        self.__imagingSetupForLgndInstance(instId,authAssgndId,fitTuplDict,instncChemCompFilePth)
-                        
-                        # gather data required for generating 2D images for *Author Assigned* ID of this lig instance
-                        if( not authAssgndId in ccIdAlrdySeenLst ):
-                            
-                            if( self.__isValid_Simple(authAssgndId) ):
-                                self.__genRprtMaterialForTopHit(authAssgndId)
-                                self.__imagingSetupForTopHit(authAssgndId,authAssgndId,fitTuplDict)
-                                ccIdAlrdySeenLst.append(authAssgndId)
-                            
-                        if( topHitCcId.lower() != 'none' ) and ( not topHitCcId in ccIdAlrdySeenLst ):
-                        
-                            # generate report material for TOP HIT dictionary reference to which this lig instance is mapped
-                            self.__genRprtMaterialForTopHit(topHitCcId)
-                            
-                            # gather data required for generating 2D images for TOP HIT of this lig instance
-                            self.__imagingSetupForTopHit(authAssgndId,topHitCcId,fitTuplDict)
-                            
-                            ccIdAlrdySeenLst.append(topHitCcId)
-                        
-                        
-                    # Then generate aligned 2D images using first instance of experimental ligand group as reference orientation
-                    self.__genAligned2dImages(fitTuplDict)
-                    self.__postSemaphore(p_semaphore,"OK")
-                    self.__lfh.flush()
-                    
-                    # 2013-06-26, RPS -- trying this here to see if it introduces improvement in response time
-                    if( p_bReusingPriorDataStore is not True ):
-                        # i.e. if we are spawning a brand new datastore from scratch let's go ahead and
-                        # parse the instance-level chem-comp cif files and top hit reference chem comp cif files
-                        # for data needed in instance browser
-                        ccA.getDataForInstncSrch(instIdLst,p_ccAssignDataStore)
-                        p_ccAssignDataStore.dumpData(self.__lfh);
-                        p_ccAssignDataStore.serialize()
-                        
-                    self.__lfh.write("+++%s.%s() -- DONE processing for child Process: PID# %s\n" %(className, methodName, os.getpid()) )
-                    self.__lfh.flush()
-                
-            except:
-                traceback.print_exc(file=self.__lfh)
-                self.__lfh.write("+++%s.%s() -- Failing for child Process: PID# %s\n" %(className, methodName, os.getpid()) )
-                self.__lfh.flush()
-                self.__postSemaphore(p_semaphore,"FAIL")
-                self.__verbose = False
-                
-            self.__verbose = False
-            os.kill(0,signal.SIGTERM)    
-            #os._exit(0)
-
-        else:
-            # we are in parent process and we will return status code to client to indicate that data processing is "running"
-            self.__lfh.write("+++%s.%s() Parent Process Completed: PID# %s\n" %(className, methodName, os.getpid()) )
-            self.__lfh.flush()
-            return
-
-    def __isValid_Simple(self,ccid):
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        pathPrefix = self.__ccConfig.getPath('chemCompCachePath')
-        validationPth = os.path.join(pathPrefix,ccid[:1],ccid,ccid+'.cif')
-        if (self.__verbose):
-            self.__lfh.write("+++%s.%s() ---- validating CC ID %s against path: %s\n" % (className, methodName,ccid,validationPth) )
-        if not os.access(validationPth, os.R_OK):
-            if (self.__verbose):
-                self.__lfh.write("+++%s.%s() ---- INVALID -- CC ID %s has no corresponding dict ref file at %s\n" % (className, methodName,ccid,validationPth) )
-            return False
-        #
-        return True
-
-    def __genRprtMaterialForLgndInstance(self,p_instId,p_chemCompFilePathAbs):
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        ccCoordRprt=ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        ccCoordRprt.setFilePath(p_chemCompFilePathAbs,p_instId)
-        if( self.__verbose ):
-            self.__lfh.write("+++%s.%s() -- before call to doReport and p_instId is: %s\n" %(className, methodName, p_instId) )
-        ccCoordRprt.doReport(type='exp',ccAssignPthMdfier=p_instId)
-        rDict=ccCoordRprt.getReportFilePaths()
-        for k,v in rDict.items():
-            if( self.__verbose ):
-                self.__lfh.write("+++%s.%s() -- Coordinate file reporting -- Key %30s value %s\n" %(className,methodName,k,v) )
-
-    def __imagingSetupForLgndInstance(self,p_instId,p_authAssgndId,p_fitTuplDict,p_chemCompFilePathAbs):
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        instImgOutputPth = os.path.join(self.__sessionPath,'assign',p_instId+".svg")
-        if p_fitTuplDict[p_authAssgndId]["masterAlignRef"] is None:
-            p_fitTuplDict[p_authAssgndId]["masterAlignRef"] = (p_instId,p_chemCompFilePathAbs,instImgOutputPth)
-        else:
-            p_fitTuplDict[p_authAssgndId]["alignList"].append( (p_instId,p_chemCompFilePathAbs,instImgOutputPth) )
-
-    def __genRprtMaterialForTopHit(self,p_topHitCcId):
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        ccReferncRprt=ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-                        
-        ccReferncRprt.setDefinitionId(definitionId=p_topHitCcId.lower())
-        ccReferncRprt.doReport(type='ref',ccAssignPthMdfier=p_topHitCcId)
-        rD=ccReferncRprt.getReportFilePaths()
-        for k,v in rD.items():
-            if( self.__verbose ):
-                self.__lfh.write("+++%s.%s() -- Reference file reporting -- Key %30s value %s\n" %(className,methodName,k,v) )
-                    
-    def __imagingSetupForTopHit(self,p_authAssgndId,p_topHitCcId,p_fitTuplDict):
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        pathPrefix = self.__ccConfig.getPath('chemCompCachePath')
-        chemCompCifPth = os.path.join(pathPrefix,p_topHitCcId[:1],p_topHitCcId,p_topHitCcId+'.cif')
-        
-        if( os.access(chemCompCifPth, os.R_OK) ):
-            defImgOutputPth = os.path.join(self.__sessionPath,'assign',p_topHitCcId+".svg")
-            
-            if p_authAssgndId not in p_fitTuplDict:
-                p_fitTuplDict[p_authAssgndId] = {}
-                p_fitTuplDict[p_authAssgndId]["alignList"] = []
-                p_fitTuplDict[p_authAssgndId]["masterAlignRef"] = None
-            #
-            p_fitTuplDict[p_authAssgndId]["alignList"].append( (p_topHitCcId,chemCompCifPth,defImgOutputPth) )
-        else:
-            self.__lfh.write("+++%s.%s() -- WARNING: PROBLEM accessing chemCompCifPth at: %s\n" %(className,methodName,chemCompCifPth) )
-        
-    def __genAligned2dImages(self,p_fitTuplDict):
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        self.__lfh.write("+++%s.%s() -- STARTING and p_fitTuplDict is %r\n" %(className, methodName, p_fitTuplDict) )
-        
-        redoCcidLst = []    
-        assignPath = os.path.join(self.__sessionPath,'assign')
-        
-        for ccid in p_fitTuplDict:
-            self.__lfh.write("+++%s.%s() -- Top of LOOP iteration through ccids in p_fitTuplDict and current ccid is %s\n" %(className, methodName, ccid) )
-            
-            try:
-                if( p_fitTuplDict[ccid]["alignList"] is not None and len(p_fitTuplDict[ccid]["alignList"]) > 0 ):
-                    fileListPath = os.path.join(assignPath,'alignfilelist_'+ccid+'.txt')
-                    logPath = os.path.join(assignPath,'alignfile_'+ccid+'.log')
-                    ofh=open(fileListPath,'w')
-                    ofh.write('ASSIGN_PATH:%s\n'%assignPath)
-                    ofh.write('MASTER_ID:%s\nMASTER_DEF_PTH:%s\nMASTER_IMG_PTH:%s\n'%(p_fitTuplDict[ccid]["masterAlignRef"][0],p_fitTuplDict[ccid]["masterAlignRef"][1],p_fitTuplDict[ccid]["masterAlignRef"][2]) )
-                        
-                    for (thisId,fileDefPath,imgFilePth) in p_fitTuplDict[ccid]["alignList"]:
-                        ofh.write('ALIGN_ID:%s\nALIGN_DEF_PTH:%s\nALIGN_IMG_PTH:%s\n'%(thisId,fileDefPath,imgFilePth) )
-                        
-                    ofh.close()                
-                    
-                    command = "python -m wwpdb.apps.ccmodule.reports.ChemCompAlignImages -v -i %s -f %s"%(ccid,fileListPath)
-                    returnCode = self.__runTimeout(command=command, logPath=logPath)
-                    
-                    if( returnCode is None or returnCode != 0 ):
-                        self.__lfh.write("\n+++%s.%s() -- WARNING: had to revisit image generation for ccid: %s\n\n" %(className, methodName, ccid) )
-                        redoCcidLst.append(ccid)
-                else:
-                    # there is no match for the ccid, no valid auth assigned id, and there is only one instance of the experimental ccid --> i.e. there will only be one image to generate
-                    redoCcidLst.append(ccid)
-                
-            except:
-                traceback.print_exc(file=self.__lfh)
-                
-            # safeguard measure required if above process fails silently
-            # so we check to see if the master image was not generated and add the ccid to the redo list
-            masterImgPth = p_fitTuplDict[ccid]["masterAlignRef"][2]
-            if( not os.access( masterImgPth, os.F_OK ) ):
-                self.__lfh.write("\n+++%s.%s() -- WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s\n\n" %(className, methodName, masterImgPth, ccid) )
-                redoCcidLst.append(ccid)
-        
-        # generate non-aligned images for those cases where exception occurred due to timeout/error
-        pathList = []
-        for ccid in redoCcidLst:
-            try:
-                imgTupl = p_fitTuplDict[ccid]["masterAlignRef"]
-                pathList.append( imgTupl )
-                
-                for anImgTupl in p_fitTuplDict[ccid]["alignList"]:
-                    pathList.append( anImgTupl )
-                
-                logPath = os.path.join(assignPath,'genimagefile_'+ccid+'.log')
-                
-                for title,path,imgPth in pathList:
-                    
-                    command = "python -m wwpdb.apps.ccmodule.reports.ChemCompGenImage -v -i %s -f %s -o %s"%(title,path,imgPth)
-                    returnCode = self.__runTimeout(command=command, logPath=logPath)
-                    
-                    if( returnCode is None or returnCode != 0 ):
-                        self.__lfh.write("\n+++%s.%s() -- WARNING: image generation failed for: %s\n\n" %(className, methodName, imgPth) )
-                    
-            except:
-                traceback.print_exc(file=self.__lfh)
-        
-        return
-    
-    def __runTimeout(self, command, timeout=10, logPath=None):
-        """ Execute the input command string (sh semantics) as a subprocess with a timeout.
-    
-    
-        """
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        self.__lfh.write("+++%s.%s() -- STARTING with time out set at %d (seconds)\n" %(className, methodName, timeout) )
-        
-        start = datetime.datetime.now()
-        cmdfile=os.path.join(self.__sessionPath,'assign','timeoutscript.sh')
-        # below done when permissions problems arose in attempts to run timeoutscript.sh
-        #sVal = str(time.strftime("%Y%m%d%H%M%S", time.localtime()))
-        #cmdfile=os.path.join('/tmp','timeoutscript_'+sVal+'.sh')
-        ofh=open(cmdfile,'w')
-        ofh.write("#!/bin/sh\n")
-        ofh.write("source %s/init/env.sh -s %s -l %s\n" % (self.__siteConfigDir, self.__siteId, self.__siteLoc))
-        ofh.write(command)
-        ofh.write("\n#\n")
-        ofh.close()
-        st = os.stat(cmdfile)
-        os.chmod(cmdfile, 0o777)
-        
-        try:
-            self.__lfh.write("+++%s.%s() -- running command %r in cmdfile %s \n" %(className, methodName, command, cmdfile) )
-            process = Popen(cmdfile, stdout=PIPE, stderr=PIPE, shell=False,close_fds=True,preexec_fn=os.setsid)
-            while process.poll() == None:
-                
-                time.sleep(0.1)
-                now = datetime.datetime.now()
-                if (now - start).seconds> timeout:
-                    #os.kill(-process.pid, signal.SIGKILL)
-                    os.killpg(process.pid, signal.SIGKILL)
-                    os.waitpid(-1, os.WNOHANG)
-                    self.__lfh.write("+++%s.%s() -- Execution terminated by timeout %d (seconds)\n" %(className, methodName, timeout) )
-                    if logPath is not None:
-                        ofh=open(logPath,'a')
-                        ofh.write("+++%s.%s() -- Execution terminated by timeout %d (seconds)\n" %(className, methodName, timeout) )
-                        ofh.close()
-                    return None
-        except:
-            traceback.print_exc(file=self.__lfh)
-            
-        output = process.communicate()
-        self.__lfh.write("+++%s.%s() -- completed with stdout data %r\n" %(className, methodName, output[0]) )
-        self.__lfh.write("+++%s.%s() -- completed with stderr data %r\n" %(className, methodName, output[1]) )
-        #self.__lfh.write("+++%s.%s() -- completed with return stdout.read() %r\n" %(className, methodName, process.stdout.read()) )
-        self.__lfh.write("+++%s.%s() -- completed with return code %r\n" %(className, methodName, process.returncode) )
-        
-        os.remove(cmdfile)
-        
-        return process.returncode
-
-        
-    def __importDepositorFiles(self,p_ccAssignDataStore):
-        """ Import any files that were previously uploaded/generated by the depositor
-            
-            :Params:           
-                ``p_ccAssgnDataStr``: ChemCompAssignDataStore object
-            
-            :Helpers:
-            
-                + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
-        """
-        instIdLst = []
-        depId       = str(self.__reqObj.getValue("identifier")).upper()
-        wfInstId    = str(self.__reqObj.getValue("instance")).upper()
-        sessionId   = self.__reqObj.getSessionId()
-        fileSource  = str(self.__reqObj.getValue("filesource")).lower()
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        if( self.__verbose ):
-            self.__lfh.write("+%s.%s() ------------------------------ STARTING ------------------------------\n" %(className, methodName) )
-        #
-        contentTypeDict = self.__cI.get('CONTENT_TYPE_DICTIONARY')
-        #
-        for ligId in p_ccAssignDataStore.getGlbllyRslvdGrpList():
-            if( self.__verbose ):
-                self.__lfh.write("+%s.%s() - Inside loop for processing ligand groups that had been previously addressed.\n" %(className, methodName) )
-                
-            try:
-            
-                # technically speaking, sdf files are not "uploaded" but are generated by any
-                # sketches created by depositor if using the marvinsketch editor provided in the UI
-                # for the time-being the sdf files are being handled as if they were uploaded
-                 
-                # check if marvinsketch was used to create an sdf file
-                sbmttdStrctrData = p_ccAssignDataStore.getDpstrSubmitChoice(ligId)
-                if( sbmttdStrctrData is not None and sbmttdStrctrData == 'sketch' ):
-                    defntnFlName = ligId+'-sketch.sdf'
-                    defntnFlPth = os.path.join(self.__sessionPath,defntnFlName)
-                    wfFlPth = p_ccAssignDataStore.getDpstrSketchFileWfPath(ligId,defntnFlName,'sdf')
-                    if( wfFlPth is not None and os.access(wfFlPth,os.R_OK) ):
-                        shutil.copyfile( wfFlPth, defntnFlPth )
-                        if( self.__verbose ):
-                            self.__lfh.write("+%s.%s() - Copied depositor sketch file from workflow path '%s' to session path as '%s'.\n" %(className, methodName, wfFlPth, defntnFlPth) )
-                    else:
-                        if( self.__verbose ):
-                            self.__lfh.write("+%s.%s() - ACCESS PROBLEM when attempting to copy depositor sketch file from workflow path '%s' to session path as '%s'.\n" %(className, methodName, wfFlPth, defntnFlPth) )
-                
-                # then check if any files were uploaded
-                dpstrUploadFilesDict = p_ccAssignDataStore.getDpstrUploadFilesDict()
-                if( ligId in dpstrUploadFilesDict ):
-                    for fileType in dpstrUploadFilesDict[ligId]:
-                        if( fileType in contentTypeDict['component-image'][0] ):
-                            for fileName in dpstrUploadFilesDict[ligId][fileType].keys():
-                                imgFlPth = os.path.join(self.__sessionPath,fileName)
-                                wfImgFlPth = p_ccAssignDataStore.getDpstrUploadFileWfPath(ligId,fileType,fileName)
-                                if( wfImgFlPth is not None and os.access(wfImgFlPth,os.R_OK) ):
-                                    shutil.copyfile( wfImgFlPth, imgFlPth )
-                                    if( self.__verbose ):
-                                        self.__lfh.write("+%s.%s() - Copied depositor component image file from workflow path '%s' to session path as '%s'.\n" %(className, methodName, wfImgFlPth, imgFlPth ) )
-                                else:
-                                    if( self.__verbose ):
-                                        self.__lfh.write("+%s.%s() - ACCESS PROBLEM when attempting to copy component image file from workflow path '%s' to session path as '%s'.\n" %(className, methodName, wfImgFlPth, imgFlPth) )                                
-
-                        elif( fileType in contentTypeDict['component-definition'][0] ):
-                            for fileName in dpstrUploadFilesDict[ligId][fileType].keys():
-                                defntnFlPth = os.path.join(self.__sessionPath,fileName)
-                                wfDefFlPth = p_ccAssignDataStore.getDpstrUploadFileWfPath(ligId,fileType,fileName)
-                                if( wfDefFlPth is not None and os.access(wfDefFlPth,os.R_OK) ):
-                                    shutil.copyfile( wfDefFlPth, defntnFlPth )
-                                    if( self.__verbose ):
-                                        self.__lfh.write("+%s.%s() - Copied depositor component definition file from workflow path '%s' to session path as '%s'.\n" %(className, methodName, wfDefFlPth, defntnFlPth ) )
-                                else:
-                                    if( self.__verbose ):
-                                        self.__lfh.write("+%s.%s() - ACCESS PROBLEM when attempting to copy component definition file from workflow path '%s' to session path as '%s'.\n" %(className, methodName, wfDefFlPth, defntnFlPth) )
-                                    
-            except:
-                if (self.__verbose):
-                    self.__lfh.write("+%s.%s() ----- WARNING ----- processing failed id:  %s\n" %(className, methodName) )
-                    traceback.print_exc(file=self.__lfh)
-                    self.__lfh.flush()                          
+        return rtrnCcAssgnDtStr                     
     
     def __exitLigMod(self,mode):
         """ Function to accommodate user request to exit lig module task,
@@ -2108,7 +1655,7 @@ class ChemCompWebAppLiteWorker(object):
         #
         return bSuccess
 
-        
+
     def __saveLigModState(self,mode):
         """ Persist state of user's chem comp module session which involves capturing updated:
                 - ChemCompAssignDataStore pickle file as 'chem-comp-assign-details' file.
@@ -2192,7 +1739,7 @@ class ChemCompWebAppLiteWorker(object):
                 self.__lfh.write("+ChemCompWebAppLiteWorker.__saveLigModState() ---- WARNING ---- No path obtained for CC assign details export file, id %s \n" % depId )
                 
             ##################################### chem comp depositor progress file #################################################
-            pathDict['dpstrPrgrssFileFlPth']=os.path.join(self.__cI.get('SITE_DEPOSIT_STORAGE_PATH'),'deposit',depId,'cc-dpstr-progress')
+            pathDict['dpstrPrgrssFileFlPth']=os.path.join(Path(self.__pathInfo.getDepositPath(depId)),'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = ( os.path.split(pathDict['dpstrPrgrssFileFlPth']) )[0]
             
             if (self.__verbose):
@@ -2430,6 +1977,31 @@ class ChemCompWebAppLiteWorker(object):
         else:
             #else we are in the standalone dev environment
             return False
+    
+    def _setupLog(self, log_file):
+        """Setup a Logger instance to use the same file as provided
+        by the 'log' parameters
+
+        Args:
+            log_file (IOStream): a file-like object
+
+        Returns:
+            Logger: instance of Logger class
+        """
+        logger = getLogger(__name__)
+        handler = StreamHandler(log_file)
+
+        formatter = Formatter('+%(module)s.%(funcName)s() ++ %(message)s\n')
+        handler.setFormatter(formatter)
+
+        logger.addHandler(handler)
+        
+        if self.__verbose:
+            logger.setLevel(DEBUG)
+        else:
+            logger.setLevel(INFO)
+
+        return logger
 
 class RedirectDevice:
     def write(self, s):

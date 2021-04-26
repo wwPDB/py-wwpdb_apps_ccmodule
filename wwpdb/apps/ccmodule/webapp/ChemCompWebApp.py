@@ -883,7 +883,8 @@ class ChemCompWebAppWorker(object):
                             dpCnvrt.exp(os.path.join(self.__sessionPath, depId + '-jmol-mdl.cif'))
                             #
                             # instantiate a cc assign data store from the pickled file if exists
-                            pickleFilePath = os.path.join(self.__sessionPath, 'assign', depId + '-cc-assign-details.pic')
+                            pickleFilePath = os.path.join(self.__sessionPath, depId + '_cc-assign-details.pic')
+                            # pickleFilePath = os.path.join(WfDirPath, depId + '_cc-assign-details_P1.pic.V1')
                             if os.access(pickleFilePath, os.R_OK):
                                 foundWfImageResult = True
                                 ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)

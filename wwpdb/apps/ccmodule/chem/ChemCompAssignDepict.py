@@ -1625,7 +1625,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         rtrnD['prefix'] = ""
         rtrnD['suffix'] = ""
         # 
-        if( p_wrningMsg != 'n.a.'):
+        if( p_wrningMsg != 'n.a.' and p_wrningMsg is not None ):
             rtrnD['warn_class'] = "warninfo"
             rtrnD['prefix'] = '<a href="#" title="SUPPLEMENTAL INFO:<br />'+p_wrningMsg+'" onclick="return false">'
             rtrnD['suffix'] = '</a>'        

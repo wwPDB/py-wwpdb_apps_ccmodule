@@ -90,6 +90,7 @@ except ImportError as e:
 from mmcif.io.PdbxWriter     import PdbxWriter
 from mmcif.api.PdbxContainers import *
 from mmcif.api.DataCategory   import DataCategory
+from wwpdb.utils.wf.WfDataObject import WfDataObject
 
 class ChemCompAssignDataStore(object):
     ''' Class serves as data container serving needs for a given user session.
@@ -204,15 +205,8 @@ class ChemCompAssignDataStore(object):
             else:
                 self.__fileName = depId.lower()+self.__fileNameSuffix
             #
-            picklePathAbs = os.path.join(self.__sessionsPath,sessionId,'assign')
-            if not os.path.exists(picklePathAbs):
-                os.makedirs(picklePathAbs)
-                if (self.__verbose):
-                    self.__lfh.write("+ChemCompAssignStore.__setup() - path to pickle file did not exist and so was created at %s\n" % picklePathAbs)
-                    #return False
-            #                
-            self.__filePath = os.path.join(picklePathAbs,self.__fileName)
-            #
+            self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
+            
             if os.access(self.__filePath,os.R_OK):
                 self.deserialize()
                 self.__wasBorn = True
@@ -226,7 +220,30 @@ class ChemCompAssignDataStore(object):
                              (self.__reqOb.getSessionId(),self.__filePath))
             self.__lfh.write("+ChemCompAssignStore.__setup() - Exception info: %s\n" %
                              sys.exc_info()[0])
-            
+            traceback.print_exc(file=self.__lfh)
+
+    def getFileObject(self, dataSetId, fileSource, contentType, formatType, versionId='latest', mileStone=None, wfInstanceId=None,
+                    partNumber=None, sessionDir=None):
+        out_file = WfDataObject()
+        out_file.setDepositionDataSetId(dataSetId)
+        out_file.setWorkflowInstanceId(wfInstanceId)
+        out_file.setStorageType(fileSource)
+
+        if mileStone:
+            out_file.setContentTypeAndFormat(contentType + '-' + mileStone, formatType)
+        else:
+            out_file.setContentTypeAndFormat(contentType, formatType)
+
+        if sessionDir:
+            out_file.setStorageType('session')
+            out_file.setSessionPath(sessionDir)
+            out_file.setSessionDataSetId(dataSetId)
+
+        out_file.setVersionId(versionId)
+        out_file.setPartitionNumber(partNumber)
+
+        return out_file
+
     def reset(self):
         """ Purge contents
         """

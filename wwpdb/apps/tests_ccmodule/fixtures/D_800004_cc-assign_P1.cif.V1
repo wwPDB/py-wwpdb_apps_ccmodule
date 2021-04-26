@@ -1,0 +1,452 @@
+data_D_800004
+# 
+_pdbx_entry_info.file                    input_file_1 
+_pdbx_entry_info.format                  pdbx 
+_pdbx_entry_info.number_of_total         28 
+_pdbx_entry_info.number_of_passed        25 
+_pdbx_entry_info.number_of_match         2 
+_pdbx_entry_info.number_of_close_match   0 
+_pdbx_entry_info.number_of_no_match      0 
+_pdbx_entry_info.status                  ? 
+# 
+loop_
+_pdbx_instance_assignment.inst_id 
+_pdbx_instance_assignment.het_id 
+_pdbx_instance_assignment.status 
+_pdbx_instance_assignment.single_atom_flag 
+_pdbx_instance_assignment.warning_message 
+_pdbx_instance_assignment.parameter 
+1_L_FUC_901_ FUC "ligand match TGY" n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_GLC_801_ GLC "ligand match ASO" n ?                                                                                          "default OpenBabel covalent radii" 
+1_H_0G7_701_ 0G7 passed             n 
+;possible bad geometry, default OpenBabel and
+DOHLC covalent radii give different results
+;
+"default OpenBabel covalent radii" 
+1_H_CA_1009_ CA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_H_CL_1013_ CL  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_H_CL_1014_ CL  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_H_NA_1010_ NA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_H_ZN_1011_ ZN  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_H_ZN_1012_ ZN  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CA_1002_ CA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CA_1003_ CA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CA_1005_ CA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CA_1006_ CA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CA_1008_ CA  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_14_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_16_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_19_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_20_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_25_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_26_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_29_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_35_  CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_6_   CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_CGU_7_   CGU passed             n ?                                                                                          "default OpenBabel covalent radii" 
+1_L_MG_1001_ MG  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_MG_1004_ MG  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_L_MG_1007_ MG  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+1_T_CL_1015_ CL  passed             y ?                                                                                          "default OpenBabel covalent radii" 
+# 
+loop_
+_pdbx_match_list.inst_id 
+_pdbx_match_list.reference_id 
+_pdbx_match_list.match_type 
+_pdbx_match_list.number_of_atoms_instance 
+_pdbx_match_list.number_of_chiral_centers_instance 
+_pdbx_match_list.number_of_atoms_reference 
+_pdbx_match_list.number_of_chiral_centers_reference 
+_pdbx_match_list.number_of_chiral_centers_combined 
+_pdbx_match_list.number_of_aromatic_bonds 
+_pdbx_match_list.number_of_total_bonds 
+_pdbx_match_list.number_of_atoms_match 
+_pdbx_match_list.number_of_chiral_centers_match_combined 
+_pdbx_match_list.number_of_chiral_centers_match 
+_pdbx_match_list.number_of_aromatic_bonds_match 
+_pdbx_match_list.number_of_total_bonds_match 
+_pdbx_match_list.heavy_atom_match_percent 
+_pdbx_match_list.chiral_center_match_percent 
+_pdbx_match_list.chiral_center_match_with_handness_percent 
+_pdbx_match_list.aromatic_match_flag 
+_pdbx_match_list.bond_order_match_percent 
+_pdbx_match_list.warning_message 
+1_H_0G7_701_ 0G7 ? 31 3 31 3 4 6 32 31 3 3 6 31 100 75   75   match 96   
+;Mismatch bond order between instance C2-O2 (SING) and reference C2-O2 (DOUB).
+
+;
+1_H_CA_1009_ CA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_H_CL_1013_ CL  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_H_CL_1014_ CL  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_H_NA_1010_ NA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_H_ZN_1011_ ZN  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_H_ZN_1012_ ZN  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_CA_1002_ CA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_CA_1003_ CA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_CA_1005_ CA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_CA_1006_ CA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_CA_1008_ CA  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_CGU_14_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_16_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_19_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_20_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_25_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_26_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_29_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_35_  CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_6_   CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_CGU_7_   CGU ? 13 1 13 1 1 0 12 13 1 1 0 12 100 100  100  n.a.  100  ?                                                                                
+1_L_FUC_901_ TGY ? 10 4 10 4 4 0 10 10 4 4 0 10 100 100  100  n.a.  100  ?                                                                                
+1_L_GLC_801_ ASO ? 11 4 11 4 4 0 11 11 4 4 0 11 100 100  100  n.a.  100  ?                                                                                
+1_L_MG_1001_ MG  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_MG_1004_ MG  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_L_MG_1007_ MG  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+1_T_CL_1015_ CL  ? 1  0 1  0 0 0 0  1  0 0 0 0  100 n.a. n.a. n.a.  n.a. ?                                                                                
+# 
+loop_
+_pdbx_atom_mapping.inst_id 
+_pdbx_atom_mapping.inst_atom_name 
+_pdbx_atom_mapping.reference_id 
+_pdbx_atom_mapping.reference_atom_name 
+1_H_0G7_701_ C    0G7 C    
+1_H_0G7_701_ C1   0G7 C1   
+1_H_0G7_701_ C2   0G7 C2   
+1_H_0G7_701_ C3   0G7 C3   
+1_H_0G7_701_ CA   0G7 CA   
+1_H_0G7_701_ CA1  0G7 CA1  
+1_H_0G7_701_ CA2  0G7 CA2  
+1_H_0G7_701_ CB   0G7 CB   
+1_H_0G7_701_ CB1  0G7 CB1  
+1_H_0G7_701_ CB2  0G7 CB2  
+1_H_0G7_701_ CD   0G7 CD   
+1_H_0G7_701_ CD1  0G7 CD1  
+1_H_0G7_701_ CD2  0G7 CD2  
+1_H_0G7_701_ CD3  0G7 CD3  
+1_H_0G7_701_ CE1  0G7 CE1  
+1_H_0G7_701_ CE2  0G7 CE2  
+1_H_0G7_701_ CG   0G7 CG   
+1_H_0G7_701_ CG1  0G7 CG1  
+1_H_0G7_701_ CG2  0G7 CG2  
+1_H_0G7_701_ CL1  0G7 CL1  
+1_H_0G7_701_ CZ   0G7 CZ   
+1_H_0G7_701_ CZ1  0G7 CZ1  
+1_H_0G7_701_ H1   0G7 HN   
+1_H_0G7_701_ H10  0G7 HE2  
+1_H_0G7_701_ H11  0G7 HZ   
+1_H_0G7_701_ H12  0G7 HA1  
+1_H_0G7_701_ H13  0G7 HB1  
+1_H_0G7_701_ H14  0G7 HB1A 
+1_H_0G7_701_ H15  0G7 H31  
+1_H_0G7_701_ H16  0G7 HG1  
+1_H_0G7_701_ H17  0G7 H29  
+1_H_0G7_701_ H18  0G7 HD   
+1_H_0G7_701_ H19  0G7 HN2  
+1_H_0G7_701_ H2   0G7 HNA  
+1_H_0G7_701_ H20  0G7 HA2  
+1_H_0G7_701_ H23  0G7 HB2  
+1_H_0G7_701_ H24  0G7 HB2A 
+1_H_0G7_701_ H25  0G7 HG2  
+1_H_0G7_701_ H26  0G7 HG2A 
+1_H_0G7_701_ H27  0G7 HD3  
+1_H_0G7_701_ H28  0G7 HD3A 
+1_H_0G7_701_ H29  0G7 HNE  
+1_H_0G7_701_ H30  0G7 HNH1 
+1_H_0G7_701_ H31  0G7 HNHA 
+1_H_0G7_701_ H32  0G7 HNH2 
+1_H_0G7_701_ H33  0G7 H3   
+1_H_0G7_701_ H34  0G7 H3A  
+1_H_0G7_701_ H4   0G7 HA   
+1_H_0G7_701_ H5   0G7 HB   
+1_H_0G7_701_ H6   0G7 HBA  
+1_H_0G7_701_ H7   0G7 HD1  
+1_H_0G7_701_ H8   0G7 HD2  
+1_H_0G7_701_ H9   0G7 HE1  
+1_H_0G7_701_ N    0G7 N    
+1_H_0G7_701_ N1   0G7 N1   
+1_H_0G7_701_ N2   0G7 N2   
+1_H_0G7_701_ NE   0G7 NE   
+1_H_0G7_701_ NH1  0G7 NH1  
+1_H_0G7_701_ NH2  0G7 NH2  
+1_H_0G7_701_ O    0G7 O    
+1_H_0G7_701_ O1   0G7 O1   
+1_H_0G7_701_ O2   0G7 O2   
+1_H_CA_1009_ CA   CA  CA   
+1_H_CL_1013_ CL   CL  CL   
+1_H_CL_1014_ CL   CL  CL   
+1_H_NA_1010_ NA   NA  NA   
+1_H_ZN_1011_ ZN   ZN  ZN   
+1_H_ZN_1012_ ZN   ZN  ZN   
+1_L_CA_1002_ CA   CA  CA   
+1_L_CA_1003_ CA   CA  CA   
+1_L_CA_1005_ CA   CA  CA   
+1_L_CA_1006_ CA   CA  CA   
+1_L_CA_1008_ CA   CA  CA   
+1_L_CGU_14_  C    CGU C    
+1_L_CGU_14_  CA   CGU CA   
+1_L_CGU_14_  CB   CGU CB   
+1_L_CGU_14_  CD1  CGU CD1  
+1_L_CGU_14_  CD2  CGU CD2  
+1_L_CGU_14_  CG   CGU CG   
+1_L_CGU_14_  H1   CGU H    
+1_L_CGU_14_  H10  CGU HXT  
+1_L_CGU_14_  H2   CGU HN2  
+1_L_CGU_14_  H4   CGU HA   
+1_L_CGU_14_  H5   CGU HB2  
+1_L_CGU_14_  H6   CGU HB3  
+1_L_CGU_14_  H7   CGU HG   
+1_L_CGU_14_  H8   CGU HE12 
+1_L_CGU_14_  H9   CGU HE22 
+1_L_CGU_14_  N    CGU N    
+1_L_CGU_14_  O    CGU O    
+1_L_CGU_14_  O1   CGU OXT  
+1_L_CGU_14_  OE11 CGU OE12 
+1_L_CGU_14_  OE12 CGU OE11 
+1_L_CGU_14_  OE21 CGU OE22 
+1_L_CGU_14_  OE22 CGU OE21 
+1_L_CGU_16_  C    CGU C    
+1_L_CGU_16_  CA   CGU CA   
+1_L_CGU_16_  CB   CGU CB   
+1_L_CGU_16_  CD1  CGU CD1  
+1_L_CGU_16_  CD2  CGU CD2  
+1_L_CGU_16_  CG   CGU CG   
+1_L_CGU_16_  H1   CGU H    
+1_L_CGU_16_  H10  CGU HXT  
+1_L_CGU_16_  H2   CGU HN2  
+1_L_CGU_16_  H4   CGU HA   
+1_L_CGU_16_  H5   CGU HB2  
+1_L_CGU_16_  H6   CGU HB3  
+1_L_CGU_16_  H7   CGU HG   
+1_L_CGU_16_  H8   CGU HE12 
+1_L_CGU_16_  H9   CGU HE22 
+1_L_CGU_16_  N    CGU N    
+1_L_CGU_16_  O    CGU O    
+1_L_CGU_16_  O1   CGU OXT  
+1_L_CGU_16_  OE11 CGU OE11 
+1_L_CGU_16_  OE12 CGU OE12 
+1_L_CGU_16_  OE21 CGU OE21 
+1_L_CGU_16_  OE22 CGU OE22 
+1_L_CGU_19_  C    CGU C    
+1_L_CGU_19_  CA   CGU CA   
+1_L_CGU_19_  CB   CGU CB   
+1_L_CGU_19_  CD1  CGU CD1  
+1_L_CGU_19_  CD2  CGU CD2  
+1_L_CGU_19_  CG   CGU CG   
+1_L_CGU_19_  H1   CGU H    
+1_L_CGU_19_  H10  CGU HXT  
+1_L_CGU_19_  H2   CGU HN2  
+1_L_CGU_19_  H4   CGU HA   
+1_L_CGU_19_  H5   CGU HB2  
+1_L_CGU_19_  H6   CGU HB3  
+1_L_CGU_19_  H7   CGU HG   
+1_L_CGU_19_  H8   CGU HE12 
+1_L_CGU_19_  H9   CGU HE22 
+1_L_CGU_19_  N    CGU N    
+1_L_CGU_19_  O    CGU O    
+1_L_CGU_19_  O1   CGU OXT  
+1_L_CGU_19_  OE11 CGU OE11 
+1_L_CGU_19_  OE12 CGU OE12 
+1_L_CGU_19_  OE21 CGU OE22 
+1_L_CGU_19_  OE22 CGU OE21 
+1_L_CGU_20_  C    CGU C    
+1_L_CGU_20_  CA   CGU CA   
+1_L_CGU_20_  CB   CGU CB   
+1_L_CGU_20_  CD1  CGU CD1  
+1_L_CGU_20_  CD2  CGU CD2  
+1_L_CGU_20_  CG   CGU CG   
+1_L_CGU_20_  H1   CGU H    
+1_L_CGU_20_  H10  CGU HXT  
+1_L_CGU_20_  H2   CGU HN2  
+1_L_CGU_20_  H4   CGU HA   
+1_L_CGU_20_  H5   CGU HB2  
+1_L_CGU_20_  H6   CGU HB3  
+1_L_CGU_20_  H7   CGU HG   
+1_L_CGU_20_  H8   CGU HE12 
+1_L_CGU_20_  H9   CGU HE22 
+1_L_CGU_20_  N    CGU N    
+1_L_CGU_20_  O    CGU O    
+1_L_CGU_20_  O1   CGU OXT  
+1_L_CGU_20_  OE11 CGU OE11 
+1_L_CGU_20_  OE12 CGU OE12 
+1_L_CGU_20_  OE21 CGU OE21 
+1_L_CGU_20_  OE22 CGU OE22 
+1_L_CGU_25_  C    CGU C    
+1_L_CGU_25_  CA   CGU CA   
+1_L_CGU_25_  CB   CGU CB   
+1_L_CGU_25_  CD1  CGU CD1  
+1_L_CGU_25_  CD2  CGU CD2  
+1_L_CGU_25_  CG   CGU CG   
+1_L_CGU_25_  H1   CGU H    
+1_L_CGU_25_  H10  CGU HXT  
+1_L_CGU_25_  H2   CGU HN2  
+1_L_CGU_25_  H4   CGU HA   
+1_L_CGU_25_  H5   CGU HB2  
+1_L_CGU_25_  H6   CGU HB3  
+1_L_CGU_25_  H7   CGU HG   
+1_L_CGU_25_  H8   CGU HE12 
+1_L_CGU_25_  H9   CGU HE22 
+1_L_CGU_25_  N    CGU N    
+1_L_CGU_25_  O    CGU O    
+1_L_CGU_25_  O1   CGU OXT  
+1_L_CGU_25_  OE11 CGU OE11 
+1_L_CGU_25_  OE12 CGU OE12 
+1_L_CGU_25_  OE21 CGU OE22 
+1_L_CGU_25_  OE22 CGU OE21 
+1_L_CGU_26_  C    CGU C    
+1_L_CGU_26_  CA   CGU CA   
+1_L_CGU_26_  CB   CGU CB   
+1_L_CGU_26_  CD1  CGU CD1  
+1_L_CGU_26_  CD2  CGU CD2  
+1_L_CGU_26_  CG   CGU CG   
+1_L_CGU_26_  H1   CGU H    
+1_L_CGU_26_  H10  CGU HXT  
+1_L_CGU_26_  H2   CGU HN2  
+1_L_CGU_26_  H4   CGU HA   
+1_L_CGU_26_  H5   CGU HB2  
+1_L_CGU_26_  H6   CGU HB3  
+1_L_CGU_26_  H7   CGU HG   
+1_L_CGU_26_  H8   CGU HE12 
+1_L_CGU_26_  H9   CGU HE22 
+1_L_CGU_26_  N    CGU N    
+1_L_CGU_26_  O    CGU O    
+1_L_CGU_26_  O1   CGU OXT  
+1_L_CGU_26_  OE11 CGU OE12 
+1_L_CGU_26_  OE12 CGU OE11 
+1_L_CGU_26_  OE21 CGU OE21 
+1_L_CGU_26_  OE22 CGU OE22 
+1_L_CGU_29_  C    CGU C    
+1_L_CGU_29_  CA   CGU CA   
+1_L_CGU_29_  CB   CGU CB   
+1_L_CGU_29_  CD1  CGU CD1  
+1_L_CGU_29_  CD2  CGU CD2  
+1_L_CGU_29_  CG   CGU CG   
+1_L_CGU_29_  H1   CGU H    
+1_L_CGU_29_  H10  CGU HXT  
+1_L_CGU_29_  H2   CGU HN2  
+1_L_CGU_29_  H4   CGU HA   
+1_L_CGU_29_  H5   CGU HB2  
+1_L_CGU_29_  H6   CGU HB3  
+1_L_CGU_29_  H7   CGU HG   
+1_L_CGU_29_  H8   CGU HE12 
+1_L_CGU_29_  H9   CGU HE22 
+1_L_CGU_29_  N    CGU N    
+1_L_CGU_29_  O    CGU O    
+1_L_CGU_29_  O1   CGU OXT  
+1_L_CGU_29_  OE11 CGU OE11 
+1_L_CGU_29_  OE12 CGU OE12 
+1_L_CGU_29_  OE21 CGU OE21 
+1_L_CGU_29_  OE22 CGU OE22 
+1_L_CGU_35_  C    CGU C    
+1_L_CGU_35_  CA   CGU CA   
+1_L_CGU_35_  CB   CGU CB   
+1_L_CGU_35_  CD1  CGU CD1  
+1_L_CGU_35_  CD2  CGU CD2  
+1_L_CGU_35_  CG   CGU CG   
+1_L_CGU_35_  H1   CGU H    
+1_L_CGU_35_  H10  CGU HXT  
+1_L_CGU_35_  H2   CGU HN2  
+1_L_CGU_35_  H4   CGU HA   
+1_L_CGU_35_  H5   CGU HB2  
+1_L_CGU_35_  H6   CGU HB3  
+1_L_CGU_35_  H7   CGU HG   
+1_L_CGU_35_  H8   CGU HE12 
+1_L_CGU_35_  H9   CGU HE22 
+1_L_CGU_35_  N    CGU N    
+1_L_CGU_35_  O    CGU O    
+1_L_CGU_35_  O1   CGU OXT  
+1_L_CGU_35_  OE11 CGU OE12 
+1_L_CGU_35_  OE12 CGU OE11 
+1_L_CGU_35_  OE21 CGU OE22 
+1_L_CGU_35_  OE22 CGU OE21 
+1_L_CGU_6_   C    CGU C    
+1_L_CGU_6_   CA   CGU CA   
+1_L_CGU_6_   CB   CGU CB   
+1_L_CGU_6_   CD1  CGU CD1  
+1_L_CGU_6_   CD2  CGU CD2  
+1_L_CGU_6_   CG   CGU CG   
+1_L_CGU_6_   H1   CGU H    
+1_L_CGU_6_   H10  CGU HXT  
+1_L_CGU_6_   H2   CGU HN2  
+1_L_CGU_6_   H4   CGU HA   
+1_L_CGU_6_   H5   CGU HB2  
+1_L_CGU_6_   H6   CGU HB3  
+1_L_CGU_6_   H7   CGU HG   
+1_L_CGU_6_   H8   CGU HE12 
+1_L_CGU_6_   H9   CGU HE22 
+1_L_CGU_6_   N    CGU N    
+1_L_CGU_6_   O    CGU O    
+1_L_CGU_6_   O1   CGU OXT  
+1_L_CGU_6_   OE11 CGU OE11 
+1_L_CGU_6_   OE12 CGU OE12 
+1_L_CGU_6_   OE21 CGU OE21 
+1_L_CGU_6_   OE22 CGU OE22 
+1_L_CGU_7_   C    CGU C    
+1_L_CGU_7_   CA   CGU CA   
+1_L_CGU_7_   CB   CGU CB   
+1_L_CGU_7_   CD1  CGU CD1  
+1_L_CGU_7_   CD2  CGU CD2  
+1_L_CGU_7_   CG   CGU CG   
+1_L_CGU_7_   H1   CGU H    
+1_L_CGU_7_   H10  CGU HXT  
+1_L_CGU_7_   H2   CGU HN2  
+1_L_CGU_7_   H4   CGU HA   
+1_L_CGU_7_   H5   CGU HB2  
+1_L_CGU_7_   H6   CGU HB3  
+1_L_CGU_7_   H7   CGU HG   
+1_L_CGU_7_   H8   CGU HE12 
+1_L_CGU_7_   H9   CGU HE22 
+1_L_CGU_7_   N    CGU N    
+1_L_CGU_7_   O    CGU O    
+1_L_CGU_7_   O1   CGU OXT  
+1_L_CGU_7_   OE11 CGU OE11 
+1_L_CGU_7_   OE12 CGU OE12 
+1_L_CGU_7_   OE21 CGU OE21 
+1_L_CGU_7_   OE22 CGU OE22 
+1_L_FUC_901_ C1   TGY C6   
+1_L_FUC_901_ C2   TGY C5   
+1_L_FUC_901_ C3   TGY C4   
+1_L_FUC_901_ C4   TGY C3   
+1_L_FUC_901_ C5   TGY C2   
+1_L_FUC_901_ C6   TGY C1   
+1_L_FUC_901_ H1   TGY H61  
+1_L_FUC_901_ H10  TGY HO5  
+1_L_FUC_901_ H11  TGY HO4  
+1_L_FUC_901_ H12  TGY HO3  
+1_L_FUC_901_ H2   TGY H62  
+1_L_FUC_901_ H3   TGY H5   
+1_L_FUC_901_ H4   TGY H4   
+1_L_FUC_901_ H5   TGY H3   
+1_L_FUC_901_ H7   TGY H11  
+1_L_FUC_901_ H8   TGY H12  
+1_L_FUC_901_ H9   TGY H7   
+1_L_FUC_901_ O2   TGY O5   
+1_L_FUC_901_ O3   TGY O4   
+1_L_FUC_901_ O4   TGY O3   
+1_L_FUC_901_ O5   TGY O6   
+1_L_GLC_801_ C1   ASO C1   
+1_L_GLC_801_ C2   ASO C2   
+1_L_GLC_801_ C3   ASO C3   
+1_L_GLC_801_ C4   ASO C4   
+1_L_GLC_801_ C5   ASO C5   
+1_L_GLC_801_ C6   ASO C6   
+1_L_GLC_801_ H1   ASO H1   
+1_L_GLC_801_ H10  ASO HO3  
+1_L_GLC_801_ H11  ASO HO4  
+1_L_GLC_801_ H12  ASO HO6  
+1_L_GLC_801_ H2   ASO H12  
+1_L_GLC_801_ H3   ASO H2   
+1_L_GLC_801_ H4   ASO H3   
+1_L_GLC_801_ H5   ASO H4   
+1_L_GLC_801_ H6   ASO H5   
+1_L_GLC_801_ H7   ASO H61  
+1_L_GLC_801_ H8   ASO H62  
+1_L_GLC_801_ H9   ASO HO2  
+1_L_GLC_801_ O2   ASO O2   
+1_L_GLC_801_ O3   ASO O3   
+1_L_GLC_801_ O4   ASO O4   
+1_L_GLC_801_ O5   ASO O5   
+1_L_GLC_801_ O6   ASO O6   
+1_L_MG_1001_ MG   MG  MG   
+1_L_MG_1004_ MG   MG  MG   
+1_L_MG_1007_ MG   MG  MG   
+1_T_CL_1015_ CL   CL  CL   
+# 

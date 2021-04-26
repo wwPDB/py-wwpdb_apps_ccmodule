@@ -23,7 +23,9 @@ import os, sys, time, types, string, shutil, traceback
 
 
 from wwpdb.apps.ccmodule.utils.ChemCompConfig      import ChemCompConfig
-
+from wwpdb.utils.config.ConfigInfo                 import ConfigInfo
+from pathlib                                       import Path
+from wwpdb.io.locator.PathInfo                     import PathInfo
 
 class ChemCompReport(object):
     """Create web report from chemical component definitions.
@@ -49,12 +51,19 @@ class ChemCompReport(object):
         self.__sObj=self.__reqObj.getSessionObj()
         self.__sessionPath=self.__sObj.getPath()
         self.__sessionRelativePath=self.__sObj.getRelativePath()
+        self.__depId=self.__reqObj.getValue('identifier').upper()
         #
         self.__ccConfig=ChemCompConfig(reqObj, verbose=self.__verbose,log=self.__lfh)        
         #
         self.__reportFilePath=None
         self.__definitionId=None
         self.__definitionFilePath=None        
+
+        self.__siteId=str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__cI=ConfigInfo(self.__siteId)
+        self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
+        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
+        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
 
     def setDefinitionId(self,definitionId):
         """Set an existing chemical component identifier in archive collection as
@@ -91,20 +100,18 @@ class ChemCompReport(object):
         """
         # Make a local copy of the source definition file -
         #
-        #reportPath         = os.path.join(self.__sessionPath,        self.__definitionId)
-        #reportRelativePath = os.path.join(self.__sessionRelativePath,self.__definitionId)
         rprtPthSuffix = '' 
         if type == None:
-            reportPath         = os.path.join(self.__sessionPath,        self.__definitionId,'report')
-            reportRelativePath = os.path.join(self.__sessionRelativePath,self.__definitionId,'report')
+            reportPath         = os.path.join(self.__ccReportPath,self.__definitionId,'report')
+            reportRelativePath = os.path.join(self.__definitionId,'report')
         else:
             if( type == 'exp' ):
                 rprtPthSuffix      = os.path.join(ccAssignPthMdfier,'report')
             elif( type == 'ref'):
                 rprtPthSuffix      = os.path.join('rfrnc_reports',ccAssignPthMdfier)
                 
-            reportPath         = os.path.join(self.__sessionPath,'assign',rprtPthSuffix)
-            reportRelativePath = os.path.join(self.__sessionRelativePath,'assign',rprtPthSuffix)
+            reportPath         = os.path.join(self.__ccReportPath,rprtPthSuffix)
+            reportRelativePath = os.path.join(rprtPthSuffix)
         #
         # create the report path in the session directory
         #
@@ -137,7 +144,7 @@ class ChemCompReport(object):
         if (self.__verbose):
             self.__lfh.write("+ChemCompReports.doReport()\n")
             self.__lfh.write("Report ID                = %s\n" % self.__definitionId)            
-            self.__lfh.write("Beginning report in path = %s\n" % reportPath)	
+            self.__lfh.write("Beginning report in path = %s\n" % reportPath) 
             self.__lfh.write("Target filename          = %s\n" % fileName)
             self.__lfh.write("Report path              = %s\n" % reportFile)
             self.__lfh.write("Log    path              = %s\n" % logPath)
@@ -183,8 +190,8 @@ class ChemCompReport(object):
         
         """
         ##
-        relPath = os.path.join(self.__sessionRelativePath,self.__definitionId,'report')
-        absPath = os.path.join(self.__sessionPath,self.__definitionId,'report')
+        relPath = os.path.join(self.__definitionId,'report')
+        absPath = os.path.join(self.__ccReportPath,self.__definitionId,'report')
         ccId = self.__definitionId
         #
         if self.__verbose:
