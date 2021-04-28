@@ -76,8 +76,6 @@ class LigandAnalysisState:
         currentState = { 'state': 'unknown' }
 
         if not os.access(self._ccStateFilePath, os.R_OK):
-            # maybe a better check would be appropriate, i.e.
-            # checking somehow if the analysis is running
             workflowStatus = self._checkRunningWorkflows()
 
             if workflowStatus is None:

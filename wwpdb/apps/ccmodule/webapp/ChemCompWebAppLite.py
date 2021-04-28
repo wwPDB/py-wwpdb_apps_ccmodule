@@ -556,7 +556,12 @@ class ChemCompWebAppLiteWorker(object):
         if not self.__depId or not re.fullmatch('D_[0-9]+', self.__depId):
             raise InvalidDepositionIdError('Invalid deposition ID')
 
-        wfName = 'wf_op_ligand_analysis.xml'
+        analysisState = LigandAnalysisState(self.__depId)
+        progress = analysisState.getProgress()
+
+        if progress['state'] in ['busy', 'preparing']:
+            raise LigandStateError('Ligand analysis already running or system busy')
+
         query = "update status.communication set " \
             "  sender = 'DEP' " \
             ", receiver = 'WFE' " \
@@ -577,7 +582,6 @@ class ChemCompWebAppLiteWorker(object):
 
         self.__logger.info('Result %d', nrow)
 
-        analysisState = LigandAnalysisState(self.__depId)
         analysisState.reset()
 
         rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
