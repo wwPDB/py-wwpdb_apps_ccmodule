@@ -236,7 +236,3 @@ class LigandAnalysisState:
             logger.setLevel(INFO)
 
         return logger
-
-if __name__ == "__main__":
-    l = LigandAnalysisState('D_800029')
-    l._checkRunningWorkflows()
