@@ -8,6 +8,8 @@ from wwpdb.apps.ccmodule.utils.Exceptions import LigandStateError
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.utils.wf.dbapi.WfDbApi import WfDbApi
+
 
 class LigandAnalysisState:
     """Class to track progress of operations in ligand
@@ -74,9 +76,22 @@ class LigandAnalysisState:
         currentState = { 'state': 'unknown' }
 
         if not os.access(self._ccStateFilePath, os.R_OK):
-            # maybe a better check would be appropriate, i.e.
-            # checking somehow if the analysis is running
-            currentState['state'] = 'missing_file'
+            workflowStatus = self._checkRunningWorkflows()
+
+            if workflowStatus is None:
+                return currentState
+            
+            status = workflowStatus[0]
+            classId = workflowStatus[1]
+
+            if status == 'WORKING':
+                if classId in ['uploadMod', 'ligandAnalysis']:
+                    currentState['state'] = 'preparing'
+                else:
+                    currentState['state'] = 'busy'
+            else:
+                currentState['state'] = 'missing_file'
+
             return currentState
         
         try:
@@ -149,6 +164,20 @@ class LigandAnalysisState:
         
         if os.access(self._ccStateFilePath, os.R_OK):
             os.remove(self._ccStateFilePath)
+    
+    def _checkRunningWorkflows(self):
+        sqlQuery = "select status, wf_class_id from status.communication " \
+        "where dep_set_id = '{}'".format(self._depId)
+
+        wfApi = WfDbApi(verbose=True, log=sys.stderr)
+
+        if wfApi.isConnected():
+            nrow = wfApi.runSelectSQL(sqlQuery)
+
+            if len(nrow) > 0:
+                return nrow[0]
+        
+        return None
 
     def _saveState(self, current_ligand=None):
         state = self._createStateDescriptor(self._progress, self._state, current_ligand)

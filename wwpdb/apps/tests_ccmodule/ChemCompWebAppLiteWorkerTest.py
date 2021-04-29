@@ -20,11 +20,13 @@ from unittest.mock import Mock, MagicMock, patch
 
 sessionsTopDir = tempfile.mkdtemp()
 configInfo = {
+    'SITE_DEPOSIT_STORAGE_PATH': tempfile.mkdtemp(),
     'SITE_PREFIX': 'PDBE_LOCALHOST',
     'SITE_WEB_APPS_TOP_SESSIONS_PATH': sessionsTopDir,
     'SITE_WEB_APPS_SESSIONS_PATH': os.path.join(sessionsTopDir, 'sessions'),
     'SITE_CC_APPS_PATH': tempfile.mkdtemp(),
     'SITE_CC_CVS_PATH': tempfile.mkdtemp(),
+    'SITE_DB_PORT_NUMBER': 10,
 }
 
 configInfoMockConfig = {
@@ -301,8 +303,9 @@ class RunAnalysisTest(unittest.TestCase):
         self.__depositPath = Path(PathInfo().getDepositPath('D_800001')).parent
         self.chemCompApp = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
     
+    @patch('wwpdb.apps.ccmodule.utils.LigandAnalysisState.WfDbApi')
     @patch('wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.WfDbApi')
-    def testDepositionIds(self, mockWfDbApi):
+    def testDepositionIds(self, mockWfDbApi, ligStateMockDb):
         mockWfDbApi.return_value.runUpdateSQL.return_value = 2
 
         self.chemCompApp._ChemCompWebAppLiteWorker__depId = ''
@@ -329,16 +332,12 @@ class RunAnalysisTest(unittest.TestCase):
         response = json.loads(self.chemCompApp._runAnalysis().get()['RETURN_STRING'])
         self.assertEqual(response['status'], 'success')
     
+    @patch('wwpdb.apps.ccmodule.utils.LigandAnalysisState.WfDbApi')
     @patch('wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.WfDbApi')
-    def testWfDb(self, mockWfDbApi):
-        mockWfDbApi.return_value.isConnected.return_value = False
-        with self.assertRaises(Exception):
-            self.chemCompApp._runAnalysis()
-    
+    def testWfDb(self, mockWfDbApi, ligStateMockDb):
         mockWfDbApi.return_value.isConnected.return_value = True
-        mockWfDbApi.return_value.runUpdateSQL.return_value = None
-        with self.assertRaises(Exception):
-            self.chemCompApp._runAnalysis()
+        mockWfDbApi.return_value.runUpdateSQL.return_value = 0
+        self.chemCompApp._runAnalysis()
         
         mockWfDbApi.return_value.isConnected.return_value = True
         mockWfDbApi.return_value.runUpdateSQL.return_value = 1
