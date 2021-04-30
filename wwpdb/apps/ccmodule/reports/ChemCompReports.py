@@ -51,7 +51,7 @@ class ChemCompReport(object):
         self.__sObj=self.__reqObj.getSessionObj()
         self.__sessionPath=self.__sObj.getPath()
         self.__sessionRelativePath=self.__sObj.getRelativePath()
-        self.__depId=self.__reqObj.getValue('identifier').upper()
+        self.__depId='D_0' if self.__reqObj.getValue('identifier') in [None, 'TMP_ID'] else self.__reqObj.getValue('identifier').upper()
         #
         self.__ccConfig=ChemCompConfig(reqObj, verbose=self.__verbose,log=self.__lfh)        
         #

@@ -232,7 +232,7 @@ class ChemCompWebAppLiteWorker(object):
         self.__sessionId=None
         self.__sessionPath=None
         self.__rltvSessionPath=None
-        self.__depId = self.__reqObj.getValue("identifier").upper()
+        self.__depId = "D_0" if self.__reqObj.getValue("identifier") in [None, 'TMP_ID'] else self.__reqObj.getValue("identifier").upper()
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
         self.__deployPath = self.__cI.get('SITE_DEPLOY_PATH')
@@ -377,7 +377,7 @@ class ChemCompWebAppLiteWorker(object):
         supportedSources = ["ccd", "author", "report"] # this will tell from where we should get the file
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
 
-        sessionId    = self.__sessionId
+        sessionId    = self.__reqObj.getValue("sessionid")
         depId        = self.__reqObj.getValue("identifier").upper()
         source       = self.__reqObj.getValue("source").lower()
         ligandId     = self.__reqObj.getValue("ligid").upper()
@@ -1695,7 +1695,7 @@ class ChemCompWebAppLiteWorker(object):
         pathDict['dpstrPrgrssFileFlPth']=None
         #
         fileSource = str(self.__reqObj.getValue("filesource")).strip().lower()
-        depId  =  self.__reqObj.getValue("identifier")
+        depId  =  "D_0" if self.__reqObj.getValue("identifier") in [None, 'TMP_ID'] else self.__reqObj.getValue("identifier")
         instId =  self.__reqObj.getValue("instance")
         #classId = self.__reqObj.getValue("classid")
         sessionId=self.__sessionId

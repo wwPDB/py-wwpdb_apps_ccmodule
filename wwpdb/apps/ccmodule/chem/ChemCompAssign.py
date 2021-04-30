@@ -150,7 +150,7 @@ class ChemCompAssign(object):
         #
 
     def __setup(self):
-        self.__depId = self.__reqObj.getValue('identifier')
+        self.__depId = 'D_0' if self.__reqObj.getValue('identifier') in [None, 'TMP_ID'] else self.__reqObj.getValue('identifier')
         self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
         self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
@@ -646,7 +646,7 @@ class ChemCompAssign(object):
                 + `p_srchIdsL`: list of instance IDs to be processed via the Instance Search UI
                 + `p_ccAssgnDataStr`: a Chem Comp Assign Datastore object
         """
-        depDataSetId    = self.__reqObj.getValue("identifier")
+        depDataSetId    = "D_0" if self.__reqObj.getValue("identifier") in [None, 'TMP_ID'] else self.__reqObj.getValue("identifier")
         sessionId       = self.__reqObj.getValue("sessionid") 
         if self.__verbose:
             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - Starting getAssignDataForInstSrch() \n")

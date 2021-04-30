@@ -83,7 +83,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__lfh=log
         self.__debug=False
         self.__reqObj=p_reqObj
-        self.__depId = str(self.__reqObj.getValue("identifier")).upper()
+        self.__depId = "D_0" if self.__reqObj.getValue("identifier") in [None, 'TMP_ID'] else str(self.__reqObj.getValue("identifier")).upper()
         #
         self.__cDict=PdbxCategoryDefinition._cDict
         #

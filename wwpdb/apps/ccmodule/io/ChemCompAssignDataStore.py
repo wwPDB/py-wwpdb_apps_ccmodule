@@ -204,8 +204,12 @@ class ChemCompAssignDataStore(object):
                 self.__fileName = depId.upper()+self.__fileNameSuffix
             else:
                 self.__fileName = depId.lower()+self.__fileNameSuffix
-            #
-            self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
+            
+            if depId == "TMP_ID":
+                # standalone ccmodule
+                self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
+            else:
+                self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
             if os.access(self.__filePath,os.R_OK):
                 self.deserialize()
