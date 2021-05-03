@@ -51,19 +51,22 @@ class ChemCompReport(object):
         self.__sObj=self.__reqObj.getSessionObj()
         self.__sessionPath=self.__sObj.getPath()
         self.__sessionRelativePath=self.__sObj.getRelativePath()
-        self.__depId='D_0' if self.__reqObj.getValue('identifier') in [None, 'TMP_ID'] else self.__reqObj.getValue('identifier').upper()
         #
         self.__ccConfig=ChemCompConfig(reqObj, verbose=self.__verbose,log=self.__lfh)        
         #
         self.__reportFilePath=None
         self.__definitionId=None
         self.__definitionFilePath=None        
-
         self.__siteId=str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI=ConfigInfo(self.__siteId)
-        self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
-        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
-        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
+
+        if self.__reqObj.getValue('identifier') == 'TMP_ID':
+            self.__depId = 'D_0'
+            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+        else:
+            self.__depId = self.__reqObj.getValue('identifier').upper()
+            self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
+            self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
 
     def setDefinitionId(self,definitionId):
         """Set an existing chemical component identifier in archive collection as

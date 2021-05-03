@@ -150,10 +150,15 @@ class ChemCompAssign(object):
         #
 
     def __setup(self):
-        self.__depId = 'D_0' if self.__reqObj.getValue('identifier') in [None, 'TMP_ID'] else self.__reqObj.getValue('identifier')
-        self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
-        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
-        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
+        if self.__reqObj.getValue('identifier') == 'TMP_ID':
+            self.__depId = 'D_0'
+            self.__modelDirPath = self.__sessionPath
+            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+        else:
+            self.__depId = self.__reqObj.getValue('identifier')
+            self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
+            self.__modelDirPath = os.path.join(self.__depositPath, self.__depId)
+            self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
 
         self.normal = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE', 
                        'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER',
@@ -423,8 +428,8 @@ class ChemCompAssign(object):
         assignDirPath       =   self.__ccReportPath
         assignFileUpdtdPath =   os.path.join(assignDirPath,depDataSetId+'-cc-assign-updated.cif')
         pdbxFileName        =   depDataSetId+'-model.cif'
-        pdbxFilePath        =   os.path.join(self.__depositPath,depDataSetId,pdbxFileName)
-        pdbxOutFilePath     =   os.path.join(self.__depositPath,depDataSetId,depDataSetId+'-model-update.cif')
+        pdbxFilePath        =   os.path.join(self.__modelDirPath,pdbxFileName)
+        pdbxOutFilePath     =   os.path.join(self.__modelDirPath,depDataSetId+'-model-update.cif')
         #
         dpstrInfoDirPath       =   self.__ccReportPath
         dpstrInfoFilePath      =   os.path.join(dpstrInfoDirPath,depDataSetId+'-cc-dpstr-info.cif')
@@ -657,7 +662,7 @@ class ChemCompAssign(object):
         assignDirPath=self.__ccReportPath
 
         try:
-            os.chdir(self.__depositPath)
+            os.chdir(self.__modelDirPath)
             for srchId in p_srchIdsL:
                 # dd is data dictionary for a given instance of chem component
                 dd={}
@@ -910,14 +915,14 @@ class ChemCompAssign(object):
         else:
             mdlFileName = depDataSetId+'-model.cif'
         #            
-        mdlfilePath = os.path.join(self.__depositPath,depDataSetId,mdlFileName)
+        mdlfilePath = os.path.join(self.__modelDirPath,mdlFileName)
         ccLinkFilePath  =os.path.join(assignDirPath,self.__ccTargetInstanceId,depDataSetId+'-cc-rerun-link.cif')
         #
         # store the assignments in the instance directory -- 
         ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
         #
         try:
-            os.chdir(self.__depositPath)
+            os.chdir(self.__modelDirPath)
             os.system("env > LOGENV")
             #
             # bond distance calculation is done on the full model file using current link radii setting.
@@ -991,7 +996,7 @@ class ChemCompAssign(object):
         ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
         #
         try:
-            os.chdir(self.__depositPath)
+            os.chdir(self.__modelDirPath)
             os.system("env > LOGENV")
             #
             # bond distance calculation is done on the full model file using current link radii setting.
