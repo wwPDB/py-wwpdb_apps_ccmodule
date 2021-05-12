@@ -380,7 +380,7 @@ class ChemCompWebAppLiteWorker(object):
         sessionId    = self.__reqObj.getValue("sessionid")
         depId        = self.__reqObj.getValue("identifier").upper()
         source       = self.__reqObj.getValue("source").lower()
-        ligandId     = self.__reqObj.getValue("ligid").upper()
+        ligandId     = self.__reqObj.getValue("ligid")
         filename     = self.__reqObj.getValue("file")
 
         ccReportPath = os.path.join(self.__depositPath, depId, "cc_analysis")

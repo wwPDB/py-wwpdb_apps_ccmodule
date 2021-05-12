@@ -85,7 +85,9 @@ class ReportFilesRequestTest(unittest.TestCase):
         os.makedirs(self._reportDir, exist_ok=True)
 
     def testInitStateFile(self):
-        os.remove(self._progressFile)
+        if os.path.exists(self._progressFile):
+            os.remove(self._progressFile)
+
         self._ligState.init()
         self.assertTrue(os.path.exists(self._progressFile))
 
