@@ -34,8 +34,6 @@ class LigandAnalysisState:
 
         self._progress = 0
         self._state = 'unknown'
-
-        self._blockWriting = False
     
     def init(self):
         """Initialize the ligand analysis state for this deposition.
@@ -46,11 +44,7 @@ class LigandAnalysisState:
         if os.path.exists(self._ccStateFilePath):
             # if there is already a state file, we shouldn't
             # be trying to create a new one
-            progress = self.getProgress()
-            print(progress)
-
-            if progress['state'] == self.STATE_RUNNING:
-                self._blockWriting = True
+            raise LigandStateError('Trying to create a new ligand state file for deposition {}'.format(self._depId))
         
         self._progress = 0
         self._state = self.STATE_RUNNING
@@ -186,9 +180,6 @@ class LigandAnalysisState:
         return None
 
     def _saveState(self, current_ligand=None):
-        if self._blockWriting:
-            return
-
         state = self._createStateDescriptor(self._progress, self._state, current_ligand)
 
         with open(self._ccStateFilePath, 'w') as fp:

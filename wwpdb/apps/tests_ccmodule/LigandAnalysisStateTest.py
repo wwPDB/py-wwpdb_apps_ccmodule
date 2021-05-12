@@ -90,6 +90,9 @@ class ReportFilesRequestTest(unittest.TestCase):
 
         self._ligState.init()
         self.assertTrue(os.path.exists(self._progressFile))
+
+        with self.assertRaises(LigandStateError):
+            self._ligState.init()
         
     def testAddProgress(self):
         self._ligState.init()
@@ -139,20 +142,6 @@ class ReportFilesRequestTest(unittest.TestCase):
         self._ligState.reset()
 
         self.assertFalse(os.path.exists(self._progressFile))
-
-    def testBlockWriting(self):
-        self._ligState = LigandAnalysisState(self._depId)
-        self._ligState.init()
-        self._ligState.addProgress(0.1)
-
-        lig2 = LigandAnalysisState(self._depId)
-        lig2.init()
-        lig2.addProgress(0.2)
-
-        state = self._ligState.getProgress()
-        self.assertEqual(state['progress'], 0.1)
-
-        os.remove(self._progressFile)
     
     @unittest.skip
     def testGetCurrentTask(self):
