@@ -19,6 +19,7 @@ Maintain configuration and path information for chemical component module applic
 
 import sys, os, os.path
 from wwpdb.utils.config.ConfigInfo    import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 
 class ChemCompConfig(object):
     """ Accessors for configuration and path information for chemical component module applications.
@@ -45,6 +46,7 @@ class ChemCompConfig(object):
         #
         self.__siteId  = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI=ConfigInfo(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         #
         # derived from the top path by convention
         #
@@ -57,8 +59,8 @@ class ChemCompConfig(object):
         # 'SITE_CC_DICT_PATH' currently defined for WWPDB_DEV site ID as: '/data/components/cc-dict',
         # 'SITE_CC_CVS_PATH' currently defined for WWPDB_DEV site ID as: '/data/components/ligand-dict-v3'
         self.__ccAppsBinPath   =   os.path.join(self.__cI.get('SITE_CC_APPS_PATH'),"bin")  
-        self.__ccDictPath   =   self.__cI.get('SITE_CC_DICT_PATH')
-        self.__ccCvsPath   =   self.__cI.get('SITE_CC_CVS_PATH')
+        self.__ccDictPath   =   self.__cICommon.get_site_cc_dict_path()
+        self.__ccCvsPath   =   self.__cICommon.get_site_cc_cvs_path()
         self.__oeLicenseFilePath = self.__cI.get('SITE_CC_OE_LICENSE')
         self.__oeDirPath = self.__cI.get('SITE_CC_OE_DIR')
         
@@ -147,15 +149,15 @@ class ChemCompConfig(object):
         #    return os.path.join("/data/components/ligand-dict-v1")
         #
         elif (type == "sandboxPathV3" or type == "chemCompCachePath"):
-                return os.path.join(self.__ccCvsPath)
+                return self.__ccCvsPath
         elif (type == "fpPatternPath"):
-                return os.path.join(self.__ccDictPath,"fp_patterns.txt")
+                return self.__cICommon.get_cc_fp_patterns()
         elif (type == "serializedCcDictPath"):
-                return os.path.join(self.__ccDictPath,"Components-all-v3.sdb")
+                return self.__cICommon.get_cc_dict_serial()
         elif (type == "serializedCcIndexPath"):
-                return os.path.join(self.__ccDictPath,"Components-all-v3-r4.idx")
+                return self.__cICommon.get_cc_dict_idx()
         elif (type == "ccIdList"):
-                return os.path.join(self.__ccDictPath,"IDLIST-v3")
+                return self.__cICommon.get_cc_id_list()
         elif (type == "oeLicenseFilePath"):
             return self.__oeLicenseFilePath
         elif ( type == "oeDirectoryPath"):
