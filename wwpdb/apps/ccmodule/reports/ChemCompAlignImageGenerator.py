@@ -26,6 +26,7 @@ from subprocess                       import call,Popen,PIPE
 from wwpdb.utils.oe_util.oedepict.OeDepict        import OeDepict
 from wwpdb.utils.oe_util.build.OeChemCompIoUtils  import OeChemCompIoUtils
 from wwpdb.utils.config.ConfigInfo      import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 #
 
 class ChemCompAlignImageGenerator(object):
@@ -41,6 +42,7 @@ class ChemCompAlignImageGenerator(object):
         #
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         #
 
     def generateImages(self, instId=None, instFile=None, hitList=[]):
@@ -60,15 +62,15 @@ class ChemCompAlignImageGenerator(object):
         ofh = open(imageFile, 'w')
         ofh.write(instId + ' ' + instFile + '\n')
         for id in hitList:
-            refFile = os.path.join(self.__cI.get('SITE_CC_CVS_PATH'), id[0], id, id + '.cif')
+            refFile = os.path.join(self.__cICommon.get_site_cc_cvs_path(), id[0], id, id + '.cif')
             if not os.access(refFile, os.F_OK):
                 continue
             #
             ofh.write(id + ' ' + refFile + '\n')
             #
             list = []
-            list.append(id);
-            list.append(refFile);
+            list.append(id)
+            list.append(refFile)
             foundList.append(list)
         #
         ofh.close()
