@@ -56,8 +56,6 @@ class ChemCompConfig(object):
         
         # RPS 2011-11-29 --- use of above symbolic links for archBinPath and archDataPath being superseded by paths determined via calls to ConfigInfo
         # 'SITE_CC_APPS_PATH' currently defined for WWPDB_DEV site ID as: '/apps/cc-tools',
-        # 'SITE_CC_DICT_PATH' currently defined for WWPDB_DEV site ID as: '/data/components/cc-dict',
-        # 'SITE_CC_CVS_PATH' currently defined for WWPDB_DEV site ID as: '/data/components/ligand-dict-v3'
         self.__ccAppsBinPath   =   os.path.join(self.__cI.get('SITE_CC_APPS_PATH'),"bin")  
         self.__ccDictPath   =   self.__cICommon.get_site_cc_dict_path()
         self.__ccCvsPath   =   self.__cICommon.get_site_cc_cvs_path()
