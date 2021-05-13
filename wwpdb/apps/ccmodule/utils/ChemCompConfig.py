@@ -59,8 +59,8 @@ class ChemCompConfig(object):
         self.__ccAppsBinPath   =   os.path.join(self.__cI.get('SITE_CC_APPS_PATH'),"bin")  
         self.__ccDictPath   =   self.__cICommon.get_site_cc_dict_path()
         self.__ccCvsPath   =   self.__cICommon.get_site_cc_cvs_path()
-        self.__oeLicenseFilePath = self.__cI.get('SITE_CC_OE_LICENSE')
-        self.__oeDirPath = self.__cI.get('SITE_CC_OE_DIR')
+        self.__oeLicenseFilePath = self.__cICommon.get_site_cc_oe_licence()
+        self.__oeDirPath = self.__cICommon.get_site_cc_oe_dir()
         
         #
         if (self.__verbose):
