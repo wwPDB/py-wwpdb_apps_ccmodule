@@ -1,0 +1,59 @@
+image: docker:18
+
+stages:
+  - build
+
+services:
+  - docker:18-dind
+  
+variables:
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  COMMIT_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+before_script:
+  - docker info
+  - docker login $CI_REGISTRY -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
+
+build_auto_master:
+  stage: build
+  script:
+    - docker build -t ${COMMIT_TAG} --build-arg CI_REGISTRY_USER=$CI_REGISTRY_USER --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN --build-arg CI_PROJECT_ID=$CI_PROJECT_ID --build-arg CI_REPOSITORY_PYPI_URL=$CI_REPOSITORY_PYPI_URL .
+    - docker push ${COMMIT_TAG}
+    - docker tag ${COMMIT_TAG} ${CONTAINER_RELEASE_IMAGE}
+    - docker push ${CONTAINER_RELEASE_IMAGE}
+  only:
+    refs:
+      - master
+
+build_auto_develop:
+  stage: build
+  script:
+    - docker build -t ${IMAGE_TAG} --build-arg CI_REGISTRY_USER=$CI_REGISTRY_USER --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN --build-arg CI_PROJECT_ID=$CI_PROJECT_ID --build-arg CI_REPOSITORY_PYPI_URL=$CI_REPOSITORY_PYPI_URL .
+    - docker push ${IMAGE_TAG}
+  only:
+    refs:
+      - develop
+
+
+build_adhoc_master:
+  stage: build
+  script:
+    - docker build -t ${COMMIT_TAG} --build-arg CI_REGISTRY_USER=$CI_REGISTRY_USER --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN --build-arg CI_PROJECT_ID=$CI_PROJECT_ID --build-arg CI_REPOSITORY_PYPI_URL=$CI_REPOSITORY_PYPI_URL .
+    - docker push ${COMMIT_TAG}
+    - docker tag ${COMMIT_TAG} ${CONTAINER_RELEASE_IMAGE}
+    - docker push ${CONTAINER_RELEASE_IMAGE}
+  only:
+    refs:
+      - master
+  when: manual
+
+build_adhoc_non_master:
+  stage: build
+  script:
+    - docker build -t ${IMAGE_TAG} --build-arg CI_REGISTRY_USER=$CI_REGISTRY_USER --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN --build-arg CI_PROJECT_ID=$CI_PROJECT_ID --build-arg CI_REPOSITORY_PYPI_URL=$CI_REPOSITORY_PYPI_URL .
+    - docker push ${IMAGE_TAG}
+  except:
+    refs:
+      - master
+  when: manual
