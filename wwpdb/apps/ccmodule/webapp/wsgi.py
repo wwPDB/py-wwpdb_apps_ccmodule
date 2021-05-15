@@ -23,10 +23,7 @@ import sys
 import traceback
 import logging
 
-# from webob import Request, Response
-import werkzeug.urls
-from werkzeug.wrappers import Request, Response
-from werkzeug.middleware.shared_data import SharedDataMiddleware
+from webob import Request, Response
 
 #  - URL mapping and application specific classes are launched from ChemCompLiteWebApp()
 from wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite import ChemCompWebAppLite
@@ -91,12 +88,12 @@ class MyRequestApp(object):
             for name,value in environment.items():
                 self.__lfh.write("+MyRequestApp.__call__() - ENVIRON parameter:    %s:  %r\n" % (name,value))
             '''
-            for name, value in myRequest.values.items():
+            for name, value in myRequest.params.items():
                 if name not in myParameterDict:
                     myParameterDict[name] = []
                 myParameterDict[name].append(value)
                 self.__lfh.write("+MyRequestApp.__call__() - REQUEST parameter:    %s:  %r\n" % (name, value))
-            myParameterDict['request_path'] = [myRequest.script_root.lower() + myRequest.path.lower()]
+            myParameterDict['request_path'] = [myRequest.path.lower()]
         except:
             traceback.print_exc(file=self.__lfh)
             self.__lfh.write("+MyRequestApp.__call__() - contents of request data\n")
@@ -120,8 +117,4 @@ class MyRequestApp(object):
 ##  NOTE -  Path to top of the web application tree and verbose setting are set here ONLY! 
 ##
 application = MyRequestApp(textString="doServiceRequest() - WebOb version",verbose=True,log=sys.stderr)
-application = SharedDataMiddleware(application, {
-    '/ccmodule_lite': ('wwpdb.apps.ccmodule.webapp', 'static'), # this is to work with gunicorn
-    '/': ('wwpdb.apps.ccmodule.webapp', 'static'), # this is to work with apache...
-})
-
+#
