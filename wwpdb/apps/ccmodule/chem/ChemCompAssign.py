@@ -816,11 +816,14 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.doAssignValidation() - CC instid validation list  : %s\n" % self.__ccValidateInstIdList)
             self.__lfh.flush()
         #
-        numProc = int(multiprocessing.cpu_count() / 2)
-        mpu = MultiProcUtil(verbose = self.__verbose)
-        mpu.set(workerObj = self, workerMethod = "runMultiAssignValidation")
+        if self.__cI.get('USE_COMPUTE_CLUSTER'):
+            numProc = len(self.__ccValidateInstIdList.split(','))
+        else:
+            numProc = int(multiprocessing.cpu_count() / 2)
+        mpu = MultiProcUtil(verbose=self.__verbose)
+        mpu.set(workerObj=self, workerMethod="runMultiAssignValidation")
         mpu.setWorkingDir(self.__sessionPath)
-        ok,failList,retLists,diagList = mpu.runMulti(dataList = self.__ccValidateInstIdList.split(','), numProc = numProc, numResults = 1)
+        ok,failList,retLists,diagList = mpu.runMulti(dataList=self.__ccValidateInstIdList.split(','), numProc=numProc, numResults=1)
         if diagList:
             return '\n'.join(diagList)
         #
