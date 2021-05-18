@@ -1094,6 +1094,10 @@ class ChemCompWebAppLiteWorker(object):
                 
         if( mode == "done" ): # mode will be either 'done' or 'undo'
             self.__saveLigModState("intermittent")
+
+        ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+        ccAD.setSessionPaths(self.__reqObj)
+        ccAD.generateInstancesMainHtml(ccADS, [authAssgndGrp])
             
         return rC   
 
