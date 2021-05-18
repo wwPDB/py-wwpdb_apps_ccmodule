@@ -60,13 +60,28 @@ class ChemCompReport(object):
         self.__siteId=str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI=ConfigInfo(self.__siteId)
 
-        if self.__reqObj.getValue('identifier') == 'TMP_ID':
+        context = self.__getContext()
+        if context == 'standalone':
             self.__depId = 'D_0'
+            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+        elif context == 'workflow':
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         else:
             self.__depId = self.__reqObj.getValue('identifier').upper()
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
             self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
+    
+    def __getContext(self):
+        filesource = self.__reqObj.getValue('filesource')
+        depid = self.__reqObj.getValue('identifier')
+
+        if depid == 'TMP_ID':
+            return 'standalone'
+        
+        if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
+            return 'workflow'
+        
+        return 'deposition'
 
     def setDefinitionId(self,definitionId):
         """Set an existing chemical component identifier in archive collection as
