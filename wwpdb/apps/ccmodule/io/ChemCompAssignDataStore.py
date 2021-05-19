@@ -205,7 +205,8 @@ class ChemCompAssignDataStore(object):
             else:
                 self.__fileName = depId.lower()+self.__fileNameSuffix
             
-            if depId == "TMP_ID":
+            context = self.__getContext()
+            if context == 'standalone':
                 # standalone ccmodule
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
             else:
@@ -225,6 +226,18 @@ class ChemCompAssignDataStore(object):
             self.__lfh.write("+ChemCompAssignStore.__setup() - Exception info: %s\n" %
                              sys.exc_info()[0])
             traceback.print_exc(file=self.__lfh)
+
+    def __getContext(self):
+        filesource = self.__reqOb.getValue('filesource')
+        depid = self.__reqOb.getValue('identifier')
+
+        if depid == 'TMP_ID':
+            return 'standalone'
+        
+        if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
+            return 'workflow'
+        
+        return 'deposition'
 
     def getFileObject(self, dataSetId, fileSource, contentType, formatType, versionId='latest', mileStone=None, wfInstanceId=None,
                     partNumber=None, sessionDir=None):
