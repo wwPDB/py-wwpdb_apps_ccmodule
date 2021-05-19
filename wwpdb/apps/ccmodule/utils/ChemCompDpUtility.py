@@ -209,11 +209,21 @@ class ChemCompDpUtility(object):
         tmpDir = os.path.join(self._ccReportPath,"logs")
         os.makedirs(tmpDir, exist_ok=True)
 
+        definitionFilePath = ''
+        if rtype == 'exp':
+            # this is for experimental instances
+            definitionFilePath = instanceCcAbsFilePath
+        elif rtype == 'ref':
+            # this is for reference instances
+            defId = str(instId).upper()
+            fileName = defId + ".cif"
+            definitionFilePath = os.path.join(self._ccConfig.getPath('chemCompCachePath'), defId[0:1], defId[0:3], fileName)
+
         dp = RcsbDpUtility(tmpPath=tmpDir, siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
         dp.addInput(name="type", value=rtype)
         dp.addInput(name="defid", value=instId)
         dp.addInput(name="ccreport_path", value=self._ccReportPath)
-        dp.addInput(name="definition_file_path", value=instanceCcAbsFilePath)
+        dp.addInput(name="definition_file_path", value=definitionFilePath)
         dp.addInput(name="cc_path_modifier", value=instId)
         dp.op("chem-comp-do-report")
 
