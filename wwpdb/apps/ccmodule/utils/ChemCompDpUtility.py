@@ -22,6 +22,7 @@ from wwpdb.utils.session.WebRequest                     import InputRequest
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
+from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
@@ -202,28 +203,19 @@ class ChemCompDpUtility(object):
                 - if using "ref" mode, must pass a valid instance ID
                 - if using "exp" mode, must pass a valid (and accessible) ".cif" file
         """
-        ccReport = ChemCompReport(self._reqObj, self._verbose, self._lfh)
-
         if self._verbose:
             self._logger.debug('Generating report for %s (%s), %s.', instId, rtype, instanceCcAbsFilePath)
-
-        if rtype == 'exp':
-            # this is for experimental instances
-            ccReport.setFilePath(instanceCcAbsFilePath, instId)
-        elif rtype == 'ref':
-            # this is for reference instances
-            ccReport.setDefinitionId(definitionId=instId.lower())
         
-        ccReport.doReport(type=rtype, ccAssignPthMdfier=instId)
+        tmpDir = os.path.join(self._ccReportPath,"logs")
+        os.makedirs(tmpDir, exist_ok=True)
 
-        # maybe we should catch every exception and re-raise them with a proper
-        # exception for failed report generation
-
-        if self._verbose:
-            filePaths = ccReport.getReportFilePaths()
-            
-            for k,v in filePaths.items():
-                self._logger.debug('Coordinate file reporting -- key: %s, value: %s', k, v)
+        dp = RcsbDpUtility(tmpPath=tmpDir, siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
+        dp.addInput(name="type", value=rtype)
+        dp.addInput(name="defid", value=instId)
+        dp.addInput(name="ccreport_path", value=self._ccReportPath)
+        dp.addInput(name="definition_file_path", value=instanceCcAbsFilePath)
+        dp.addInput(name="cc_path_modifier", value=instId)
+        dp.op("chem-comp-do-report")
 
     def _imagingSetupForLigandInstance(self, instId, authAssignedId, fitTupleDict, instanceCcAbsFilePath):
         """Setup for generating instance images.
