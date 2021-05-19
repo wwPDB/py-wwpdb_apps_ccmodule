@@ -208,7 +208,7 @@ class ChemCompDpUtility(object):
         if self._verbose:
             self._logger.debug('Generating report for %s (%s), %s.', instId, rtype, instanceCcAbsFilePath)
         
-        tmpDir = os.path.join(self._ccReportPath,"logs")
+        tmpDir = os.path.join(self._ccReportPath, "logs")
         os.makedirs(tmpDir, exist_ok=True)
 
         definitionFilePath = ''
@@ -384,51 +384,36 @@ class ChemCompDpUtility(object):
                 f.write(_ALIGN_REFS.format(thisId, fileDefPath, imgFilePth))
     
     def _alignImages(self, ccid, fileListPath):
-        cmd = ['python', '-m', 'wwpdb.apps.ccmodule.reports.ChemCompAlignImages', '-v', '-i', ccid, '-f', fileListPath]
-        kill_process = lambda process: process.terminate()
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=False, close_fds=True, preexec_fn=os.setsid)
-        timer = Timer(10, kill_process, [process])
+        tmpDir = os.path.join(self._ccReportPath, "img_align_logs")
+        os.makedirs(tmpDir, exist_ok=True)
+
+        dp = RcsbDpUtility(tmpPath=tmpDir, siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
+        dp.addInput(name="ccid", value=ccid)
+        dp.addInput(name="file_list_path", value=fileListPath)
+        returncode = dp.op("chem-comp-align-images")
 
         if self._verbose:
-            self._logger.debug('Image alignment command: %s', ' '.join(cmd))
+            self._logger.debug('Image alignment process returned with %s', returncode)
 
-        try:
-            timer.start()
-            stdout, stderr = process.communicate()
-        finally:
-            timer.cancel()
-
-        if self._verbose:
-            self._logger.debug('Image alignment process returned with %s', process.returncode)
-            self._logger.debug('Image alignment process returned with stdout %s', stdout)
-            self._logger.debug('Image alignment process returned with stderr %s', stderr)
-
-        if process.returncode == 0 or process.returncode == None:
+        if returncode != 0:
             return False
         
         return True
     
     def _genImages(self, title, path, imagePath):
-        cmd = ['python', '-m', 'wwpdb.apps.ccmodule.reports.ChemCompGenImage', '-v', '-i', title, '-f', path, '-o', imagePath]
-        kill_process = lambda process: process.terminate()
-        process = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=False, close_fds=True, preexec_fn=os.setsid)
-        timer = Timer(10, kill_process, [process])
+        tmpDir = os.path.join(self._ccReportPath, "img_gen_logs")
+        os.makedirs(tmpDir, exist_ok=True)
 
-        if self._verbose:
-            self._logger.debug('Image generation command: %s', ' '.join(cmd))
-
-        try:
-            timer.start()
-            stdout, stderr = process.communicate()
-        finally:
-            timer.cancel()
+        dp = RcsbDpUtility(tmpPath=tmpDir, siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
+        dp.addInput(name="title", value=title)
+        dp.addInput(name="path", value=path)
+        dp.addInput(name="image_path", value=imagePath)
+        returncode = dp.op("chem-comp-gen-images")
         
         if self._verbose:
-            self._logger.debug('Image generation process returned with %s', process.returncode)
-            self._logger.debug('Image generation process returned with stdout %s', stdout)
-            self._logger.debug('Image generation process returned with stderr %s', stderr)
+            self._logger.debug('Image generation process returned with %s', returncode)
 
-        if process.returncode == 0 or process.returncode == None:
+        if returncode != 0:
             return False
         
         return True
