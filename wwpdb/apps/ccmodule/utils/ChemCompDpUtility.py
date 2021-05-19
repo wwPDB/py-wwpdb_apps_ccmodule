@@ -23,6 +23,7 @@ from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
+from wwpdb.apps.chem_ref_data.utils.ChemRefPathInfo     import ChemRefPathInfo
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
@@ -53,6 +54,7 @@ class ChemCompDpUtility(object):
 
         # setting up chem comp config
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
+        self._ccRefPathInfo = ChemRefPathInfo(configObj=self._cI, verbose=self._verbose, log=self._lfh)
         self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
@@ -215,9 +217,7 @@ class ChemCompDpUtility(object):
             definitionFilePath = instanceCcAbsFilePath
         elif rtype == 'ref':
             # this is for reference instances
-            defId = str(instId).upper()
-            fileName = defId + ".cif"
-            definitionFilePath = os.path.join(self._ccConfig.getPath('chemCompCachePath'), defId[0:1], defId[0:3], fileName)
+            definitionFilePath = self._ccRefPathInfo.getFilePath(str(instId).upper())
 
         dp = RcsbDpUtility(tmpPath=tmpDir, siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
         dp.addInput(name="type", value=rtype)
