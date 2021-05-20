@@ -150,8 +150,13 @@ class ChemCompAssign(object):
         #
 
     def __setup(self):
-        if self.__reqObj.getValue('identifier') == 'TMP_ID':
+        context = self.__getContext()
+
+        if context == 'standalone':
             self.__depId = 'D_0'
+            self.__modelDirPath = self.__sessionPath
+            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+        elif context == 'workflow':
             self.__modelDirPath = self.__sessionPath
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         else:
@@ -166,6 +171,19 @@ class ChemCompAssign(object):
                        'DC', 'DA', 'DU', 'DT', 'DG',
                        'HOH', 'TIP', 'WAT', 'OH2', 'MSE']    
         #
+    
+    def __getContext(self):
+        filesource = self.__reqObj.getValue('filesource')
+        depid = self.__reqObj.getValue('identifier')
+
+        if depid == 'TMP_ID':
+            return 'standalone'
+        
+        if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
+            return 'workflow'
+        
+        return 'deposition'
+
     def setLinkRadii(self,ccLinkRadii=None):
         if ccLinkRadii is not None:
             self.__ccLinkRadii=str(ccLinkRadii)
