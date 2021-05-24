@@ -201,10 +201,10 @@ class ChemCompWebApp(object):
         self.__debug=False
         self.__siteId=siteId
         self.__cI=ConfigInfo(self.__siteId)
-        self._cICommon = ConfigInfoAppCommon(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         self.__topPath=self.__cI.get('SITE_WEB_APPS_TOP_PATH')
-        self.__topSessionPath  = self._cICommon.get_site_web_apps_top_sessions_path()
-        self.__sessionsPath= self._cICommon.get_site_web_apps_sessions_path()
+        self.__topSessionPath  = self.__cICommon.get_site_web_apps_top_sessions_path()
+        self.__sessionsPath= self.__cICommon.get_site_web_apps_sessions_path()
         self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule")
         #
 
