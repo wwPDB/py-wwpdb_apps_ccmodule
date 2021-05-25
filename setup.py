@@ -52,7 +52,7 @@ setup(
                       'wwpdb.utils.wf',
                       'wwpdb.utils.session >= 0.2',
                       'mysqlclient',
-                      "wwpdb.apps.chem_ref_data"
+                      "wwpdb.io"
                       ],
     packages=find_packages(exclude=['wwpdb.apps.tests_ccmodule']),
     package_data={
