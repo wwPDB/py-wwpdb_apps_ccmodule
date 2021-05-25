@@ -19,7 +19,7 @@ from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.apps.chem_ref_data.utils.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
