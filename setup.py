@@ -51,7 +51,9 @@ setup(
                       'wwpdb.utils.dp >= 0.11', 'rcsb.utils.multiproc',
                       'wwpdb.utils.wf',
                       'wwpdb.utils.session >= 0.2',
-                      'mysqlclient'],
+                      'mysqlclient',
+                      "wwpdb.apps.chem_ref_data"
+                      ],
     packages=find_packages(exclude=['wwpdb.apps.tests_ccmodule']),
     package_data={
         # If any package contains *.md or *.rst ...  files, include them:
