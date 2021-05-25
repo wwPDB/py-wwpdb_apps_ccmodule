@@ -28,7 +28,7 @@ from wwpdb.utils.oe_util.build.OeChemCompIoUtils        import OeChemCompIoUtils
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.apps.chem_ref_data.utils.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
 
 #
 
