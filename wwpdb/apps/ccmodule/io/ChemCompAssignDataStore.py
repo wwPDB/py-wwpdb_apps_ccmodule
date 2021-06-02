@@ -206,11 +206,7 @@ class ChemCompAssignDataStore(object):
                 # standalone ccmodule
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
             elif context == 'workflow':
-                instance = self.__reqOb.getValue('instance')
-                if not instance or instance == '':
-                    self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
-                else:
-                    self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=instance).getFilePathReference()
+                self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
             elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
