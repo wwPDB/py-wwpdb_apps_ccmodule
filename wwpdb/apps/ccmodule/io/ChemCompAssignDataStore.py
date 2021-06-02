@@ -200,16 +200,18 @@ class ChemCompAssignDataStore(object):
             # filesource = whether datafile sourced from Workflow Managed environment or via file upload (i.e. testing)
             fileSource  = str(self.__reqOb.getValue("filesource")).lower()
             #
-            if fileSource in ['archive','wf-archive','wf-instance','wf_archive','wf_instance','deposit']:
-                self.__fileName = depId.upper()+self.__fileNameSuffix
-            else:
-                self.__fileName = depId.lower()+self.__fileNameSuffix
             
             context = self.__getContext()
             if context == 'standalone':
                 # standalone ccmodule
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
-            else:
+            elif context == 'workflow':
+                instance = self.__reqOb.getValue('instance')
+                if not instance or instance == '':
+                    self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
+                else:
+                    self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=instance).getFilePathReference()
+            elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
             if os.access(self.__filePath,os.R_OK):
