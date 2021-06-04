@@ -156,10 +156,10 @@ class ChemCompAssign(object):
             self.__depId = 'D_0'
             self.__modelDirPath = self.__sessionPath
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        elif context == 'workflow':
+        elif context == 'workflow' or context == 'unknown':
             self.__modelDirPath = self.__sessionPath
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        else:
+        elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier')
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
             self.__modelDirPath = os.path.join(self.__depositPath, self.__depId)
@@ -179,10 +179,15 @@ class ChemCompAssign(object):
         if depid == 'TMP_ID':
             return 'standalone'
         
+        if filesource == 'deposit':
+            return 'deposition'
+        
         if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
             return 'workflow'
         
-        return 'deposition'
+        # in case we can't find out the context (as it happens with the standalone
+        # ligmod) we fall back to get model files from the sessions path
+        return 'unknown'
 
     def setLinkRadii(self,ccLinkRadii=None):
         if ccLinkRadii is not None:

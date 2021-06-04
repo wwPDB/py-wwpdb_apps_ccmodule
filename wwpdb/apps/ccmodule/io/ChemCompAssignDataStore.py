@@ -200,12 +200,9 @@ class ChemCompAssignDataStore(object):
             # filesource = whether datafile sourced from Workflow Managed environment or via file upload (i.e. testing)
             fileSource  = str(self.__reqOb.getValue("filesource")).lower()
             #
-            
             context = self.__getContext()
-            if context == 'standalone':
+            if context in ['standalone', 'unknown', 'workflow']:
                 # standalone ccmodule
-                self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
-            elif context == 'workflow':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
             elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
@@ -232,10 +229,15 @@ class ChemCompAssignDataStore(object):
         if depid == 'TMP_ID':
             return 'standalone'
         
+        if filesource == 'deposit':
+            return 'deposition'
+        
         if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
             return 'workflow'
         
-        return 'deposition'
+        # in case we can't find out the context (as it happens with the standalone
+        # ligmod) we fall back to get model files from the sessions path
+        return 'unknown'
 
     def getFileObject(self, dataSetId, fileSource, contentType, formatType, versionId='latest', mileStone=None, wfInstanceId=None,
                     partNumber=None, sessionDir=None):

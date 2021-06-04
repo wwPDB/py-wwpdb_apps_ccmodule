@@ -64,9 +64,9 @@ class ChemCompReport(object):
         if context == 'standalone':
             self.__depId = 'D_0'
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        elif context == 'workflow':
+        elif context == 'workflow' or context == 'unknown':
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        else:
+        elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier').upper()
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
             self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
@@ -78,10 +78,15 @@ class ChemCompReport(object):
         if depid == 'TMP_ID':
             return 'standalone'
         
+        if filesource == 'deposit':
+            return 'deposition'
+        
         if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
             return 'workflow'
         
-        return 'deposition'
+        # in case we can't find out the context (as it happens with the standalone
+        # ligmod) we fall back to get model files from the sessions path
+        return 'unknown'
 
     def setDefinitionId(self,definitionId):
         """Set an existing chemical component identifier in archive collection as
