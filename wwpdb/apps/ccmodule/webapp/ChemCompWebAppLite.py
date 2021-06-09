@@ -106,6 +106,7 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImpor
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 #
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 #
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 
@@ -135,10 +136,11 @@ class ChemCompWebAppLite(object):
         self.__debug=False
         self.__siteId=siteId
         self.__cI=ConfigInfo(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         self.__topPath=self.__cI.get('SITE_WEB_APPS_TOP_PATH')
         self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
-        self.__topSessionPath  = self.__cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH')
-        self.__sessionsPath=self.__cI.get('SITE_WEB_APPS_SESSIONS_PATH')
+        self.__topSessionPath  = self.__cICommon.get_site_web_apps_top_sessions_path()
+        self.__sessionsPath= self.__cICommon.get_site_web_apps_sessions_path()
         self.__templatePath = os.path.join(self.__topPath,"htdocs","ccmodule_lite")
         #
 

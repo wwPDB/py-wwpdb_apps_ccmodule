@@ -6,24 +6,20 @@
 import os
 import sys
 import shutil
-import traceback
-import pkg_resources
 from logging                                            import getLogger, StreamHandler, Formatter, DEBUG, INFO
-from threading                                          import Timer
-from subprocess                                         import Popen, PIPE
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
-from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssignReader
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
 from wwpdb.utils.session.WebRequest                     import InputRequest
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.apps.chem_ref_data.utils.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
@@ -45,6 +41,7 @@ class ChemCompDpUtility(object):
         self._inputParamDict = {}
         self._depId = depId
         self._cI = ConfigInfo()
+        self._cICommon = ConfigInfoAppCommon()
 
         # templates path
         self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
@@ -54,7 +51,8 @@ class ChemCompDpUtility(object):
 
         # setting up chem comp config
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
-        self._ccRefPathInfo = ChemRefPathInfo(configObj=self._cI, verbose=self._verbose, log=self._lfh)
+        self._ccRefPathInfo = ChemRefPathInfo(configObj=self._cI, configCommonObj=self._cICommon,
+                                              verbose=self._verbose, log=self._lfh)
         self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
@@ -617,8 +615,8 @@ class ChemCompDpUtility(object):
 
         self._reqObj = InputRequest({}, self._verbose, self._lfh)
         self._reqObj.setValue('WWPDB_SITE_ID', self._cI.get('SITE_PREFIX'))
-        self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cI.get('SITE_WEB_APPS_TOP_SESSIONS_PATH'))
-        self._reqObj.setValue('SessionsPath', self._cI.get('SITE_WEB_APPS_SESSIONS_PATH'))
+        self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cICommon.get_site_web_apps_top_sessions_path())
+        self._reqObj.setValue('SessionsPath', self._cICommon.get_site_web_apps_sessions_path())
         self._reqObj.setValue('identifier', depId)
         self._reqObj.setValue('filesource', 'deposit')
         self._reqObj.setValue('TemplatePath', self._templatePath)

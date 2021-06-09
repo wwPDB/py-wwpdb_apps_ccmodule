@@ -25,9 +25,10 @@ import os, sys, time, string, traceback, signal, datetime
 from subprocess                                         import call,Popen,PIPE
 from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
 from wwpdb.utils.oe_util.build.OeChemCompIoUtils        import OeChemCompIoUtils
-from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.apps.chem_ref_data.utils.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
 
 #
 
@@ -44,8 +45,10 @@ class ChemCompAlignImageGenerator(object):
         #
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         #
-        self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, verbose=self.__verbose, log=self.__lfh)
+        self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
+                                               verbose=self.__verbose, log=self.__lfh)
 
     def generateImages(self, instId=None, instFile=None, hitList=[]):
         if (not instId) or (not instFile):
@@ -71,15 +74,15 @@ class ChemCompAlignImageGenerator(object):
             ofh.write(id + ' ' + refFile + '\n')
             #
             list = []
-            list.append(id);
-            list.append(refFile);
+            list.append(id)
+            list.append(refFile)
             foundList.append(list)
         #
         ofh.close()
         #
         if foundList:
             self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - Generating images \n')
-            
+
             dp = RcsbDpUtility(siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
             dp.addInput(name='image_file', value=imageFile)
             dp.setWorkingDir(self.__imagePath)

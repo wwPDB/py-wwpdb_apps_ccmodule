@@ -17,8 +17,9 @@ Maintain configuration and path information for chemical component module applic
 
 """
 
-import sys, os, os.path
-from wwpdb.utils.config.ConfigInfo    import ConfigInfo
+import sys
+import os
+import os.path
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 
 class ChemCompConfig(object):
@@ -45,7 +46,6 @@ class ChemCompConfig(object):
         self.__sessionId           = self.__sObj.getId()
         #
         self.__siteId  = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
-        self.__cI=ConfigInfo(self.__siteId)
         self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         #
         # derived from the top path by convention
@@ -55,8 +55,7 @@ class ChemCompConfig(object):
         #self.__archDataPath      =  os.path.join(self.__topPath,"data")        
         
         # RPS 2011-11-29 --- use of above symbolic links for archBinPath and archDataPath being superseded by paths determined via calls to ConfigInfo
-        # 'SITE_CC_APPS_PATH' currently defined for WWPDB_DEV site ID as: '/apps/cc-tools',
-        self.__ccAppsBinPath   =   os.path.join(self.__cI.get('SITE_CC_APPS_PATH'),"bin")  
+        self.__ccAppsBinPath   =   os.path.join(self.__cICommon.get_site_cc_apps_path(),"bin")
         self.__ccDictPath   =   self.__cICommon.get_site_cc_dict_path()
         self.__ccCvsPath   =   self.__cICommon.get_site_cc_cvs_path()
         self.__oeLicenseFilePath = self.__cICommon.get_site_cc_oe_licence()
