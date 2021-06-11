@@ -108,7 +108,6 @@ class ChemCompAssignDataStore(object):
         self.__lfh=log
         self.__reqOb=reqOb
         self.__fileName=None
-        self.__fileNameSuffix = "-cc-assign-details.pic"
         # following are set of dictionaries that for each instance ID contain :       
         self.__authAssignment={}            #author-assigned 3-letter code
         self.__batchBestHitAssignment={}    #tuple of format (<best hit 3-letter code determined by batch search>,<mtchStatus>,<mtchScore>)

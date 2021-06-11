@@ -552,7 +552,8 @@ class ChemCompWebAppWorker(object):
         else:
             t_depId = depId.lower()
         #
-        pickleFilePath = os.path.join(self.__sessionPath, 'assign', t_depId + '-cc-assign-details.pic')
+        pI = PathInfo(siteId=self.__siteId, sessionPath=self.__sessionPath, verbose=self.__verbose, log=self.__lfh)
+        pickleFilePath = pI.getFilePath(dataSetId=depId, fileSource='session', contentType='chem-comp-assign-details', formatType='pic')
         if os.access(pickleFilePath, os.R_OK):
             ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
             ccId = ccAssignDataStore.getAuthAssignment(instanceId)
@@ -885,7 +886,7 @@ class ChemCompWebAppWorker(object):
                             dpCnvrt.exp(os.path.join(self.__sessionPath, depId + '-jmol-mdl.cif'))
                             #
                             # instantiate a cc assign data store from the pickled file if exists
-                            pickleFilePath = os.path.join(self.__sessionPath, depId + '_cc-assign-details.pic')
+                            pickleFilePath = pI.getFilePath(dataSetId=depId, fileSource='session', contentType='chem-comp-assign-details', formatType='pic')
                             # pickleFilePath = os.path.join(WfDirPath, depId + '_cc-assign-details_P1.pic.V1')
                             if os.access(pickleFilePath, os.R_OK):
                                 foundWfImageResult = True
@@ -1868,47 +1869,6 @@ class ChemCompWebAppWorker(object):
         #
         self.__lfh.flush()
         return assignRsltsDict
-
-    def __checkForExistingCcAssignments(self):
-        """ Private method to generate a ChemCompAsssignDataStore object from pre-existing assignments already registered by user.
-            The ChemCompAsssignDataStore serves as a representation of any 
-            chem component assignment results data required/updated by the 
-            depositor during the current session.
-            
-            :Params:
-                    
-            :Helpers:
-            
-                + wwpdb.apps.ccmodule.io.ChemCompDataImport.ChemCompDataImport
-                + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
-                
-            :Returns:
-                A ChemCompAssignDataStore object.
-        """
-        rtrnCcAssgnDtStr = None
-        
-        depId = str(self.__reqObj.getValue("identifier")).upper()
-        ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        fpAssignDtlsWfmArchive =  ccI.getChemCompAssignDetailsFilePath()
-        if (self.__verbose):
-            self.__lfh.write("+%s.%s() ---- checking for existence of cc-assign-details.pic file in path: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, fpAssignDtlsWfmArchive) )
-        if( fpAssignDtlsWfmArchive is not None and os.access(fpAssignDtlsWfmArchive,os.R_OK) ):
-                assignDtlsLclPath = os.path.join(self.__sessionPath,'assign')
-                if( not os.access(assignDtlsLclPath,os.R_OK)):
-                    os.makedirs(assignDtlsLclPath)
-                fpAssignDtlsLcl = os.path.join(assignDtlsLclPath,depId+'-cc-assign-details.pic')
-                shutil.copyfile(fpAssignDtlsWfmArchive,fpAssignDtlsLcl)
-                if( os.access(fpAssignDtlsLcl,os.R_OK) ):
-                    #########################################################################################################################################################
-                    #    If we have a pickle file of cc assign details this means that the annotator had saved previous ligand assignment work
-                    #    with the intention to resume where last left off. So we will instantiate a cc assign data store from the pickled file
-                    #    instead of running a batch search to generate a new cc assign data store.
-                    #########################################################################################################################################################
-                    rtrnCcAssgnDtStr=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
-                    if (self.__verbose):
-                            self.__lfh.write("+%s.%s() prior cc assign details file being used to populate cc data store: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, fpAssignDtlsLcl) )
-                            
-        return rtrnCcAssgnDtStr 
 
     def __genCcAssignDataStore(self,p_ccAssignRsltsDict,p_ccAssignObj):
         """ Private method to generate a ChemCompAsssignDataStore object.
