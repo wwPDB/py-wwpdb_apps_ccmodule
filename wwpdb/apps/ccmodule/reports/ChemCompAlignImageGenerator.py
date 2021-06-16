@@ -102,9 +102,6 @@ class ChemCompAlignImageGenerator(object):
                         FounImage = False
                     #
                 #
-                if FounImage:
-                    return
-                #
             #
         #
         self.__generateSingleImage(Id=instId, FileName=instFile)
