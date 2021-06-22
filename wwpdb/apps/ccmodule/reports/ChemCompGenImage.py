@@ -24,7 +24,6 @@ __version__   = "V0.01"
 
 import os, sys, getopt, time, traceback
 #
-from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils  import OeDepictMCSAlignSingle
 from wwpdb.utils.oe_util.oedepict.OeDepict            import OeDepict
 from wwpdb.utils.oe_util.build.OeChemCompIoUtils      import OeChemCompIoUtils
 

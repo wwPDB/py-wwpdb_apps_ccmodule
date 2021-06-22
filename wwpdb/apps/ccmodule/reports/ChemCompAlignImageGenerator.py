@@ -20,11 +20,8 @@ __email__     = "zfeng@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-import os, sys, time, string, traceback, signal, datetime
+import os, sys
 
-from subprocess                                         import call,Popen,PIPE
-from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
-from wwpdb.utils.oe_util.build.OeChemCompIoUtils        import OeChemCompIoUtils
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
