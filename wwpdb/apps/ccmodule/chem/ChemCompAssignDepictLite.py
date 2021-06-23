@@ -248,7 +248,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #
         iRow=0
         oL.append('<table id="ligand_inventory_tbl" class="">')
-        oL.append('<tr><th>Ligand ID</th><th>Number of Instances</th><th><span id="resolve_status" class="target resolve_status">Status</span></th><th>Select for Inspection<input id="selectall" name="selectall" type="checkbox" class="selectall" ><label for="selectall">All</label></th><th id="hdrfcsrsrch">Focus of Research?</th>')
+        oL.append('<tr><th>Ligand ID</th><th>Number of Instances</th><th><span id="resolve_status" class="target resolve_status">Status</span></th><th>Select for Inspection<input id="selectall" name="selectall" type="checkbox" class="selectall" ><label for="selectall">All</label></th><th id="hdrfcsrsrch">Ligand of Interest (LOI)?</th>')
         #
         grpsSelectedForResearch = p_ccAssgnDataStr.getRsrchSelectedLst()
         grpsHavingRsrchDataSubmitted = p_ccAssgnDataStr.getRsrchDataAcqurdLst()
@@ -314,7 +314,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         # Artifical row to select "none" as "focus of research
         oL.append('<tr class="%s c_NONE_special">' % self.__rowClass(iRow) )
-        oL.append('<td class="" colspan=4>No ligand as focus of research</td>') 
+        oL.append('<td class="" colspan=4>No ligand as Ligand of Interest</td>') 
         oL.append('<td class="selectinstnc_td"><input name="NONE%%" id="NONE_rsrch" type="checkbox" class="selectinstnc_rsrch selectinst_none" %s %s></td>' % (None_checked, None_check_disabled) )
         oL.append('</tr>')
         iRow+=1
