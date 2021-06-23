@@ -39,7 +39,7 @@ def main(argv):
     ccid = filePth = outputPth = ""
     
     try:                                
-        opts, args = getopt.getopt(argv, "hi:f:o:v", ["help", "id=", "filepath=", "outputpath=", "verbose"])
+        opts, args = getopt.getopt(argv, "hi:f:o:v", ["help", "id=", "filepath=", "outputpath=", "verbose", "label=", "size="])
         
     except getopt.GetoptError:          
         usage()                         
@@ -63,7 +63,7 @@ def main(argv):
             vrbs = True
         
         elif opt in ("--label"):
-            labelAtomName = True
+            labelAtomName = True if arg.lower() == 'true' else False
         
         elif opt in ("--size"):
             size = int(arg)
