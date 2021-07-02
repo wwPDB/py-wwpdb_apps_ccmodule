@@ -1406,7 +1406,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         '''
         ##
         instId          = p_hlprDict['instanceid']
-        depId           = p_hlprDict['depositionid']
+        depId           = str(p_hlprDict['depositionid']).upper()
         htmlTmpltPth    = p_hlprDict['html_template_path']
         htmlTmpltPth_SnglInstnc = os.path.join(htmlTmpltPth,self.__pathSnglInstcJmolTmplts)
         htmlTmpltPth_AllInstnc = os.path.join(htmlTmpltPth,self.__pathAllInstncsJmolTmplts)
