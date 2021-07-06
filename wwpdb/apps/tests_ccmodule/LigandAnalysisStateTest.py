@@ -8,7 +8,7 @@ from wwpdb.apps.ccmodule.utils.Exceptions import LigandStateError
 
 sessionsTopDir = tempfile.mkdtemp()
 configInfo = {
-    'SITE_DEPOSIT_STORAGE_PATH': tempfile.mkdtemp(),
+    'SITE_ARCHIVE_STORAGE_PATH': tempfile.mkdtemp(),
     'SITE_PREFIX': 'PDBE_LOCALHOST',
     'SITE_WEB_APPS_TOP_SESSIONS_PATH': sessionsTopDir,
     'SITE_WEB_APPS_SESSIONS_PATH': os.path.join(sessionsTopDir, 'sessions'),
