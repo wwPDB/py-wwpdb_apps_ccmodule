@@ -24,7 +24,6 @@ __version__   = "V0.01"
 
 import os, sys, getopt, time, traceback
 #
-from wwpdb.utils.oe_util.oedepict.OeAlignDepictUtils  import OeDepictMCSAlignSingle
 from wwpdb.utils.oe_util.oedepict.OeDepict            import OeDepict
 from wwpdb.utils.oe_util.build.OeChemCompIoUtils      import OeChemCompIoUtils
 
@@ -35,10 +34,12 @@ def main(argv):
     
     #cmd="all"
     vrbs = False
+    size = 300
+    labelAtomName = False
     ccid = filePth = outputPth = ""
     
     try:                                
-        opts, args = getopt.getopt(argv, "hi:f:o:v", ["help", "id=", "filepath=", "outputpath=", "verbose"])
+        opts, args = getopt.getopt(argv, "hi:f:o:v", ["help", "id=", "filepath=", "outputpath=", "verbose", "label=", "size="])
         
     except getopt.GetoptError:          
         usage()                         
@@ -60,6 +61,12 @@ def main(argv):
             
         elif opt in ("-v", "--verbose"):
             vrbs = True
+        
+        elif opt in ("--label"):
+            labelAtomName = True if arg.lower() == 'true' else False
+        
+        elif opt in ("--size"):
+            size = int(arg)
             
         else:
             usage()
@@ -76,7 +83,7 @@ def main(argv):
             oed=OeDepict(verbose=vrbs,log=sys.stdout)
             oedInputTupl = (ccid,oemList[0],"")
             oed.setMolTitleList([oedInputTupl])
-            oed.setDisplayOptions(imageSizeX=300,imageSizeY=300,labelAtomName=False,labelAtomCIPStereo=True,
+            oed.setDisplayOptions(imageSizeX=size,imageSizeY=size,labelAtomName=labelAtomName,labelAtomCIPStereo=True,
                                   labelAtomIndex=False,labelBondIndex=False,
                                   highlightStyleFit='ballAndStickInverse',
                                   bondDisplayWidth=1.0)

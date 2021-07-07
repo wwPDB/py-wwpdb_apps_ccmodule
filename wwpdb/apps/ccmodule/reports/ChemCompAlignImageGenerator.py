@@ -20,11 +20,8 @@ __email__     = "zfeng@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-import os, sys, time, string, traceback, signal, datetime
+import os, sys
 
-from subprocess                                         import call,Popen,PIPE
-from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
-from wwpdb.utils.oe_util.build.OeChemCompIoUtils        import OeChemCompIoUtils
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
@@ -104,6 +101,7 @@ class ChemCompAlignImageGenerator(object):
                 #
             #
         #
+
         self.__generateSingleImage(Id=instId, FileName=instFile)
         self.__generateSingleImage(Id=instId, FileName=instFile, size=1000, labelAtomName=True, suffix='_Big')
         if foundList:
@@ -115,19 +113,14 @@ class ChemCompAlignImageGenerator(object):
         #
 
     def __generateSingleImage(self, Id=None, FileName=None, size=300, labelAtomName=False, suffix=''):
-        try:
-            oeU = OeChemCompIoUtils(verbose=self.__verbose, log=self.__lfh)
-            oemList = oeU.getFromPathList([FileName], use3D=True, coordType='model')
-            oedInputTupl = (Id, oemList[0], "")
-            oed = OeDepict(verbose=self.__verbose, log=self.__lfh)
-            oed.setMolTitleList([oedInputTupl])
-            oed.setDisplayOptions(imageSizeX=size, imageSizeY=size, labelAtomName=labelAtomName, labelAtomCIPStereo=True, 
-                                  labelAtomIndex=False, labelBondIndex=False,  highlightStyleFit='ballAndStickInverse', 
-                                  bondDisplayWidth=1.0)
-            oed.setGridOptions(rows=1, cols=1, cellBorders=False)
-            oed.prepare()
-            imgPth = os.path.join(self.__imagePath, Id + suffix + '.svg')
-            oed.write(imgPth)
-        except:
-            traceback.print_exc(file=self.__lfh)
+        imgPth = os.path.join(self.__imagePath, Id + suffix + '.svg')
+
+        dp = RcsbDpUtility(siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+        dp.addInput(name="title", value=Id)
+        dp.addInput(name="path", value=FileName)
+        dp.addInput(name="image_path", value=imgPth)
+        dp.addInput(name="size", value=size)
+        dp.addInput(name="label", value=labelAtomName)
+        
+        return dp.op("chem-comp-gen-images")
         #

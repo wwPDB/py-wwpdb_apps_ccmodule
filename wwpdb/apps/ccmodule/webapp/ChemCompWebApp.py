@@ -131,21 +131,15 @@ __email__     = "jwest@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.07"
 
-import os, sys, time, types, string, traceback, ntpath, threading, shutil
-from json import loads, dumps
+import os, sys, time, traceback, ntpath, shutil
 from time import localtime, strftime
 
 from wwpdb.utils.session.WebRequest              import InputRequest,ResponseContent
 #
 from wwpdb.apps.ccmodule.view.ChemCompView              import ChemCompView
-from wwpdb.apps.ccmodule.view.ChemCompViewDepict        import ChemCompViewDepict
-#
-from wwpdb.apps.ccmodule.extract.ChemCompExtract        import ChemCompExtract
-from wwpdb.apps.ccmodule.extract.ChemCompExtractDepict  import ChemCompExtractDepict
 #
 from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepict      import ChemCompAssignDepict
-from wwpdb.apps.ccmodule.chem.ChemCompAnnotate          import ChemCompAnnotate
 #
 from wwpdb.apps.ccmodule.search.ChemCompSearch          import ChemCompSearch
 from wwpdb.apps.ccmodule.search.ChemCompSearchDepict    import ChemCompSearchDepict
@@ -153,13 +147,10 @@ from wwpdb.apps.ccmodule.search.ChemCompSearchDb        import ChemCompSearchDb
 from wwpdb.apps.ccmodule.search.ChemCompSearchDbDepict  import ChemCompSearchDbDepict
 #
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
-from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport,ChemCompCheckReport
+from wwpdb.apps.ccmodule.reports.ChemCompReports        import ChemCompReport
 from wwpdb.apps.ccmodule.reports.InstanceDataGenerator  import InstanceDataGenerator
 from wwpdb.apps.ccmodule.sketch.ChemCompSketch          import ChemCompSketch
 from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict    import ChemCompSketchDepict
-#
-from wwpdb.apps.ccmodule.edit.ChemCompTableEditor       import ChemCompTableEditor
-from wwpdb.apps.ccmodule.edit.ChemCompTableEditorDepict import ChemCompTableEditorDepict
 #
 from wwpdb.utils.wf.dbapi.WfTracking                    import WfTracking
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
@@ -169,7 +160,6 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImpor
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
-from wwpdb.io.locator.DataReference                       import DataFileReference
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 #
