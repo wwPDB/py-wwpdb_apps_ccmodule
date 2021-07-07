@@ -1641,7 +1641,7 @@ class ChemCompWebAppLiteWorker(object):
                                     being submitted for an individual ligand ID.
                     
             :Helpers:
-                + wwpdb.wwpdb.utils.wf.DataReference.DataFileReference
+                + wwpdb.wwpdb.io.locator.DataReference.DataFileReference
                 + wwpdb.apps.ccmodule.chem.ChemCompAssign
                     
             :Returns:
