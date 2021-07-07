@@ -1703,7 +1703,7 @@ class ChemCompWebAppWorker(object):
                 #
                 # 2014-11-03, ZF -- add aligned image
                 HitList.append(ccId)
-                chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_WORKFLOW_STORAGE_PATH'),'workflow',depId,'assign',instId,instId+".cif")
+                chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_ARCHIVE_STORAGE_PATH'),'workflow',depId,'assign',instId,instId+".cif")
                 if not os.access(chemCompFilePathAbs,os.R_OK):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
@@ -2010,7 +2010,7 @@ class ChemCompWebAppWorker(object):
                         #        Then generate report material for experimental chem comp data of this lig instance
                         #############################################################################################################
                         
-                        chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_WORKFLOW_STORAGE_PATH'),'workflow',depId,'assign',instId,instId+".cif")
+                        chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_ARCHIVE_STORAGE_PATH'),'workflow',depId,'assign',instId,instId+".cif")
                         if not os.access(chemCompFilePathAbs,os.R_OK):
                             # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                             # and therefore produced cc-assign results file in local session area
@@ -2253,7 +2253,7 @@ class ChemCompWebAppWorker(object):
                     'unfinished' if annotator wishes to leave ligand module but resume work at a later point.
                     
             :Helpers:
-                + wwpdb.wwpdb.utils.wf.DataReference.DataFileReference
+                + wwpdb.wwpdb.io.locator.DataReference.DataFileReference
                 + wwpdb.apps.ccmodule.chem.ChemCompAssign
                     
             :Returns:

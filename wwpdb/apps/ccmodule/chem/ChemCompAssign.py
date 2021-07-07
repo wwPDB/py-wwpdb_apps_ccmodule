@@ -100,7 +100,7 @@ from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExpor
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
-from wwpdb.utils.wf.DataReference                       import DataFileReference
+from wwpdb.io.locator.DataReference                       import DataFileReference
 from mmcif.io.PdbxReader                                import PdbxReader
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
