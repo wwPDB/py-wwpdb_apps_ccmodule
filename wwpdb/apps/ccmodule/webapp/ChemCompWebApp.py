@@ -169,7 +169,7 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport          import ChemCompDataImpor
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo                  import ChemCompReader
 #
-from wwpdb.utils.wf.DataReference                       import DataFileReference
+from wwpdb.io.locator.DataReference                       import DataFileReference
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 #
@@ -2263,7 +2263,7 @@ class ChemCompWebAppWorker(object):
                     'unfinished' if annotator wishes to leave ligand module but resume work at a later point.
                     
             :Helpers:
-                + wwpdb.wwpdb.utils.wf.DataReference.DataFileReference
+                + wwpdb.wwpdb.io.locator.DataReference.DataFileReference
                 + wwpdb.apps.ccmodule.chem.ChemCompAssign
                     
             :Returns:
