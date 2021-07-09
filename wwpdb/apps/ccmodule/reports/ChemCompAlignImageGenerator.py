@@ -99,6 +99,9 @@ class ChemCompAlignImageGenerator(object):
                         FounImage = False
                     #
                 #
+                if FounImage:
+                    return
+                #
             #
         #
 
