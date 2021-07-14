@@ -108,6 +108,7 @@ class ChemCompAssignDataStore(object):
         self.__lfh=log
         self.__reqOb=reqOb
         self.__fileName=None
+        self.__fileNameSuffix = "-cc-assign-details.pic"
         # following are set of dictionaries that for each instance ID contain :       
         self.__authAssignment={}            #author-assigned 3-letter code
         self.__batchBestHitAssignment={}    #tuple of format (<best hit 3-letter code determined by batch search>,<mtchStatus>,<mtchScore>)
@@ -201,8 +202,11 @@ class ChemCompAssignDataStore(object):
             #
             context = self.__getContext()
             if context in ['standalone', 'unknown', 'workflow']:
-                # standalone ccmodule
-                self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', sessionDir=os.path.join(self.__sessionsPath,sessionId)).getFilePathReference()
+                picklePathAbs = os.path.join(self.__sessionsPath, sessionId, 'assign')
+                if not os.path.exists(picklePathAbs):
+                    os.makedirs(picklePathAbs)
+     
+                self.__filePath = os.path.join(picklePathAbs, depId.upper() + self.__fileNameSuffix)
             elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
