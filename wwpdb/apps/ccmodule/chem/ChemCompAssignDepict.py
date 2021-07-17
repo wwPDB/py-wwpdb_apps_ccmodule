@@ -1633,10 +1633,11 @@ class ChemCompAssignDepict(ChemCompDepict):
         return rtrnD
         
     def __formatDepositionDataId(self,p_depid,p_bIsWorkflow):
-        if( p_bIsWorkflow or ( p_depid.upper() == 'TMP_ID' ) ):
-            depId = p_depid.upper()
-        else:
-            depId = p_depid.lower()
+#       if( p_bIsWorkflow or ( p_depid.upper() == 'TMP_ID' ) ):
+#           depId = p_depid.upper()
+#       else:
+#           depId = p_depid.lower()
+        depId = p_depid.upper()
         return depId
     
     def __rowClass(self,iRow):

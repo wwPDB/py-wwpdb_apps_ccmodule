@@ -1722,7 +1722,7 @@ class ChemCompWebAppLiteWorker(object):
         #########################################################################################################################################################
         ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         #   
-        bSuccess=ccA.saveState( pathDict, context="deposit", mode=mode )
+        bSuccess,msg =ccA.saveState( pathDict, context="deposit", mode=mode )
         #
         
         # below added to support convenience of assessing results during unit testing

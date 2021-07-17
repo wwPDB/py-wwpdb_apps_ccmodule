@@ -2182,22 +2182,29 @@ class ChemCompWebAppWorker(object):
         #
         if( bIsWorkflow ):
             try:
-                bOkay = self.__saveLigModState(mode)
+                bOkay,msg = self.__saveLigModState(mode)
                 if( bOkay ):
                     bSuccess = self.__updateWfTrackingDb(state)
                     if( not bSuccess ):
                         rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - TRACKING status, update to '%s' failed for session %s \n" % (state,sessionId) )
                 else:
-                    rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - problem saving lig module state")
-                
+                    if msg != "":
+                        rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod():\n%s" % msg)
+                    else:
+                        rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - problem saving lig module state")
+                    #
+                #
             except:
                 if (self.__verbose):
                     self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - problem saving lig module state")
+                #
                 traceback.print_exc(file=self.__lfh)
-                rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - exception thrown on saving lig module state")                  
+                rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - problem saving lig module state:\n%r\n" % traceback.format_exc())                  
+            #
         else:
             if (self.__verbose):
                     self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - Not in WF environ so skipping save action of pickle file and status update to TRACKING database for session %s \n" % sessionId)
+            #
         #
         return rC
 
@@ -2333,9 +2340,9 @@ class ChemCompWebAppWorker(object):
         #########################################################################################################################################################
         ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         #   
-        bSuccess=ccA.saveState( pathDict )
+        bSuccess,msg=ccA.saveState( pathDict )
         #
-        return bSuccess
+        return bSuccess,msg
 
     def __getSession(self):
         """ Join existing session or create new session as required.

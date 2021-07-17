@@ -398,6 +398,7 @@ class ChemCompAssign(object):
         bUpdtdAssgnExportOk = False
         bFinishedWithLigMod = False
         bUpdtdMdlFileOk = False
+        bUpdtdMdlFileMsg = ""
         bUpdtdDpstrInfoFileOk = False
         bUpdtdDpstrProgressFileOk = False
         bSuccess = False
@@ -504,7 +505,7 @@ class ChemCompAssign(object):
                 # only if annotator is finished with all assignments (which is true if valid value for path to an updated model file is supplied as param) 
                 # we update the model with user-selected chem comp assignments and save as separate updated-model cif file in local sessions directory
                 if( bFinishedWithLigMod and (assignFileUpdtdPath is not None) ):
-                    bUpdtdMdlFileOk = self.__ccInstanceUpdateOp(pdbxFilePath,assignFileUpdtdPath,pdbxOutFilePath)
+                    bUpdtdMdlFileOk,bUpdtdMdlFileMsg = self.__ccInstanceUpdateOp(pdbxFilePath,assignFileUpdtdPath,pdbxOutFilePath)
                         
                     if bUpdtdMdlFileOk and os.access(pdbxOutFilePath,os.R_OK):
                         # additionally we are making copy of updated model file for storage in workflow instance area (renamed with appropriate workflow conventions)
@@ -605,7 +606,7 @@ class ChemCompAssign(object):
             else:
                 bSuccess = ( bUpdtdDpstrInfoFileOk and bPickleExportOk )
         #
-        return bSuccess
+        return bSuccess,bUpdtdMdlFileMsg
         
 
     def createDataStore(self,p_dataDict,p_exactMatchOption=False):
@@ -1894,6 +1895,10 @@ class ChemCompAssign(object):
             #
             siteId=self.__cI.get("SITE_PREFIX")
             instncUpdateDirPath   =   os.path.join(self.__sessionPath,"cc-instance-update")
+            instncUpdateLogPath = os.path.join(self.__sessionPath,"instncUpdate.log")
+            if os.access(instncUpdateLogPath, os.R_OK):
+                os.remove(instncUpdateLogPath)
+            #
             dp=RcsbDpUtility(tmpPath=self.__sessionPath,siteId=siteId)
             dp.setWorkingDir(instncUpdateDirPath)
             #
@@ -1903,16 +1908,36 @@ class ChemCompAssign(object):
             dp.imp(pdbxInpPath)
             dp.op("chem-comp-instance-update")
             dp.exp(pdbxOutPath)
+            dp.expLog(instncUpdateLogPath)
+            msg = ""
+            if os.access(instncUpdateLogPath, os.R_OK):
+                ifh = open(instncUpdateLogPath, "r")
+                sIn = ifh.read().strip()
+                ifh.close()
+                #
+                if (len(sIn) > 0) and (not sIn.endswith("Finished!")):
+                    msg = sIn
+                #
+            #
+            if not os.access(pdbxOutPath, os.R_OK):
+                if msg != "":
+                    msg += "\n"
+                #
+                msg += "Update model failed."
+            #
             #if (self.__cleanUp): dp.cleanup()            
             if (self.__verbose):
                 self.__lfh.write("+ChemCompAssign.__ccInstanceUpdateOp() - PDBx file path:          %s\n" % pdbxInpPath)
                 self.__lfh.write("+ChemCompAssign.__ccInstanceUpdateOp() - updated CC-assign file path:     %s\n" % assignFileUpdtdPath)
                 self.__lfh.write("+ChemCompAssign.__ccInstanceUpdateOp() - PDBx output file path:   %s\n" % pdbxOutPath)
-            return True
-
+            #
+            if msg != "":
+                return False,msg
+            #
+            return True,msg
         except:
             traceback.print_exc(file=self.__lfh)            
-            return False
+            return False,traceback.format_exc()
 
     def __syncTopHitsData(self,p_instId,p_tupL,p_assignDirPath,p_rnkdMtchL,p_absntCcRefL,p_state):
         """ For given instance ID, synchronizes info on top hits matches already captured with additional

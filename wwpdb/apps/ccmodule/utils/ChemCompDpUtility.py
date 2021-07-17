@@ -562,7 +562,7 @@ class ChemCompDpUtility(object):
 
         # call on ChemCompAssign to save current state of ligand assignments 
         cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
-        bSuccess = cca.saveState(pathDict, context='deposit', mode=mode)
+        bSuccess,msg = cca.saveState(pathDict, context='deposit', mode=mode)
 
         return bSuccess
 
