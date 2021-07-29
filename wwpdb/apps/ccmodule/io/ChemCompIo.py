@@ -19,10 +19,12 @@ __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
 
-import sys,time,os,traceback
+import sys,os,traceback
 from mmcif.io.PdbxReader import PdbxReader
-from mmcif.io.PdbxWriter import PdbxWriter
 from mmcif.api.PdbxContainers import *
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 class ChemCompReader(object):
     ''' Accessor methods chemical component definition data files.
@@ -37,6 +39,11 @@ class ChemCompReader(object):
         self.__topCachePath=None
         self.__ccU=None
         self.__filePath=None
+        #
+        self.__cI = ConfigInfo()
+        self.__cICommon = ConfigInfoAppCommon()
+        self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
+                                               verbose=self.__verbose, log=self.__lfh)
         #
         self.__categoryInfo=[('chem_comp',             'key-value'),
                              ('chem_comp_atom',        'table'),
@@ -123,7 +130,7 @@ class ChemCompReader(object):
 
     def setCompId(self,compId):
         self.__ccU=compId.upper()
-        self.__filePath=os.path.join(self.__topCachePath,self.__ccU[0:1],self.__ccU,self.__ccU+'.cif')
+        self.__filePath=self.__ccRefPathInfo.getFilePath(self.__ccU)
         if (not os.access(self.__filePath,os.R_OK)):
             if (self.__verbose):
                 self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % self.__filePath)

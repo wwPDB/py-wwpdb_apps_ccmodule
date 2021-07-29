@@ -14,10 +14,13 @@ __email__     = "jwest@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-import os, sys, time, types, string, shutil, traceback
+import os, sys, shutil
 
 
-from wwpdb.apps.ccmodule.utils.ChemCompConfig      import ChemCompConfig
+from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
 class ChemCompAdmin(object):
@@ -46,6 +49,12 @@ class ChemCompAdmin(object):
         #
         self.__definitionId=None
         self.__definitionFilePath=None
+        #
+        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__cI = ConfigInfo(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
+        self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
+                                               verbose=self.__verbose, log=self.__lfh)
 
 
     def setDefinitionId(self,definitionId):
@@ -69,8 +78,7 @@ class ChemCompAdmin(object):
         """
         """
         idUc=str(ccId).upper()
-        fileName    = idUc + ".cif"
-        self.__definitionFilePath = os.path.join(self.__ccConfig.getPath('chemCompCachePath'),idUc[0:1],idUc[0:3],fileName)
+        self.__definitionFilePath = self.__ccRefPathInfo.getFilePath(idUc)
         #
         if (not os.access(self.__definitionFilePath,os.R_OK)):
             return False

@@ -16,14 +16,15 @@ __email__     = "jwest@rcsb.rutgers.edu"
 __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
-import os, sys, time, types, string, shutil, traceback
+import os, sys, shutil, traceback
 from wwpdb.apps.ccmodule.utils.ChemCompConfig    import ChemCompConfig
 from mmcif_utils.chemcomp.PdbxChemCompUtils      import PdbxChemCompReader,PdbxChemCompUpdater,PdbxChemCompCategoryDefinition
 #
 from wwpdb.apps.ccmodule.io.ChemCompEditStore    import ChemCompEditStore,ChemCompEdit
 #
-# temporary - 
-#from wwpdb.apps.ccmodule.io.ccIo                 import ccIo
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
 class ChemCompTableEditor(object):
@@ -54,6 +55,11 @@ class ChemCompTableEditor(object):
         self.__ccFilePath=None
         self.__ccFileFormat='cif'
         #
+        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__cI = ConfigInfo(self.__siteId)
+        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
+        self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
+                                               verbose=self.__verbose, log=self.__lfh)
         #
     def setCcId(self,ccId):
         """Set an existing chemical component identifier in archive collection as
@@ -79,8 +85,7 @@ class ChemCompTableEditor(object):
         """
         """
         idUc=str(ccId).upper()
-        fileName    = idUc + ".cif"
-        self.__ccFilePath = os.path.join(self.__ccConfig.getPath('chemCompCachePath'),idUc[0:1],idUc[0:3],fileName)
+        self.__ccFilePath = self.__ccRefPathInfo.getFilePath(idUc)
         #
         if (not os.access(self.__ccFilePath,os.R_OK)):
             return False
