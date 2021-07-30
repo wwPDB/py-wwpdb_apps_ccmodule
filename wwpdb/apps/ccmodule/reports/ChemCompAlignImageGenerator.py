@@ -80,7 +80,7 @@ class ChemCompAlignImageGenerator(object):
         if foundList:
             self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - Generating images \n')
 
-            dp = RcsbDpUtility(siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+            dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
             dp.addInput(name='image_file', value=imageFile)
             dp.setWorkingDir(self.__imagePath)
             returnCode = dp.op('chem-comp-align-img-gen')
@@ -118,7 +118,7 @@ class ChemCompAlignImageGenerator(object):
     def __generateSingleImage(self, Id=None, FileName=None, size=300, labelAtomName=False, suffix=''):
         imgPth = os.path.join(self.__imagePath, Id + suffix + '.svg')
 
-        dp = RcsbDpUtility(siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+        dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
         dp.addInput(name="title", value=Id)
         dp.addInput(name="path", value=FileName)
         dp.addInput(name="image_path", value=imgPth)
