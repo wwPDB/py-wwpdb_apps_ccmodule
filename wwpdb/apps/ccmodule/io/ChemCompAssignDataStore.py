@@ -206,7 +206,7 @@ class ChemCompAssignDataStore(object):
                 if not os.path.exists(picklePathAbs):
                     os.makedirs(picklePathAbs)
 
-                if context == 'unknown':
+                if context != 'workflow':
                     self.__filePath = os.path.join(picklePathAbs, depId.lower() + self.__fileNameSuffix)
                 else:
                     self.__filePath = os.path.join(picklePathAbs, depId.upper() + self.__fileNameSuffix)
