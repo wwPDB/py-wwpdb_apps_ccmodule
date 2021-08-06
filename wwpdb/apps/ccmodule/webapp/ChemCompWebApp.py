@@ -542,8 +542,7 @@ class ChemCompWebAppWorker(object):
         else:
             t_depId = depId.lower()
         #
-        pI = PathInfo(siteId=self.__siteId, sessionPath=self.__sessionPath, verbose=self.__verbose, log=self.__lfh)
-        pickleFilePath = pI.getFilePath(dataSetId=depId, fileSource='session', contentType='chem-comp-assign-details', formatType='pic')
+        pickleFilePath = os.path.join(self.__sessionPath, 'assign', t_depId + '-cc-assign-details.pic')
         if os.access(pickleFilePath, os.R_OK):
             ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
             ccId = ccAssignDataStore.getAuthAssignment(instanceId)
@@ -876,8 +875,7 @@ class ChemCompWebAppWorker(object):
                             dpCnvrt.exp(os.path.join(self.__sessionPath, depId + '-jmol-mdl.cif'))
                             #
                             # instantiate a cc assign data store from the pickled file if exists
-                            pickleFilePath = pI.getFilePath(dataSetId=depId, fileSource='session', contentType='chem-comp-assign-details', formatType='pic')
-                            # pickleFilePath = os.path.join(WfDirPath, depId + '_cc-assign-details_P1.pic.V1')
+                            pickleFilePath = os.path.join(self.__sessionPath, 'assign', depId + '-cc-assign-details.pic')
                             if os.access(pickleFilePath, os.R_OK):
                                 foundWfImageResult = True
                                 ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
