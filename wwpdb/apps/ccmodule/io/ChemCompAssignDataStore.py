@@ -205,8 +205,11 @@ class ChemCompAssignDataStore(object):
                 picklePathAbs = os.path.join(self.__sessionsPath, sessionId, 'assign')
                 if not os.path.exists(picklePathAbs):
                     os.makedirs(picklePathAbs)
-     
-                self.__filePath = os.path.join(picklePathAbs, depId.upper() + self.__fileNameSuffix)
+
+                if context == 'unknown':
+                    self.__filePath = os.path.join(picklePathAbs, depId.lower() + self.__fileNameSuffix)
+                else:
+                    self.__filePath = os.path.join(picklePathAbs, depId.upper() + self.__fileNameSuffix)
             elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
@@ -235,7 +238,7 @@ class ChemCompAssignDataStore(object):
         if filesource == 'deposit':
             return 'deposition'
         
-        if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
+        if filesource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
             return 'workflow'
         
         # in case we can't find out the context (as it happens with the standalone
