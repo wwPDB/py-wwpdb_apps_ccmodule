@@ -1,3 +1,4 @@
+from viztracer import VizTracer
 ##
 # File:  ChemCompWebApp.py
 # Date:  25-Jul-2010
@@ -813,6 +814,9 @@ class ChemCompWebAppWorker(object):
                 # Parent of second fork
                 os._exit(0)
             
+            # tracer = VizTracer(ignore_c_function=True, log_func_retval=True)
+            # tracer.start()
+            
             # determine if currently operating in Workflow Managed environment
             bIsWorkflow = self.__isWorkflow()
             #
@@ -869,11 +873,11 @@ class ChemCompWebAppWorker(object):
                                 shutil.copyfile(WfLinkFilePath, os.path.join(self.__sessionPath, depId + '-cc-link.cif'))
                             #
                             # use RcsbDpUtility to create a version of the coordinate data file that can be used for loading into jmol
-                            dpCnvrt=RcsbDpUtility(tmpPath=self.__sessionPath,siteId=self.__siteId,verbose=True)
-                            dpCnvrt.setWorkingDir(self.__sessionPath)
-                            dpCnvrt.imp(os.path.join(self.__sessionPath, depId + '-model.cif'))
-                            dpCnvrt.op("cif2cif-pdbx-skip-process")
-                            dpCnvrt.exp(os.path.join(self.__sessionPath, depId + '-jmol-mdl.cif'))
+                            # dpCnvrt=RcsbDpUtility(tmpPath=self.__sessionPath,siteId=self.__siteId,verbose=True)
+                            # dpCnvrt.setWorkingDir(self.__sessionPath)
+                            # dpCnvrt.imp(os.path.join(self.__sessionPath, depId + '-model.cif'))
+                            # dpCnvrt.op("cif2cif-pdbx-skip-process")
+                            # dpCnvrt.exp(os.path.join(self.__sessionPath, depId + '-jmol-mdl.cif'))
                             #
                             # instantiate a cc assign data store from the pickled file if exists
                             pickleFilePath = pI.getFilePath(dataSetId=depId, fileSource='session', contentType='chem-comp-assign-details', formatType='pic')
@@ -931,6 +935,10 @@ class ChemCompWebAppWorker(object):
                 self.__verbose = False
                 
             self.__verbose = False    
+            
+            # tracer.stop()
+            # tracer.save(output_file="/nfs/public/release/msd/services/onedep/ligmod.json")
+            
             os._exit(0)
         else:
             # we are in parent process and we will return status code to client to indicate that data processing is "running"

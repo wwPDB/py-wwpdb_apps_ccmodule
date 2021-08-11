@@ -688,6 +688,9 @@ class ChemCompAssign(object):
         try:
             os.chdir(self.__modelDirPath)
             for srchId in p_srchIdsL:
+                if p_ccAssgnDataStr.getBatchBestHitStatus(srchId).lower() == 'passed':
+                    self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - passed for %s\n" % srchId)
+                    continue
                 # dd is data dictionary for a given instance of chem component
                 dd={}
                 #######################################################
@@ -754,7 +757,10 @@ class ChemCompAssign(object):
         # list of those still pending as we fetch data for chem comp references to be used in the instance search UI
         absntCcRefL = []  
         #
+        self.__lfh.write("+ChemCompAssign.getTopHitsDataForInstnc() - searching for top hits list\n")
+
         for tupL in p_ccAssgnDataStr.getTopHitsList(p_instId):
+            self.__lfh.write("+ChemCompAssign.getTopHitsDataForInstnc() - tupl %s\n" % hash(tupL))
             
             if( len(tupL) < 4 ):
                 # at this point if tupL consists only of Top Hit record with just (topHitCcId, topHitCcIdScore, matchWarning) then
@@ -768,6 +774,7 @@ class ChemCompAssign(object):
         #
         # need to check for top hit cc references for which we were not able to update data due to the data not being generated yet by ChemCompReports
         while( len(absntCcRefL) > 0 ):
+            self.__lfh.write("+ChemCompAssign.getTopHitsDataForInstnc() - len(absntCcRefL): %s\n" % (len(absntCcRefL)) )
             for tupL in absntCcRefL:
                 self.__syncTopHitsData(p_instId,tupL,p_assignDirPath,rnkdMtchL,absntCcRefL,"return")
             

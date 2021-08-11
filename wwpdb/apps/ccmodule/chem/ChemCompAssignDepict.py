@@ -255,7 +255,8 @@ class ChemCompAssignDepict(ChemCompDepict):
         rsrchGrpIdsLst = p_ccAssgnDataStr.getRsrchSelectedLst()
         
         for instId in instncIdLst:
-            srtdAssignLst.append( (instId, p_ccAssgnDataStr.getAuthAssignment(instId), p_ccAssgnDataStr.getBatchBestHitStatus(instId) )  )
+            if not p_ccAssgnDataStr.getBatchBestHitStatus(instId).lower() == 'passed':
+                srtdAssignLst.append( (instId, p_ccAssgnDataStr.getAuthAssignment(instId), p_ccAssgnDataStr.getBatchBestHitStatus(instId) )  )
         #
         srtdAssignLst = sorted(srtdAssignLst, key=itemgetter(1,2))
         # srtdAssignLst is now ordered by author assigned CCID and then by best hit status

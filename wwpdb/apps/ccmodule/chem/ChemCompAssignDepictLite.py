@@ -889,9 +889,9 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         if hasTopHit:
             helperDict['exact_match_ccid'] = topHitCcId
             topHitsList = ccAssignDataStore.getTopHitsList(instId)
-            helperDict['exact_match_ccname'] = (len(topHitsList) and [topHitsList[0][3]] or [''])[0]
+            helperDict['exact_match_ccname'] = (len(topHitsList) and len(topHitsList[0]) > 3 and [topHitsList[0][3]] or [''])[0]
             helperDict['exact_match_ccname_displ'] = self.truncateForDisplay(helperDict['exact_match_ccname'])
-            helperDict['exact_match_ccformula'] = (len(topHitsList) and [topHitsList[0][4]] or [''])[0]
+            helperDict['exact_match_ccformula'] = (len(topHitsList) and len(topHitsList[0]) > 4 and [topHitsList[0][4]] or [''])[0]
             helperDict['exact_match_ccformula_displ'] = self.truncateForDisplay(helperDict['exact_match_ccformula'])
 
             if topHitCcId.lower() != authAssignedGroup.lower():

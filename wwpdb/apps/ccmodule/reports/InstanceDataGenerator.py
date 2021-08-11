@@ -24,7 +24,31 @@ import os, sys, multiprocessing, traceback
 
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
 from wwpdb.apps.ccmodule.reports.ChemCompReports             import ChemCompReport
+import concurrent.futures
 #
+
+def generateReport(ccId, reqObj, verbose=True, log=sys.stderr):
+    print("ccId=%s\n" % ccId)
+    ccReport = ChemCompReport(reqObj=reqObj,verbose=verbose,log=log)
+    ccReport.setDefinitionId(definitionId=ccId.lower())
+    ccReport.doReport(type='ref',ccAssignPthMdfier=ccId)
+
+def generateInstanceReport(instId, dataStore, reqObj, verbose=True, log=sys.stderr):
+    sessionObj = reqObj.getSessionObj()
+    sessionPath = sessionObj.getPath()
+
+    chemCompFilePathAbs = os.path.join(sessionPath,'assign',instId,instId+'.cif')
+    instChemCompRprt=ChemCompReport(reqObj=reqObj,verbose=verbose,log=log)
+    instChemCompRprt.setFilePath(chemCompFilePathAbs,instId)
+    instChemCompRprt.doReport(type='exp',ccAssignPthMdfier=instId)
+    #
+    mtchL = dataStore.getTopHitsList(instId)
+    HitList = []
+    for tupL in mtchL:
+        HitList.append(tupL[0])
+    
+    ccaig = ChemCompAlignImageGenerator(reqObj=reqObj, verbose=verbose, log=log)
+    ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList)
 
 class InstanceDataGenerator(object):
     """Utility Class for generating report material that will support 2D,3D renderings.
@@ -42,12 +66,19 @@ class InstanceDataGenerator(object):
     def run(self):
         depId = str(self.__reqObj.getValue("identifier")).upper()
         instIdLst = self.__ccAssignDataStore.getAuthAssignmentKeys()
+        nonPassedInstIdLst = []
         self.__lfh.write("instIdLst=%d\n" % len(instIdLst))
         if len(instIdLst) == 0:
             return
         #
         refList = []
         for instId in instIdLst:
+            if self.__ccAssignDataStore.getBatchBestHitStatus(instId).lower() == 'passed':
+                self.__lfh.write("instId=%s passed, skipping image generation\n" % (instId))
+                continue
+                
+            nonPassedInstIdLst.append(instId)
+
             mtchL = self.__ccAssignDataStore.getTopHitsList(instId)
             for tupL in mtchL:
                 self.__lfh.write("instId=%s TopHit=%s\n" % (instId, tupL[0]))
@@ -60,9 +91,28 @@ class InstanceDataGenerator(object):
             self.__lfh.write("uniqList=%d\n" % len(uniqList))
             rrG = RefReportGenerator(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
             self.__runMultiprocessing(uniqList, rrG, 'runReportGenerator')
+
+            # with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            #     threads = {executor.submit(generateReport, ccId, self.__reqObj, self.__verbose, self.__lfh): ccId for ccId in uniqList}
+
+            #     for future in concurrent.futures.as_completed(threads):
+            #         ccId = threads[future]
+            #         self.__lfh.write("ccId %s completed\n" % ccId)
         #
+        # original
         irG = InstReportGenerator(reqObj=self.__reqObj,dataStore=self.__ccAssignDataStore,verbose=self.__verbose,log=self.__lfh)
-        self.__runMultiprocessing(instIdLst, irG, 'runReportGenerator')
+        # self.__runMultiprocessing(instIdLst, irG, 'runReportGenerator')
+
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        #     threads_inst = {executor.submit(generateInstanceReport, instId, self.__ccAssignDataStore, self.__reqObj, self.__verbose, self.__lfh): instId for instId in nonPassedInstIdLst}
+
+        #     for future in concurrent.futures.as_completed(threads_inst):
+        #         instId = threads_inst[future]
+        #         self.__lfh.write("instId %s completed\n" % instId)
+
+        # mine
+        self.__lfh.write("nonPassedInstIdLst list=%s\n" % (nonPassedInstIdLst))
+        self.__runMultiprocessing(nonPassedInstIdLst, irG, 'runReportGenerator')
 
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
         """
