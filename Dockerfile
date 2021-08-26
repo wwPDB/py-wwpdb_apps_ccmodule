@@ -1,6 +1,9 @@
-FROM python:3.8-alpine as builder
+FROM python:3.8 as builder
 
-RUN apk add --update --no-cache cmake make git openssh openssl-dev bash gcc g++ musl-dev linux-headers libressl-dev libffi-dev rust cargo flex bison mariadb-dev mariadb-connector-c mariadb-connector-c-dev
+RUN apt-get update
+RUN apt-get install -y bash libmariadb-dev libjpeg-dev zlib1g
+RUN apt-get install -y cmake make git openssh-client gcc g++ musl-dev mariadb-client libffi-dev rustc cargo flex bison
+RUN apt-get clean
 
 # force using bash shell
 SHELL ["/bin/bash", "-c"]
@@ -27,9 +30,11 @@ COPY . .
 RUN pip --no-cache-dir install .[server]
 
 
-FROM python:3.8-alpine
+FROM python:3.8-slim
 
-RUN apk add --update --no-cache bash mariadb-connector-c mariadb-connector-c-dev
+RUN apt-get update
+RUN apt-get install -y bash libmariadb-dev
+RUN apt-get clean
 
 # force using bash shell
 SHELL ["/bin/bash", "-c"]
@@ -37,13 +42,7 @@ SHELL ["/bin/bash", "-c"]
 ENV VENV=/venv
 ENV PATH="$VENV/bin:$PATH"
 
-ENV SITE_CONFIG='. ${TOP_WWPDB_SITE_CONFIG_DIR}/init/env.sh --siteid ${WWPDB_SITE_ID} --location ${WWPDB_SITE_LOC}'
-ENV WRITE_SITE_CONFIG_CACHE='ConfigInfoFileExec --siteid $WWPDB_SITE_ID --locid $WWPDB_SITE_LOC --writecache'
-
 WORKDIR ${VENV}
 COPY --from=builder ${VENV} .
-
-# allow apache to come through
-EXPOSE 25 80 465 587 443 5672 5673 8000
 
 CMD ${SITE_CONFIG} && gunicorn wwpdb.apps.ccmodule.webapp.wsgi --bind 0.0.0.0:8000
