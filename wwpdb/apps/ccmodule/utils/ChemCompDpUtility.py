@@ -152,6 +152,15 @@ class ChemCompDpUtility(object):
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
             self._ligState.abort()
+    
+    def doAnalysisAnn(self):
+        self._logger.info('Starting analysis for deposition "%s"', self._depId)
+
+        try:
+            pass
+        except Exception as e:
+            self._logger.error('Error performing ligand analysis', exc_info=True)
+            self._ligState.abort()
 
     def _processCcAssignFile(self):
         """Interrogate resulting assign results file for desired match data.
@@ -635,14 +644,19 @@ class ChemCompDpUtility(object):
             Logger: instance of Logger class
         """
         logger = getLogger(__name__)
-        handler = StreamHandler(log_file)
 
+        for h in logger.handlers:
+            if h.get_name() == 'default':
+                return logger
+
+        handler = StreamHandler(log_file)
         formatter = Formatter('+%(module)s.%(funcName)s() ++ %(message)s\n')
         handler.setFormatter(formatter)
+        handler.set_name('default')
 
         logger.addHandler(handler)
         
-        if self._verbose:
+        if self.__verbose:
             logger.setLevel(DEBUG)
         else:
             logger.setLevel(INFO)
