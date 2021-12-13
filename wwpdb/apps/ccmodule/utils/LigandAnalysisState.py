@@ -235,7 +235,7 @@ class LigandAnalysisState:
 
         logger.addHandler(handler)
         
-        if self.__verbose:
+        if self._verbose:
             logger.setLevel(DEBUG)
         else:
             logger.setLevel(INFO)

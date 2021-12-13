@@ -119,7 +119,13 @@ class MultiProcWorker(multiprocessing.Process):
             if nextList is None:
                 break
             #
-            self.__workerFunc(dataList=nextList, processLabel=self.__processLabel)
+            try:
+                # not catching possible exceptions here was leading to the process
+                # being deadlocked, don't know why
+                self.__workerFunc(dataList=nextList, processLabel=self.__processLabel)
+            except:
+                self.__lfh.write("ERROR - Exception when running function %s with args %s\n" % (self.__workerFunc.__name__, nextList))
+                traceback.print_exc(file=self.__lfh)
             self.__resultQueue.put("OK")
         #
 

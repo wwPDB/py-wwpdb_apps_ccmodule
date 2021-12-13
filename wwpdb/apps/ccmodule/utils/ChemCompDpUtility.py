@@ -3,6 +3,7 @@
 # Date:     03-Mar-2021
 #
 
+from enum import Enum
 import os
 import sys
 import shutil
@@ -15,14 +16,25 @@ from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssig
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
 from wwpdb.utils.session.WebRequest                     import InputRequest
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
-from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
+from wwpdb.utils.config.ConfigInfoApp                   import ConfigInfoAppCommon
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.io.locator.ChemRefPathInfo                   import ChemRefPathInfo
+from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
+from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
+from wwpdb.apps.ccmodule.reports.InstanceDataGenerator  import InstanceDataGenerator
+
+import snoop
+snoop.install(out='/nfs/public/release/msd/services/onedep/ligmod.log')
+
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
+
+class ChemCompContext(Enum):
+    CONTEXT_DEPUI = 0
+    CONTEXT_ANNOTATION = 1
 
 class ChemCompDpUtility(object):
     """ Wrapper class for ligand analysis operations
@@ -31,7 +43,7 @@ class ChemCompDpUtility(object):
     _CC_ASSIGN_DIR = 'assign'
     _CC_HTML_FILES_DIR = 'html'
     
-    def __init__(self, depId, verbose=False, log=sys.stderr):
+    def __init__(self, context: ChemCompContext, depId: str, wfInstance: str=None, verbose=False, log=sys.stderr):
         self._verbose = verbose
         self._debug = False
         self._lfh = log
@@ -39,7 +51,9 @@ class ChemCompDpUtility(object):
 
         # auxiliary input resource
         self._inputParamDict = {}
+        self._context = context
         self._depId = depId
+        self._wfInstance = wfInstance
         self._cI = ConfigInfo()
         self._cICommon = ConfigInfoAppCommon()
 
@@ -50,12 +64,24 @@ class ChemCompDpUtility(object):
         self._setupSession(self._depId)
 
         # setting up chem comp config
+        pathInfo = PathInfo()
+
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
         self._ccRefPathInfo = ChemRefPathInfo(configObj=self._cI, configCommonObj=self._cICommon,
                                               verbose=self._verbose, log=self._lfh)
-        self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
-        self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
-        self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
+        self._depositPath = Path(pathInfo.getDepositPath(self._depId))
+
+        if self._context == ChemCompContext.CONTEXT_ANNOTATION:
+            if not self._wfInstance:
+                raise Exception('Missing workflow instance id when executing ligand analysis under annotation context')
+            
+            self._wfPath = Path(pathInfo.getInstancePath(dataSetId=self._depId, wfInstanceId=self._wfInstance))
+            self._ccReportPath = os.path.join(self._wfPath, self._CC_REPORT_DIR)
+            self._assignFilePath = os.path.join(self._wfPath, self._CC_ASSIGN_DIR)
+        else:
+            self._ccReportPath = os.path.join(self._depositPath, self._CC_REPORT_DIR)
+            self._assignFilePath = os.path.join(self._depositPath, self._CC_ASSIGN_DIR)
+        
         self._ligState = LigandAnalysisState(self._depId, self._verbose, self._lfh)
     
     def doAnalysis(self):
@@ -115,7 +141,7 @@ class ChemCompDpUtility(object):
                     fitTupleDict[authAssignedId]['masterAlignRef'] = None 
 
                 # report material and imaging setup for this experimental instance
-                instanceChemCompFilePath = os.path.join(self._depositAssignPath, instId, instId + '.cif')
+                instanceChemCompFilePath = os.path.join(self._assignFilePath, instId, instId + '.cif')
                 self._genLigandReportData(instId, instanceChemCompFilePath, 'exp')
                 self._imagingSetupForLigandInstance(instId, authAssignedId, fitTupleDict, instanceChemCompFilePath)
 
@@ -153,11 +179,38 @@ class ChemCompDpUtility(object):
             self._logger.error('Error performing ligand analysis', exc_info=True)
             self._ligState.abort()
     
-    def doAnalysisAnn(self):
+    def doAnalysisAnnotation(self):
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
 
         try:
-            pass
+            # I may have to convert the model file so it can be
+            # loaded into jmol (see ccmodule/webapp/ChemCompWebApp.py:871)
+
+            os.makedirs(self._ccReportPath, exist_ok=True)
+
+            # initializing the ligand state monitor
+            # self._ligState.init()
+
+            rDict = self._processCcAssignFile()
+            cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
+
+            if self._verbose:
+                self._logger.debug('Creating datastore for resulting assign details')
+
+            ccAssignDataStore = cca.createDataStore(rDict, True)
+            # this is a necessary step from the annotation pipeline
+            cca.updateWithDepositorInfo(ccAssignDataStore)
+            self._importDepositorFilesAnnotation(ccAssignDataStore)
+
+            IDG = InstanceDataGenerator(reqObj=self._reqObj, dataStore=ccAssignDataStore, verbose=True, log=self._lfh)
+            IDG.run()
+
+            instIdLst = ccAssignDataStore.getAuthAssignmentKeys()
+
+            if len(instIdLst) > 0:
+                cca.getDataForInstncSrch(instIdLst, ccAssignDataStore)
+                ccAssignDataStore.dumpData(self._lfh)
+                ccAssignDataStore.serialize()
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
             self._ligState.abort()
@@ -425,6 +478,56 @@ class ChemCompDpUtility(object):
         
         return True
     
+    def _importDepositorFilesAnnotation(self, ccAssignDataStore):
+        self._logger.info('Importing files from depositor')
+
+        for ligId in ccAssignDataStore.getGlbllyRslvdGrpList():
+            self._logger.debug('Verifying imported files for ligand %s', ligId)
+
+            try:
+                filePathList = ccAssignDataStore.getAllDpstrWfFilePths(ligId)
+
+                if len(filePathList) == 0:
+                    self._logger.info('Empty list of depositor files for ligand %s', ligId)
+                
+                for filePath in filePathList:
+                    if os.access(filePath, os.R_OK):
+                        self._logger.info('Found file %s', filePath)
+                        self._logger.info('Sketch file %s', ccAssignDataStore.getDpstrSketchFile(ligId))
+                        
+                        fileName = os.path.basename(filePath)
+                        wfFilePath = os.path.join(self._assignFilePath, fileName)
+                        self._copyFileToReportDir(filePath, wfFilePath)
+                        
+                        sketchFileLst = ccAssignDataStore.getDpstrSketchFile(ligId)
+                        if sketchFileLst is not None and fileName in sketchFileLst:
+                            toLclSessnSdfInputPth = os.path.join(self._assignFilePath, ligId + ".sdf")
+                            toLclSessnImgPth = os.path.join(self._assignFilePath, ligId + ".svg")
+                            
+                            try:
+                                self._copyFileToReportDir(wfFilePath, toLclSessnSdfInputPth) # creating copy of file with simple identifier for passing to OeBuildMol
+                                oem=OeBuildMol(verbose=self._verbose, log=self._lfh)
+
+                                if oem.importFile(toLclSessnSdfInputPth,type='3D'):
+                                    self._logger.info("Title = %s", oem.getTitle())
+
+                                oed=OeDepict(verbose=self._verbose, log=self._lfh)
+                                oed.setMolTitleList([(ligId, oem, "Depiction of SDF submitted for " + ligId)])
+                                oed.setDisplayOptions(labelAtomName=True, labelAtomCIPStereo=True, labelAtomIndex=False, labelBondIndex=False, bondDisplayWidth=0.5)
+                                oed.setGridOptions(rows=1, cols=1)
+                                oed.prepare()
+                                oed.write(toLclSessnImgPth)
+                                
+                                self._logger.info('Generated image file [%s] from sketch file [%s]', toLclSessnImgPth, wfFilePath)
+                            except:
+                                self._logger.error('Error processing file %s', filePath, exc_info=True)
+                        else:
+                            self._logger.info('File [%s] is not a sketch file for this ligand ID [%s]', fileName, ligId)
+                    else:
+                        self._logger.error('ACCESS PROBLEM when attempting to copy depositor file from workflow path %s to session path as %s', filePath, wfFilePath, exc_info=True)
+            except:
+                self._logger.error('Processing failed id: %s', self._depId, exc_info=True)
+    
     def _importDepositorFiles(self, ccAssignDataStore):
         """Copy user edited files to the report path.
 
@@ -437,8 +540,7 @@ class ChemCompDpUtility(object):
         self._logger.info('Processing previously addressed ligand groups')
 
         for ligId in ccAssignDataStore.getGlbllyRslvdGrpList():
-            if self._verbose:
-                self._logger.debug('Processing ligand %s', ligId)
+            self._logger.debug('Processing ligand %s', ligId)
 
             try:
                 # technically speaking, sdf files are not "uploaded" but are generated by any
@@ -470,8 +572,7 @@ class ChemCompDpUtility(object):
 
                                 self._copyFileToReportDir(self, wfDefinitionFilePath, reportDefinitionFilePath)
             except:
-                if self._verbose:
-                    self._logger.error('----- WARNING ----- processing failed id: %s', self._depId, exc_info=True)
+                self._logger.error('Processing failed id: %s', self._depId, exc_info=True)
     
     def _copyFileToReportDir(self, sourceFilePath, destFilePath):
         """Helper method to copy files between CC folders.
@@ -560,7 +661,7 @@ class ChemCompDpUtility(object):
                 self._logger.warning('---- WARNING ---- No path obtained for CC assign details export file, id %s', depId)
 
             # chem comp depositor progress file
-            pathDict['dpstrPrgrssFileFlPth'] = os.path.join(self._depositPath, depId, 'cc-dpstr-progress')
+            pathDict['dpstrPrgrssFileFlPth'] = os.path.join(self._depositPath, 'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = os.path.split(pathDict['dpstrPrgrssFileFlPth'])[0]
             
             if (self._verbose):
@@ -600,14 +701,10 @@ class ChemCompDpUtility(object):
             else:
                 raise ValueError('Error - Unknown input type {}'.format(type))
 
-                return False
-
             return True
 
         except Exception as e:
             raise ValueError('Error - %s', str(e))
-
-            return False
     
     def _setupSession(self, depId):
         """Setup the session object (even though we don't rely on sessions here)
@@ -656,9 +753,13 @@ class ChemCompDpUtility(object):
 
         logger.addHandler(handler)
         
-        if self.__verbose:
+        if self._verbose:
             logger.setLevel(DEBUG)
         else:
             logger.setLevel(INFO)
 
         return logger
+
+ccdu = ChemCompDpUtility(ChemCompContext.CONTEXT_ANNOTATION, 'D_800086', 'W_013', True)
+ccdu.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, "/nfs/public/release/msd/services/onedep/data/local/workflow/D_800086/instance/W_013/D_800086_cc-assign_P1.cif.V1")
+ccdu.doAnalysisAnnotation()
