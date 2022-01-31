@@ -24,6 +24,7 @@ from wwpdb.io.locator.ChemRefPathInfo                   import ChemRefPathInfo
 from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
 from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.apps.ccmodule.reports.InstanceDataGenerator  import InstanceDataGenerator
+from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 
 import snoop
 snoop.install(out='/nfs/public/release/msd/services/onedep/ligmod.log')
@@ -197,9 +198,16 @@ class ChemCompDpUtility(object):
             if self._verbose:
                 self._logger.debug('Creating datastore for resulting assign details')
 
-            ccAssignDataStore = cca.createDataStore(rDict, True)
-            # this is a necessary step from the annotation pipeline
-            cca.updateWithDepositorInfo(ccAssignDataStore)
+            ccAssignDataStoreFile = PathInfo().getFilePath(self._depId, wfInstanceId=self._wfInstance, fileSource='wf-instance', contentType='chem-comp-assign-details', formatType='pic')
+            self._logger.info('ccAssignDataStoreFile path: %s', ccAssignDataStoreFile)
+
+            if os.access(ccAssignDataStoreFile, os.R_OK):
+                ccAssignDataStore = ChemCompAssignDataStore(self._reqObj, verbose=True, log=self._lfh)
+            else:
+                ccAssignDataStore = cca.createDataStore(rDict, True)
+                # this is a necessary step from the annotation pipeline
+                cca.updateWithDepositorInfo(ccAssignDataStore)
+
             self._importDepositorFilesAnnotation(ccAssignDataStore)
 
             IDG = InstanceDataGenerator(reqObj=self._reqObj, dataStore=ccAssignDataStore, verbose=True, log=self._lfh)

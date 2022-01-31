@@ -212,8 +212,7 @@ class ChemCompAssignDataStore(object):
                 if context != 'workflow':
                     self.__filePath = os.path.join(picklePathAbs, depId.lower() + self.__fileNameSuffix)
                 else:
-                    instancePath = PathInfo().getInstancePath(depId, self.__reqOb.getValue('instance'))
-                    self.__filePath = os.path.join(instancePath, 'assign', depId + self.__fileNameSuffix)
+                    self.__filePath = PathInfo().getFilePath(depId, wfInstanceId=self.__reqOb.getValue('instance'), fileSource='wf-instance', contentType='chem-comp-assign-details', formatType='pic')
             elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
