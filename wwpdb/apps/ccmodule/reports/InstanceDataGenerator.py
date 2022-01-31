@@ -24,6 +24,8 @@ import os, sys, multiprocessing, traceback
 
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
 from wwpdb.apps.ccmodule.reports.ChemCompReports             import ChemCompReport
+from wwpdb.io.locator.PathInfo                               import PathInfo
+import snoop
 #
 
 class InstanceDataGenerator(object):
@@ -42,6 +44,7 @@ class InstanceDataGenerator(object):
     def run(self):
         depId = str(self.__reqObj.getValue("identifier")).upper()
         instIdLst = self.__ccAssignDataStore.getAuthAssignmentKeys()
+        context = self.__getContext()
         self.__lfh.write("instIdLst=%d\n" % len(instIdLst))
         if len(instIdLst) == 0:
             return
@@ -58,10 +61,10 @@ class InstanceDataGenerator(object):
         if len(refList) > 0:
             uniqList = sorted(set(refList))
             self.__lfh.write("uniqList=%d\n" % len(uniqList))
-            rrG = RefReportGenerator(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+            rrG = RefReportGenerator(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh,context=context)
             self.__runMultiprocessing(uniqList, rrG, 'runReportGenerator')
         #
-        irG = InstReportGenerator(reqObj=self.__reqObj,dataStore=self.__ccAssignDataStore,verbose=self.__verbose,log=self.__lfh)
+        irG = InstReportGenerator(reqObj=self.__reqObj,dataStore=self.__ccAssignDataStore,verbose=self.__verbose,log=self.__lfh,context=context)
         self.__runMultiprocessing(instIdLst, irG, 'runReportGenerator')
 
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
@@ -100,6 +103,23 @@ class InstanceDataGenerator(object):
                 traceback.print_exc(file=self.__lfh)
             #
         #
+    
+    def __getContext(self):
+        filesource = self.__reqObj.getValue('filesource')
+        depid = self.__reqObj.getValue('identifier')
+
+        if depid == 'TMP_ID':
+            return 'standalone'
+        
+        if filesource == 'deposit':
+            return 'deposition'
+        
+        if filesource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
+            return 'workflow'
+        
+        # in case we can't find out the context (as it happens with the standalone
+        # ligmod) we fall back to get model files from the sessions path
+        return 'unknown'
 
 class MultiProcWorker(multiprocessing.Process):
     """
@@ -132,14 +152,15 @@ class MultiProcWorker(multiprocessing.Process):
 class RefReportGenerator(object):
     """
     """
-    def __init__(self, reqObj=None, verbose=False, log=sys.stderr):
+    def __init__(self, reqObj=None, verbose=False, log=sys.stderr, context=None):
         self.__reqObj=reqObj
         self.__verbose=verbose
         self.__lfh=log
+        self.__context=context
         #
 
     def runReportGenerator(self, dataList=None, processLabel=None):
-        self.__lfh.write("enter runReportGenerator\n")
+        self.__lfh.write("enter RefReportGenerator.runReportGenerator, context %s\n" % self.__context)
         ccReport = ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         for ccId in dataList:
             self.__lfh.write("ccId=%s\n" % ccId)
@@ -150,19 +171,27 @@ class RefReportGenerator(object):
 class InstReportGenerator(object):
     """
     """
-    def __init__(self, reqObj=None, dataStore=None, verbose=False, log=sys.stderr):
+    def __init__(self, reqObj=None, dataStore=None, verbose=False, log=sys.stderr, context=None):
         self.__ccAssignDataStore=dataStore
         self.__reqObj=reqObj
         self.__verbose=verbose
         self.__lfh=log
+        self.__context=context
         #
         self.__sObj=self.__reqObj.getSessionObj()
         self.__sessionPath=self.__sObj.getPath()
         #
 
+    @snoop
     def runReportGenerator(self, dataList=None, processLabel=None):
+        self.__lfh.write("enter InstReportGenerator.runReportGenerator, context %s\n" % self.__context)
         for instId in dataList:
-            chemCompFilePathAbs = os.path.join(self.__sessionPath,'assign',instId,instId+'.cif')
+            if self.__context == 'workflow':
+                instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+                chemCompFilePathAbs = os.path.join(instancePath,'cc_analysis',instId,instId+'.cif')
+            else:
+                chemCompFilePathAbs = os.path.join(self.__sessionPath,'assign',instId,instId+'.cif')
+
             instChemCompRprt=ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
             instChemCompRprt.setFilePath(chemCompFilePathAbs,instId)
             instChemCompRprt.doReport(type='exp',ccAssignPthMdfier=instId)
@@ -175,3 +204,4 @@ class InstReportGenerator(object):
             ccaig = ChemCompAlignImageGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
             ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList)
         #
+

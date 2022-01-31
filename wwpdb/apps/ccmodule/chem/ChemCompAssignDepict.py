@@ -95,6 +95,7 @@ from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDat
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
 from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
 from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
+from wwpdb.io.locator.PathInfo                          import PathInfo
 
 class ChemCompAssignDepict(ChemCompDepict):
     """ Class responsible for generating HTML depictions of 
@@ -145,12 +146,31 @@ class ChemCompAssignDepict(ChemCompDepict):
                                     'dpstr_info_dscrptr_img_pth',
                                     'dpstr_info_type',
                                     'dpstr_info_details']
+
+    #     if self.__getContext() == 'workflow':
+    #         instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+    #         self.__absAssignPath = os.path.join(instancePath, 'assign')
+    # ################################################################################################################
+    # # ------------------------------------------------------------------------------------------------------------
+    # #      Top-level methods
+    # # ------------------------------------------------------------------------------------------------------------
+    # #
+    # def __getContext(self):
+    #     filesource = self.__reqObj.getValue('filesource')
+    #     depid = self.__reqObj.getValue('identifier')
+
+    #     if depid == 'TMP_ID':
+    #         return 'standalone'
         
-    ################################################################################################################
-    # ------------------------------------------------------------------------------------------------------------
-    #      Top-level methods
-    # ------------------------------------------------------------------------------------------------------------
-    #
+    #     if filesource == 'deposit':
+    #         return 'deposition'
+        
+    #     if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
+    #         return 'workflow'
+        
+    #     # in case we can't find out the context (as it happens with the standalone
+    #     # ligmod) we fall back to get model files from the sessions path
+    #     return 'unknown'
     
     def doRender_BatchSrchSummaryContainer(self,p_reqObj,p_bIsWorkflow):
         ''' Render HTML used as starter page/container for the Batch Search Assignment Results Summary
@@ -378,11 +398,8 @@ class ChemCompAssignDepict(ChemCompDepict):
             ##
             hlprDict['instanceid']   = instId
             authAssignedGrp = p_ccAssgnDataStr.getAuthAssignment(instId)
-            hlprDict['2dpath_labld_w_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',instId+'_Big.svg')
-            #hlprDict['2dpath_labld_w_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'report',authAssignedGrp+'_D3L3.gif')
-            hlprDict['2dpath_labld_no_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',instId+'_Big.svg')
-            #hlprDict['2dpath_labld_no_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'report',authAssignedGrp+'_D3L1.gif')
-            #hlprDict['2dpath_labld_no_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'report',authAssignedGrp+'_D3L0.gif')
+            hlprDict['2dpath_labld_w_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, instId+'_Big')
+            hlprDict['2dpath_labld_no_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, instId+'_Big')
             ##
             index += 1
             ##
@@ -603,11 +620,8 @@ class ChemCompAssignDepict(ChemCompDepict):
         #######################################################################################################################################################
         #######################################################################################################################################################
         p_hlprDict['top_hit_ccid'] = topHitCcId
-        p_hlprDict['2dpath_labld_w_hy_ref'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',topHitCcId+'_Big.svg')
-        #p_hlprDict['2dpath_labld_w_hy_ref'] = os.path.join(self.rltvSessionPath,'assign','rfrnc_reports',topHitCcId,topHitCcId+'_D3L3.gif')
-        p_hlprDict['2dpath_labld_no_hy_ref'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',topHitCcId+'_Big.svg')
-        #p_hlprDict['2dpath_labld_no_hy_ref'] = os.path.join(self.rltvSessionPath,'assign','rfrnc_reports',topHitCcId,topHitCcId+'_D3L1.gif')
-        #p_hlprDict['2dpath_labld_no_hy_ref'] = os.path.join(self.rltvSessionPath,'assign','rfrnc_reports',topHitCcId,topHitCcId+'_D3L0.gif')
+        p_hlprDict['2dpath_labld_w_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, topHitCcId, topHitCcId+'_Big')
+        p_hlprDict['2dpath_labld_no_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, topHitCcId, topHitCcId+'_Big')
         topHitsList = p_ccAssgnDataStr.getTopHitsList(instId)
         p_hlprDict['top_hit_ccname']   = (len(topHitsList) and [topHitsList[0][3]] or [''])[0]
         p_hlprDict['top_hit_ccname_displ']  = self.truncateForDisplay(p_hlprDict['top_hit_ccname'])
@@ -631,18 +645,13 @@ class ChemCompAssignDepict(ChemCompDepict):
         #p_hlprDict['2dpath']               = os.path.join(self.rltvAssgnSessionPath,instId,'report',authAssignedGrp+'-noh.gif')
         #p_hlprDict['2dpath']               = os.path.join(self.rltvAssgnSessionPath,instId,'report',authAssignedGrp+'_D3L0.gif')
         p_hlprDict['2dpath_top_hit']       = os.path.join(self.rltvAssgnSessionPath,instId,'image',topHitCcId+'.svg')
-        #p_hlprDict['2dpath_top_hit']       = os.path.join(self.rltvAssgnSessionPath,'rfrnc_reports',topHitCcId,topHitCcId+'-noh.gif')
-        #p_hlprDict['2dpath_top_hit']       = os.path.join(self.rltvAssgnSessionPath,'rfrnc_reports',topHitCcId,topHitCcId+'_D3L0.gif')
 
         ##
         #
         ## added by ZF. It is needed by directly call from ChemCompWebApp._ccAssign_rerunInstncSrch && ChemCompWebApp._ccAssign_rerunInstncCompSrch
         p_hlprDict['jmol_code_base'] = self.jmolCodeBase
         p_hlprDict['2dpath_labld_w_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',instId+'_Big.svg')
-        #p_hlprDict['2dpath_labld_w_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'report',authAssignedGrp+'_D3L3.gif')
         p_hlprDict['2dpath_labld_no_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',instId+'_Big.svg')
-        #p_hlprDict['2dpath_labld_no_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'report',authAssignedGrp+'_D3L1.gif')
-        #p_hlprDict['2dpath_labld_no_hy'] = os.path.join(self.rltvSessionPath,'assign',instId,'report',authAssignedGrp+'_D3L0.gif')
         ############################################################################################################################################################
         #################################################################################################################################
         ## below we are setting dictionary items that pertain to different display states depending
@@ -880,9 +889,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                 strReplDict['checked'] = checked
                 strReplDict['3dpath_ref'] = os.path.join('/',strReplDict['assgn_sess_path_rel'],'rfrnc_reports',p_ccId,p_ccId)
                 strReplDict['2dpath_labld_w_hy_ref'] = os.path.join('/',strReplDict['assgn_sess_path_rel'],p_instId,'image',p_ccId+'_Big.svg')
-                #strReplDict['2dpath_labld_w_hy_ref'] = os.path.join('/',strReplDict['assgn_sess_path_rel'],'rfrnc_reports',p_ccId,p_ccId+'_D3L3.gif')
                 strReplDict['2dpath_labld_no_hy_ref'] = os.path.join('/',strReplDict['assgn_sess_path_rel'],p_instId,'image',p_ccId+'_Big.svg')
-                #strReplDict['2dpath_labld_no_hy_ref'] = os.path.join('/',strReplDict['assgn_sess_path_rel'],'rfrnc_reports',p_ccId,p_ccId+'_D3L1.gif')
                 strReplDict['jmol_code_base'] = self.jmolCodeBase
                 '''
                 ##########################################################################################################
@@ -1554,9 +1561,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             lclDict['index'] = cnt
             lclDict['3dpath_ref'] = os.path.join(self.rltvAssgnSessionPath,'rfrnc_reports',ccid,ccid)
             lclDict['2dpath_labld_w_hy_ref'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',ccid+'_Big.svg')
-            #lclDict['2dpath_labld_w_hy_ref'] = os.path.join(self.rltvSessionPath,'assign','rfrnc_reports',ccid,ccid+'_D3L3.gif')
             lclDict['2dpath_labld_no_hy_ref'] = os.path.join(self.rltvSessionPath,'assign',instId,'image',ccid+'_Big.svg')
-            #lclDict['2dpath_labld_no_hy_ref'] = os.path.join(self.rltvSessionPath,'assign','rfrnc_reports',ccid,ccid+'_D3L1.gif')
             #
             lclDict['a'] = '%a'
             #

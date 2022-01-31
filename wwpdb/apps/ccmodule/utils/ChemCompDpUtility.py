@@ -61,7 +61,7 @@ class ChemCompDpUtility(object):
         self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
 
         # setting up session object
-        self._setupSession(self._depId)
+        self._setupSession(self._depId, self._context)
 
         # setting up chem comp config
         pathInfo = PathInfo()
@@ -479,7 +479,7 @@ class ChemCompDpUtility(object):
         return True
     
     def _importDepositorFilesAnnotation(self, ccAssignDataStore):
-        self._logger.info('Importing files from depositor')
+        self._logger.info('Importing files from depositor %s', ccAssignDataStore.getGlbllyRslvdGrpList())
 
         for ligId in ccAssignDataStore.getGlbllyRslvdGrpList():
             self._logger.debug('Verifying imported files for ligand %s', ligId)
@@ -706,7 +706,7 @@ class ChemCompDpUtility(object):
         except Exception as e:
             raise ValueError('Error - %s', str(e))
     
-    def _setupSession(self, depId):
+    def _setupSession(self, depId, context):
         """Setup the session object (even though we don't rely on sessions here)
         used by auxiliary classes.
 
@@ -724,7 +724,13 @@ class ChemCompDpUtility(object):
         self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cICommon.get_site_web_apps_top_sessions_path())
         self._reqObj.setValue('SessionsPath', self._cICommon.get_site_web_apps_sessions_path())
         self._reqObj.setValue('identifier', depId)
-        self._reqObj.setValue('filesource', 'deposit')
+
+        if context == ChemCompContext.CONTEXT_DEPUI:
+            self._reqObj.setValue('filesource', 'deposit')
+        else:
+            self._reqObj.setValue('filesource', 'wf-instance')
+            self._reqObj.setValue('instance', self._wfInstance)
+
         self._reqObj.setValue('TemplatePath', self._templatePath)
 
         if self._verbose:
@@ -760,6 +766,6 @@ class ChemCompDpUtility(object):
 
         return logger
 
-ccdu = ChemCompDpUtility(ChemCompContext.CONTEXT_ANNOTATION, 'D_800086', 'W_013', True)
-ccdu.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, "/nfs/public/release/msd/services/onedep/data/local/workflow/D_800086/instance/W_013/D_800086_cc-assign_P1.cif.V1")
-ccdu.doAnalysisAnnotation()
+# ccdu = ChemCompDpUtility(ChemCompContext.CONTEXT_ANNOTATION, 'D_800154', 'W_038', True)
+# ccdu.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, "/nfs/public/release/msd/services/onedep/data/local/workflow/D_800154/instance/W_038/D_800154_cc-assign_P1.cif.V1")
+# ccdu.doAnalysisAnnotation()

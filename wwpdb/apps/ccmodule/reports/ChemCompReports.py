@@ -26,6 +26,7 @@ from wwpdb.apps.ccmodule.utils.ChemCompConfig      import ChemCompConfig
 from wwpdb.utils.config.ConfigInfo                 import ConfigInfo
 from pathlib                                       import Path
 from wwpdb.io.locator.PathInfo                     import PathInfo
+import snoop
 
 class ChemCompReport(object):
     """Create web report from chemical component definitions.
@@ -61,11 +62,14 @@ class ChemCompReport(object):
         self.__cI=ConfigInfo(self.__siteId)
 
         context = self.__getContext()
+        self.__lfh.write("Context: %s\n" % context)
+
         if context == 'standalone':
             self.__depId = 'D_0'
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         elif context == 'workflow' or context == 'unknown':
-            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+            instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+            self.__ccReportPath = os.path.join(instancePath, 'cc_analysis')
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier').upper()
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
@@ -148,6 +152,10 @@ class ChemCompReport(object):
         #
         fileName    =    self.__definitionId + ".cif"                
         filePath=os.path.join(reportPath,fileName)
+
+        if not os.path.exists(self.__definitionFilePath):
+            return
+        
         shutil.copyfile(self.__definitionFilePath,filePath)
         
 

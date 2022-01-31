@@ -105,6 +105,7 @@ from mmcif.io.PdbxReader                                import PdbxReader
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
+import snoop
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -145,20 +146,22 @@ class ChemCompAssign(object):
         #
         self.__cI=ConfigInfo()
         #
-        self.__setup()
         self.__pathInfo = PathInfo()
+        self.__setup()
         #
 
+    @snoop
     def __setup(self):
         context = self.__getContext()
 
         if context == 'standalone':
             self.__depId = 'D_0'
             self.__modelDirPath = self.__sessionPath
-            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+            self.__ccReportPath = os.path.join(self.__sessionPath, self._CC_ASSIGN_DIR)
         elif context == 'workflow' or context == 'unknown':
-            self.__modelDirPath = self.__sessionPath
-            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+            instancePath = self.__pathInfo.getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+            self.__modelDirPath = instancePath
+            self.__ccReportPath = os.path.join(instancePath, self._CC_REPORT_DIR)
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier')
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
@@ -699,11 +702,16 @@ class ChemCompAssign(object):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
                     chemCompFilePathAbs=os.path.join(assignDirPath,srchId,srchId+'.cif')
+                
+                self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - srchId %s, chemCompFilePathAbs %s\n" % (srchId, chemCompFilePathAbs))
+                self.__lfh.flush()
+                
                 #
                 if( p_ccAssgnDataStr.getCcName(srchId) is None ):
                     if os.access(chemCompFilePathAbs,os.R_OK):
                         if self.__verbose:
                             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - instance specific chem comp cif file found: %s\n" % chemCompFilePathAbs)
+                            self.__lfh.flush()
                             #
                         ccR=ChemCompReader(self.__verbose,self.__lfh)
                         ccR.setFilePath(filePath=chemCompFilePathAbs)
@@ -733,7 +741,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - failed while retrieving chem comp data\n")
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
-    
+
     def getTopHitsDataForInstnc(self,p_instId,p_ccAssgnDataStr,p_assignDirPath):
         """ For given instance of author ligand, obtains data pertaining to any top hit candidates
             identified by the chem comp assignment search
@@ -1547,8 +1555,6 @@ class ChemCompAssign(object):
         className = self.__class__.__name__
         methodName = sys._getframe().f_code.co_name
         #
-        #assignDirPath = os.path.join(self.__sessionPath,'assign')
-        #
         ccE=ChemCompDataExport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         #
         contentTypeDict = self.__cI.get('CONTENT_TYPE_DICTIONARY')
@@ -1992,6 +1998,7 @@ class ChemCompAssign(object):
             #
 
         else:
+            self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - could not access %s\n" % (ccRefFilePath) )
             if( p_state == "first pass" ):
                 if self.__verbose:
                         self.__lfh.write("+ChemCompAssign.__syncTopHitsData() - processing top hits for %s and NO reference chem comp file found on first pass for %s\n" % (p_instId, ccRefFilePath) )
