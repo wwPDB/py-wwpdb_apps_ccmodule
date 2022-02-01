@@ -182,6 +182,7 @@ class ChemCompDpUtility(object):
     
     def doAnalysisAnnotation(self):
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
+        pathInfo = PathInfo()
 
         try:
             # I may have to convert the model file so it can be
@@ -198,7 +199,13 @@ class ChemCompDpUtility(object):
             if self._verbose:
                 self._logger.debug('Creating datastore for resulting assign details')
 
-            ccAssignDataStoreFile = PathInfo().getFilePath(self._depId, wfInstanceId=self._wfInstance, fileSource='wf-instance', contentType='chem-comp-assign-details', formatType='pic')
+            ccAssignDataStoreFile = pathInfo.getFilePath(
+                self._depId,
+                wfInstanceId=self._wfInstance,
+                fileSource='wf-instance',
+                contentType='chem-comp-assign-details',
+                formatType='pic'
+            )
             self._logger.info('ccAssignDataStoreFile path: %s', ccAssignDataStoreFile)
 
             if os.access(ccAssignDataStoreFile, os.R_OK):
