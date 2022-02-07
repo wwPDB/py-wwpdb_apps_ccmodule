@@ -1150,8 +1150,9 @@ class ChemCompWebAppWorker(object):
         #
         ccADS=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
         #
+        linkInfoMap = self.__readCovalentBondingInfo()
         ccAD=ChemCompAssignDepict(self.__verbose,self.__lfh)
-        oL=ccAD.doRender_BatchSrchSummaryContent(ccADS)
+        oL=ccAD.doRender_BatchSrchSummaryContent(ccADS,linkInfoMap)
         #
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
@@ -1213,9 +1214,10 @@ class ChemCompWebAppWorker(object):
         ccADS.dumpData(self.__lfh);
         ccADS.serialize()
         # call render() methods to generate data unique to this deposition data set
+        linkInfoMap = self.__readCovalentBondingInfo()
         ccAD=ChemCompAssignDepict(self.__verbose,self.__lfh)
         ccAD.setSessionPaths(self.__reqObj)
-        oL=ccAD.doRender_EntityBrwsr(srchIdsL,ccADS,self.__reqObj)
+        oL=ccAD.doRender_EntityBrwsr(srchIdsL,ccADS,linkInfoMap,self.__reqObj)
         #
         rC.setHtmlText( ''.join(oL) )
         return rC
@@ -1267,9 +1269,10 @@ class ChemCompWebAppWorker(object):
         #
         #self.__generateReportData(ccADS)
         # call render() methods to generate data unique to this deposition data set
+        linkInfoMap = self.__readCovalentBondingInfo()
         ccAD=ChemCompAssignDepict(self.__verbose,self.__lfh)
         ccAD.setSessionPaths(self.__reqObj)
-        ccAD.doRender_EntityGrpOnRerunSrch(entityGrp,instIdL,ccADS,self.__reqObj)
+        ccAD.doRender_EntityGrpOnRerunSrch(entityGrp,instIdL,ccADS,linkInfoMap,self.__reqObj)
         #
         return rC
     
@@ -2170,7 +2173,7 @@ class ChemCompWebAppWorker(object):
             self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - classID %s \n" % classId)
             self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - sessionID %s \n" % sessionId)
             self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - filesource %r \n" % fileSource)
-
+            self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - bIsWorkflow %r \n" % bIsWorkflow)
         #
         self.__reqObj.setReturnFormat('json')
         #
@@ -2185,6 +2188,7 @@ class ChemCompWebAppWorker(object):
                     bSuccess = self.__updateWfTrackingDb(state)
                     if( not bSuccess ):
                         rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - TRACKING status, update to '%s' failed for session %s \n" % (state,sessionId) )
+                    #
                 else:
                     if msg != "":
                         rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod():\n%s" % msg)
@@ -2201,7 +2205,30 @@ class ChemCompWebAppWorker(object):
             #
         else:
             if (self.__verbose):
-                    self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - Not in WF environ so skipping save action of pickle file and status update to TRACKING database for session %s \n" % sessionId)
+                self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - Not in WF environ so skipping save action of pickle file and status update to TRACKING database for session %s \n" % sessionId)
+            #
+            if (mode == 'completed'):
+                try:
+                    if not fileSource:
+                        self.__reqObj.setValue("filesource", "session")
+                    #
+                    bOkay,msg = self.__saveLigModState(mode)
+                    if bOkay:
+                        rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod(): Successfully updated model file.")
+                    else:
+                        if msg != "":
+                            rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod():\n%s" % msg)
+                        else:
+                            rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - Updating model file failed.")
+                        #
+                    #
+                except:
+                    if (self.__verbose):
+                        self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - problem saving lig module state")
+                    #
+                    traceback.print_exc(file=self.__lfh)
+                    rC.setError(errMsg="+ChemCompWebAppWorker.__exitLigMod() - Updating model file failed:\n%r\n" % traceback.format_exc())                  
+                #
             #
         #
         return rC
@@ -2541,6 +2568,35 @@ class ChemCompWebAppWorker(object):
         else:
             #else we are in the standalone dev environment
             return False
+
+    def __readCovalentBondingInfo(self):
+        """ Read inter-residue covalent bonding information from D_xxxxxxxxxx-cc-link.cif file.
+        """
+        depId = str(self.__reqObj.getValue("identifier"))
+        ccLinkFilePath = os.path.join(self.__sessionPath, depId + '-cc-link.cif')
+        if not os.access(ccLinkFilePath, os.F_OK):
+            return {}
+        #
+        try:
+            cifObj = mmCIFUtil(filePath=ccLinkFilePath)
+            retList = cifObj.GetValue("pdbx_covalent_bonding")
+            linkInfoMap = {}
+            for retDir in retList:
+                if ("inst_id" not in retDir) or ("first_atom_id" not in retDir) or ("second_atom_id" not in retDir) or ("dist" not in retDir):
+                    continue
+                #
+                if retDir["inst_id"] in linkInfoMap:
+                    linkInfoMap[retDir["inst_id"]] += "<br />" + retDir["first_atom_id"] + " - " + retDir["second_atom_id"] + " = " + retDir["dist"]
+                else:
+                    linkInfoMap[retDir["inst_id"]] = "The following atoms are linked together:<br />" + retDir["first_atom_id"] \
+                                                   + " - " + retDir["second_atom_id"] + " = " + retDir["dist"]
+                #
+            #
+            return linkInfoMap
+        except:
+            traceback.print_exc(file=self.__lfh)
+            return {}
+        #
 
 class RedirectDevice:
     def write(self, s):
