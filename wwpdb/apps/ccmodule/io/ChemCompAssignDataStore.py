@@ -379,7 +379,7 @@ class ChemCompAssignDataStore(object):
         except:
             self.__lfh.write("+ChemCompAssignStore.serialize() - exception encountered\n")
             traceback.print_exc(file=self.__lfh)
-            
+    
     def deserialize(self):
         """ Pull data from a pickle file on server into memory so that state can be 
             restored/maintained between web requests within a given ligand module user session

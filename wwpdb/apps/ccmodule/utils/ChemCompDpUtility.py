@@ -26,9 +26,6 @@ from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.apps.ccmodule.reports.InstanceDataGenerator  import InstanceDataGenerator
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 
-import snoop
-snoop.install(out='/nfs/public/release/msd/services/onedep/ligmod.log')
-
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
@@ -211,7 +208,7 @@ class ChemCompDpUtility(object):
             if os.access(ccAssignDataStoreFile, os.R_OK):
                 ccAssignDataStore = ChemCompAssignDataStore(self._reqObj, verbose=True, log=self._lfh)
             else:
-                ccAssignDataStore = cca.createDataStore(rDict, True)
+                ccAssignDataStore = cca.createDataStore(rDict)
                 # this is a necessary step from the annotation pipeline
                 cca.updateWithDepositorInfo(ccAssignDataStore)
 
@@ -739,6 +736,8 @@ class ChemCompDpUtility(object):
         self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cICommon.get_site_web_apps_top_sessions_path())
         self._reqObj.setValue('SessionsPath', self._cICommon.get_site_web_apps_sessions_path())
         self._reqObj.setValue('identifier', depId)
+        self._sObj=self._reqObj.newSessionObj()
+        self._sessionPath=self._sObj.getPath()
 
         if context == ChemCompContext.CONTEXT_DEPUI:
             self._reqObj.setValue('filesource', 'deposit')

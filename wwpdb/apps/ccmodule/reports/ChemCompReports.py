@@ -26,7 +26,6 @@ from wwpdb.apps.ccmodule.utils.ChemCompConfig      import ChemCompConfig
 from wwpdb.utils.config.ConfigInfo                 import ConfigInfo
 from pathlib                                       import Path
 from wwpdb.io.locator.PathInfo                     import PathInfo
-import snoop
 
 class ChemCompReport(object):
     """Create web report from chemical component definitions.

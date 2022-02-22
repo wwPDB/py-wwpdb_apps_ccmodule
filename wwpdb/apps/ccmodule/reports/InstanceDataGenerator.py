@@ -25,7 +25,6 @@ import os, sys, multiprocessing, traceback
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
 from wwpdb.apps.ccmodule.reports.ChemCompReports             import ChemCompReport
 from wwpdb.io.locator.PathInfo                               import PathInfo
-import snoop
 #
 
 class InstanceDataGenerator(object):
@@ -182,7 +181,6 @@ class InstReportGenerator(object):
         self.__sessionPath=self.__sObj.getPath()
         #
 
-    @snoop
     def runReportGenerator(self, dataList=None, processLabel=None):
         self.__lfh.write("enter InstReportGenerator.runReportGenerator, context %s\n" % self.__context)
         for instId in dataList:

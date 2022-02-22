@@ -105,7 +105,6 @@ from mmcif.io.PdbxReader                                import PdbxReader
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
-import snoop
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -150,7 +149,6 @@ class ChemCompAssign(object):
         self.__setup()
         #
 
-    @snoop
     def __setup(self):
         context = self.__getContext()
 
@@ -1298,7 +1296,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+%s.%s() - failed to register paths for import of depositor provided file:  %s\n" %(className, methodName, p_upldFileName) )
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
-        
+
     def __getDpstrOrigCcids(self):
         rtrnDict={}
         
@@ -1343,7 +1341,7 @@ class ChemCompAssign(object):
             #
         #
         return rtrnDict
-            
+
     def __synchronizeDataStore(self,p_dataDict,p_ccAssgnDataStore,p_instId=None,p_exactOption=False):
         """ Method for synchronizing datastore object with information 
             from the chem component assignment search results
