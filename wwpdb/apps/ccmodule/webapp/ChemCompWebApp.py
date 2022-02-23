@@ -173,8 +173,6 @@ from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 from wwpdb.io.locator.PathInfo                          import PathInfo
-import snoop
-snoop.install(out='/nfs/public/release/msd/services/onedep/get_file.log')
 
 
 class ChemCompWebApp(object):
@@ -1709,7 +1707,7 @@ class ChemCompWebAppWorker(object):
             rC.setError(errMsg=returnMessage)
         #
         return rC
-    
+
     def _ccAssign_getNewCandidate(self):
         """ Request for new candidate chem component in comparison grid of ligand module.
             If the request is an appropriate one this method invokes generation of files 
@@ -1795,14 +1793,16 @@ class ChemCompWebAppWorker(object):
                 #
                 # 2014-11-03, ZF -- add aligned image
                 HitList.append(ccId)
-                chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_ARCHIVE_STORAGE_PATH'),'workflow',depId,'assign',instId,instId+".cif")
+                instancePath = PathInfo().getInstancePath(depId, wfInstId)
+
+                chemCompFilePathAbs = os.path.join(instancePath,'assign',instId,instId+".cif")
                 if not os.access(chemCompFilePathAbs,os.R_OK):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
                     chemCompFilePathAbs = os.path.join(self.__sessionPath,'assign',instId,instId+".cif")
                 #
                 ccaig = ChemCompAlignImageGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-                ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList)
+                ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList, isWorkflow=self.__isWorkflow())
                 #
                 ##########################################################
                 # interrogate report data in order to get name and 
@@ -1810,7 +1810,6 @@ class ChemCompWebAppWorker(object):
                 #########################################################
                 self.__lfh.write("+ChemCompWebAppWorker._getNewCandidate() -- depId %s, wfInstId %s\n" % (depId, wfInstId))
                 if self.__isWorkflow():
-                    instancePath = PathInfo().getInstancePath(depId, wfInstId)
                     ccRefFilePath=os.path.join(instancePath,'cc_analysis','rfrnc_reports',ccId,ccId+'.cif')
                 else:
                     ccRefFilePath=os.path.join(self.__sessionPath,'assign','rfrnc_reports',ccId,ccId+'.cif')

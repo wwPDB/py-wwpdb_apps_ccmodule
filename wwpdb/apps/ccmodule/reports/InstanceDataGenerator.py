@@ -26,8 +26,7 @@ from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlig
 from wwpdb.apps.ccmodule.reports.ChemCompReports             import ChemCompReport
 from wwpdb.io.locator.PathInfo                               import PathInfo
 #
-import snoop
-snoop.install(out='/nfs/public/release/msd/services/onedep/do_report.log')
+
 
 
 class InstanceDataGenerator(object):
@@ -161,7 +160,6 @@ class RefReportGenerator(object):
         self.__context=context
         #
 
-    @snoop(depth=2)
     def runReportGenerator(self, dataList=None, processLabel=None):
         self.__lfh.write("enter RefReportGenerator.runReportGenerator, context %s\n" % self.__context)
         ccReport = ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
