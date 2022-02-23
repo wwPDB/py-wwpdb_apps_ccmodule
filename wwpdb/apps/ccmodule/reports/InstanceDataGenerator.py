@@ -26,6 +26,9 @@ from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlig
 from wwpdb.apps.ccmodule.reports.ChemCompReports             import ChemCompReport
 from wwpdb.io.locator.PathInfo                               import PathInfo
 #
+import snoop
+snoop.install(out='/nfs/public/release/msd/services/onedep/do_report.log')
+
 
 class InstanceDataGenerator(object):
     """Utility Class for generating report material that will support 2D,3D renderings.
@@ -158,6 +161,7 @@ class RefReportGenerator(object):
         self.__context=context
         #
 
+    @snoop(depth=2)
     def runReportGenerator(self, dataList=None, processLabel=None):
         self.__lfh.write("enter RefReportGenerator.runReportGenerator, context %s\n" % self.__context)
         ccReport = ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
@@ -186,7 +190,7 @@ class InstReportGenerator(object):
         for instId in dataList:
             if self.__context == 'workflow':
                 instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
-                chemCompFilePathAbs = os.path.join(instancePath,'cc_analysis',instId,instId+'.cif')
+                chemCompFilePathAbs = os.path.join(instancePath,'assign',instId,instId+'.cif')
             else:
                 chemCompFilePathAbs = os.path.join(self.__sessionPath,'assign',instId,instId+'.cif')
 
@@ -200,6 +204,8 @@ class InstReportGenerator(object):
                 HitList.append(tupL[0])
             #
             ccaig = ChemCompAlignImageGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-            ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList)
+
+            isWorkflow = self.__context == 'workflow'
+            ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList, isWorkflow=isWorkflow)
         #
 

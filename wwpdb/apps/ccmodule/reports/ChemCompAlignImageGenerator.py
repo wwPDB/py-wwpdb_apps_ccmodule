@@ -26,6 +26,7 @@ from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.io.locator.PathInfo                               import PathInfo
 
 #
 
@@ -47,11 +48,15 @@ class ChemCompAlignImageGenerator(object):
         self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
                                                verbose=self.__verbose, log=self.__lfh)
 
-    def generateImages(self, instId=None, instFile=None, hitList=[]):
+    def generateImages(self, instId=None, instFile=None, hitList=[], isWorkflow=False):
         if (not instId) or (not instFile):
             return
         #
-        self.__imagePath = os.path.join(self.__sessionPath, 'assign', instId, 'image')
+        if not isWorkflow:
+            self.__imagePath = os.path.join(self.__sessionPath, 'assign', instId, 'image')
+        else:
+            instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+            self.__imagePath = os.path.join(instancePath, 'cc_analysis', instId, 'image')
         if not os.access(self.__imagePath, os.F_OK):
             try:
                 os.makedirs(self.__imagePath)
