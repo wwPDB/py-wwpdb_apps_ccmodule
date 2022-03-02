@@ -63,10 +63,10 @@ class ChemCompReport(object):
         context = self.__getContext()
         self.__lfh.write("Context: %s\n" % context)
 
-        if context == 'standalone':
+        if context == 'standalone' or context == 'unknown':
             self.__depId = 'D_0'
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        elif context == 'workflow' or context == 'unknown':
+        elif context == 'workflow':
             instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
             self.__ccReportPath = os.path.join(instancePath, 'cc_analysis')
         elif context == 'deposition':
