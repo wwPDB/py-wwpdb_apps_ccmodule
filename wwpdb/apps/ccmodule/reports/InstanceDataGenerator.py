@@ -63,7 +63,7 @@ class InstanceDataGenerator(object):
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
         """
         """
-        numProc = multiprocessing.cpu_count() / 2
+        numProc = int(multiprocessing.cpu_count() / 2)
         if numProc == 0:
             numProc = 1
         #
