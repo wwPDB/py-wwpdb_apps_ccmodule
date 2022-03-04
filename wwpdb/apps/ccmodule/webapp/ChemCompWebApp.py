@@ -1412,7 +1412,7 @@ class ChemCompWebAppWorker(object):
         self.__getSession()
         sessionId   = self.__sessionId
         depId       = str(self.__reqObj.getValue("identifier")).upper()
-        instIdList  = self.__getInstIdList()
+        instIdList  = str(self.__reqObj.getValue("instidlist"))
         assgnCcId   = str(self.__reqObj.getValue("ccid"))
         wfInstId    = str(self.__reqObj.getValue("instance")).upper()
         assgnMode   = str(self.__reqObj.getValue("assgn_mode"))
@@ -1569,7 +1569,7 @@ class ChemCompWebAppWorker(object):
         self.__getSession()
         sessionId       = self.__sessionId
         vldtMode        = str(self.__reqObj.getValue("vldtmode"))
-        instIdList      = self.__getInstIdList()
+        instIdList      = str(self.__reqObj.getValue("instidlist"))
         instncMode      = str(self.__reqObj.getValue("instncmode"))
         ccId            = str(self.__reqObj.getValue("ccid")).upper()
         #
@@ -2597,26 +2597,6 @@ class ChemCompWebAppWorker(object):
             traceback.print_exc(file=self.__lfh)
             return {}
         #
-
-    def __getInstIdList(self):
-        """ Remove the supplemental linkage information for bounded ligand(s)
-        """
-        idList = str(self.__reqObj.getValue("instidlist"))
-        if not idList:
-            return idList
-        #
-        found = False
-        instIdList = ""
-        for c in idList:
-            if c == "<":
-                found = True
-            elif c == ">":
-                found = False
-            elif not found:
-                instIdList += c
-            #
-        #
-        return instIdList.strip()
 
 class RedirectDevice:
     def write(self, s):
