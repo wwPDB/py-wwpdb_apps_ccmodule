@@ -418,7 +418,7 @@ class ChemCompWebAppWorker(object):
                 will affect the Content-Type HTTP header. For now it supports getting
                 svg, gif and cif files.
         """
-        supportedSources = ["ccd", "author", "report"] # this will tell from where we should get the file
+        supportedSources = ["ccd", "author", "report", "instance"] # this will tell from where we should get the file
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
 
         sessionId    = self.__reqObj.getValue("sessionid")
@@ -428,14 +428,14 @@ class ChemCompWebAppWorker(object):
         ligandId     = self.__reqObj.getValue("ligid")
         filename     = self.__reqObj.getValue("file")
 
-        instancePath = PathInfo().getInstancePath(depId, instance)
-
         if not instance:
             self.__logger.warning("No instance, assuming standalone context")
 
             sessionMgr = self.__reqObj.getSessionObj()
+            instancePath = sessionMgr.getRelativePath()
             ccReportPath = os.path.join(sessionMgr.getRelativePath(), "assign")
         else:
+            instancePath = PathInfo().getInstancePath(depId, instance)
             ccReportPath = os.path.join(instancePath, "cc_analysis")
 
         fileType     = filename.split(".")[-1]
@@ -448,7 +448,7 @@ class ChemCompWebAppWorker(object):
         filename = re.sub('[^a-zA-Z0-9_.-]+', '', filename)
 
         if source not in supportedSources:
-            rC.setError(errMsg="Source should be either 'ccd', 'author' or 'report'")
+            rC.setError(errMsg="Source should be either 'ccd', 'report' or 'instance'")
             rC.setStatusCode(HTTPStatus.BAD_REQUEST)
             return rC
 
@@ -469,8 +469,11 @@ class ChemCompWebAppWorker(object):
         elif fileType == "cif":
             if source == "ccd":
                 filePath = os.path.join(ccReportPath, "rfrnc_reports", ligandId, filename)
-            elif source == "author":
+            elif source == "report":
                 filePath = os.path.join(ccReportPath, ligandId, "report", filename)
+            elif source == "instance":
+                filePath = os.path.join(instancePath, filename)
+
             self.__logger.info("filePath: %s", filePath)
 
             rC.setReturnFormat("text")

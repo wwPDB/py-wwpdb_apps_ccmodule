@@ -196,6 +196,21 @@ class ChemCompDpUtility(object):
             if self._verbose:
                 self._logger.debug('Creating datastore for resulting assign details')
 
+            modelPath = pathInfo.getFilePath(
+                self._depId,
+                wfInstanceId=self._wfInstance,
+                fileSource='wf-instance',
+                contentType='model',
+                formatType='pdbx'
+            )
+            
+            # generating the file to be used by jsmol
+            dpCnvrt=RcsbDpUtility(siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
+            dpCnvrt.setWorkingDir(self._wfPath)
+            dpCnvrt.imp(modelPath)
+            dpCnvrt.op("cif2cif-pdbx-skip-process")
+            dpCnvrt.exp(os.path.join(self._wfPath, self._depId + '-jmol-mdl.cif'))
+
             ccAssignDataStoreFile = pathInfo.getFilePath(
                 self._depId,
                 wfInstanceId=self._wfInstance,

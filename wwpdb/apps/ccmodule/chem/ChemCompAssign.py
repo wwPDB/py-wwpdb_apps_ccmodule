@@ -452,7 +452,11 @@ class ChemCompAssign(object):
         #
         assignDirPath       =   self.__ccReportPath
         assignFileUpdtdPath =   os.path.join(assignDirPath,depDataSetId+'-cc-assign-updated.cif')
-        pdbxFileName        =   depDataSetId+'-model.cif'
+        if( bIsWorkflow ):
+            ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+            pdbxFileName    =   ccI.getModelPdxFilePath()
+        else:
+            pdbxFileName    =   depDataSetId+'-model.cif'
         pdbxFilePath        =   os.path.join(self.__modelDirPath,pdbxFileName)
         pdbxOutFilePath     =   os.path.join(self.__modelDirPath,depDataSetId+'-model-update.cif')
         #
