@@ -637,7 +637,12 @@ class ChemCompWebAppWorker(object):
         else:
             t_depId = depId.lower()
         #
-        pickleFilePath = os.path.join(self.__sessionPath, 'assign', t_depId + '-cc-assign-details.pic')
+
+        if ( bIsWorkflow ):
+            pickleFilePath = PathInfo().getFilePath(depId, wfInstanceId=wfInstId, fileSource='wf-instance', contentType='chem-comp-assign-details', formatType='pic')
+        else:
+            pickleFilePath = os.path.join(self.__sessionPath, 'assign', t_depId + '-cc-assign-details.pic')
+
         if os.access(pickleFilePath, os.R_OK):
             ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
             ccId = ccAssignDataStore.getAuthAssignment(instanceId)
