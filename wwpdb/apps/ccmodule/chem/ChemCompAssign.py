@@ -152,11 +152,11 @@ class ChemCompAssign(object):
     def __setup(self):
         context = self.__getContext()
 
-        if context == 'standalone':
+        if context == 'standalone' or context == 'unknown':
             self.__depId = 'D_0'
             self.__modelDirPath = self.__sessionPath
             self.__ccReportPath = os.path.join(self.__sessionPath, self._CC_ASSIGN_DIR)
-        elif context == 'workflow' or context == 'unknown':
+        elif context == 'workflow':
             instancePath = self.__pathInfo.getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
             self.__modelDirPath = instancePath
             self.__ccReportPath = os.path.join(instancePath, self._CC_REPORT_DIR)

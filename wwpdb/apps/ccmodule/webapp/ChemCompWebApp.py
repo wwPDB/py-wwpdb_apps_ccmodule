@@ -432,8 +432,8 @@ class ChemCompWebAppWorker(object):
             self.__logger.warning("No instance, assuming standalone context")
 
             sessionMgr = self.__reqObj.getSessionObj()
-            instancePath = sessionMgr.getRelativePath()
-            ccReportPath = os.path.join(sessionMgr.getRelativePath(), "assign")
+            instancePath = sessionMgr.getPath()
+            ccReportPath = os.path.join(sessionMgr.getPath(), "assign")
         else:
             instancePath = PathInfo().getInstancePath(depId, instance)
             ccReportPath = os.path.join(instancePath, "cc_analysis")
@@ -1798,8 +1798,9 @@ class ChemCompWebAppWorker(object):
                 HitList.append(ccId)
                 instancePath = PathInfo().getInstancePath(depId, wfInstId)
 
-                chemCompFilePathAbs = os.path.join(instancePath,'assign',instId,instId+".cif")
-                if not os.access(chemCompFilePathAbs,os.R_OK):
+                if self.__isWorkflow():
+                    chemCompFilePathAbs = os.path.join(instancePath,'assign',instId,instId+".cif")
+                else:
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
                     chemCompFilePathAbs = os.path.join(self.__sessionPath,'assign',instId,instId+".cif")
