@@ -238,7 +238,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         return oL
     
-    def doRender_BatchSrchSummaryContent(self,p_ccAssgnDataStr):
+    def doRender_BatchSrchSummaryContent(self,p_ccAssgnDataStr, p_linkInfoMap):
         ''' Render Summary of Batch Search Results
             Function generates HTML markup used for displaying results of chem comp assign search
             for the deposition data set. The resulting HTML markup is loaded via AJAX into an already
@@ -246,7 +246,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             
             :Params:
                 ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
-                    
+                ``p_linkInfoMap``: inter-residue linkage inforation
             :Returns:
                 ``oL``: output list consisting of HTML markup
         '''
@@ -308,7 +308,16 @@ class ChemCompAssignDepict(ChemCompDepict):
             #
             oL.append('<tr class="%s c_%s c_%s">' % (self.__rowClass(iRow),instId,authAssgndId))
             #
-            oL.append('<td>%s</td>' % instId)
+            bgcolor = ""
+            instWarnClass = ""
+            processedInstId = instId
+            if instId in p_linkInfoMap:
+                retD = self.__processWarningMsg(p_linkInfoMap[instId])
+                bgcolor = 'style="background-color:#0FF;"'
+                instWarnClass = retD["warn_class"]
+                processedInstId = retD["prefix"] + instId + retD["suffix"]
+            #
+            oL.append('<td %s class="%s">%s</td>' % (bgcolor, instWarnClass, processedInstId))
             #
             oL.append('<td>%s</td>' % topHitCcId )
             #
@@ -324,7 +333,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                         
         return oL
     
-    def doRender_EntityBrwsr(self,p_instncIdLst,p_ccAssgnDataStr,p_reqOb):
+    def doRender_EntityBrwsr(self,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,p_reqOb):
         ''' Render HTML markup for the Entity (i.e. ligand group) Browser
             The Entity Browser provides navigation of sections devoted to each entity group (one entity group viewed at a time)
             identified within a deposition dataset.
@@ -336,6 +345,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             
                 + ``p_instncIdLst``: list of instance IDs which had been selected for processing via the Entity Browser
                 + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_linkInfoMap``: inter-residue linkage inforation
                 + ``p_reqObj``: Web Request object
                     
             :Returns:
@@ -377,6 +387,11 @@ class ChemCompAssignDepict(ChemCompDepict):
         index = 0
         for instId in p_instncIdLst:
             ##
+            instWarnStyle = ""
+            if instId in p_linkInfoMap:
+                instWarnStyle = 'style="color:red"'
+            #
+            hlprDict['inst_warn_style'] = instWarnStyle
             hlprDict['instanceid']   = instId
             authAssignedGrp = p_ccAssgnDataStr.getAuthAssignment(instId)
             hlprDict['2dpath_labld_w_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
@@ -405,7 +420,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                 oL.append('<div class="cmpnt_grp displaynone">%s</div>' % authAssignedGrp)
                 oL.append('<div class="inneraccordion" id="%s_inneraccordion">' % authAssignedGrp)
                 # call method to generate html content for "All Instances" profile
-                self.doRender_AllInstncsProfile(authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,hlprDict,oL)
+                self.doRender_AllInstncsProfile(authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,hlprDict,oL)
                 #
                 #
             ###################################################################################################
@@ -449,7 +464,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         #above is end tag for <div id="cc_entity_browser">
         return oL    
     
-    def doRender_AllInstncsProfile(self,p_authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,p_hlprDict,p_oL):
+    def doRender_AllInstncsProfile(self,p_authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,p_hlprDict,p_oL):
         ''' Generate html "all-instances" profile content for given entity group
             
             :Params:
@@ -457,6 +472,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                 + ``p_authAssignedGrp``: Chem Comp ID used by the depositor to the given entity/ligand group 
                 + ``p_instncIdLst``: list of instance IDs which had been selected for processsing via the Entity Browser
                 + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_linkInfoMap``: inter-residue linkage inforation
                 + ``p_hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
                 + ``p_oL``: output list being updated with HTML markup content
         '''
@@ -539,7 +555,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         lclDict['assgn_disabled'] = assgnDisabled
         lclDict['assgn_lbl'] = grpAssgnLbl
         lclDict['auth_assgnd_grp'] = p_authAssignedGrp
-        lclDict['cc_batch_rslts_tbl'] = ''.join(self.doRender_BatchRslts(p_authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,htmlTmpltPth))
+        lclDict['cc_batch_rslts_tbl'] = ''.join(self.doRender_BatchRslts(p_authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,htmlTmpltPth))
         lclDict['instncs_drpdwn_lst'] = ''.join(self.doRender_InstanceAssgnDrpDwn(p_authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,htmlTmpltPth))
         lclDict['instnc_candidate_rows'] = ''.join(self.doRender_InstanceAssgnRows(p_authAssignedGrp,p_instncIdLst,p_ccAssgnDataStr,htmlTmpltPth))
         ### dpstr info handling ###
@@ -740,7 +756,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                     self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceProfile() ----- reached end for instId: %s\n" % instId)
 
     
-    def doRender_BatchRslts(self,p_entityId,p_instncIdLst,p_ccAssgnDataStr,p_tmpltPth):
+    def doRender_BatchRslts(self,p_entityId,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,p_tmpltPth):
         ''' Render "Condensed Batch Search Report"
             An abbreviated version of the Batch Chem Comp Assign search results used for
              display within the "all-instances" profile section of the entity browser.
@@ -750,6 +766,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                 + ``p_entityId``: ID of ligand group for which profile is being generated
                 + ``p_instncIdLst``: list of instance IDs which had been selected for processsing via the Entity Browser
                 + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_linkInfoMap``: inter-residue linkage inforation
                 + ``p_tmpltPth``: path to repository of HTML templates on the server
                     
             :Returns:
@@ -770,6 +787,18 @@ class ChemCompAssignDepict(ChemCompDepict):
                 #
                 #    populate dictionary of elements to populate html template
                 #
+                bgcolor = ""
+                instWarnClass = ""
+                processedInstId = instId
+                if instId in p_linkInfoMap:
+                    retD = self.__processWarningMsg(p_linkInfoMap[instId])
+                    bgcolor = 'style="background-color:#0FF;"'
+                    instWarnClass = retD["warn_class"]
+                    processedInstId = retD["prefix"] + instId + retD["suffix"]
+                #
+                myD['p_instanceid'] = processedInstId
+                myD['bgcolor'] = bgcolor
+                myD['inst_warn_class'] = instWarnClass
                 myD['instanceid']       = instId
                 myD['auth_assgnd_grp']  = p_ccAssgnDataStr.getAuthAssignment(instId)
                 #
@@ -1079,7 +1108,7 @@ class ChemCompAssignDepict(ChemCompDepict):
 
 
     
-    def doRender_EntityGrpOnRerunSrch(self,p_entityGrp,p_instncIdLst,p_ccAssgnDataStr,p_reqOb):
+    def doRender_EntityGrpOnRerunSrch(self,p_entityGrp,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,p_reqOb):
         ''' Render "Entity Group Profile" for given ligand group for which search was rerun
             A given entity group section consists of the following subsections:
                 - an "all-instances" section, providing perspective/actions on all ligand instances within a group
@@ -1090,6 +1119,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                 + ``p_entityGrp``: Entity group for which chem comp assignment search was rerun
                 + ``p_instncIdLst``: list of instance IDs which had been selected for processsing via the Entity Browser
                 + ``p_ccAssgnDataStr``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``p_linkInfoMap``: inter-residue linkage inforation
                 + ``p_reqObj``: Web Request object
         '''
         bIsWorkflow = self.isWorkflow(p_reqOb)
@@ -1113,10 +1143,15 @@ class ChemCompAssignDepict(ChemCompDepict):
         hlprDict['html_template_path'] = htmlTmpltPth
         hlprDict['jmol_code_base'] = self.jmolCodeBase
         # call method to generate html content for "All Instances" profile
-        self.doRender_AllInstncsProfile(p_entityGrp,p_instncIdLst,p_ccAssgnDataStr,hlprDict,oL)
+        self.doRender_AllInstncsProfile(p_entityGrp,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,hlprDict,oL)
         
         for instId in p_instncIdLst:
             # for each instance in group, call method to generate html content for "Single Instance" profile
+            instWarnStyle = ""
+            if instId in p_linkInfoMap:
+                instWarnStyle = 'style="color:red"'
+            #
+            hlprDict['inst_warn_style'] = instWarnStyle
             hlprDict['instanceid'] = instId
             self.doRender_InstanceProfile(p_ccAssgnDataStr,hlprDict,True,p_reqOb)
             #
