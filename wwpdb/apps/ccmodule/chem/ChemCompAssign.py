@@ -885,7 +885,7 @@ class ChemCompAssign(object):
         retList = []
         errList = []
         for instId in dataList:
-            assignVldtnDirPath=os.path.join(self.__sessionPath, 'assign', 'validation', authAssgnCcId, instId)
+            assignVldtnDirPath=os.path.join(self.__ccReportPath, 'validation', authAssgnCcId, instId)
             vldtnLogFilePth = os.path.join(assignVldtnDirPath, 'cc-assign-validation.log')
         
             if( not os.access(assignVldtnDirPath,os.R_OK)):
@@ -894,10 +894,10 @@ class ChemCompAssign(object):
                 shutil.rmtree(assignVldtnDirPath)
                 os.makedirs(assignVldtnDirPath)
             #
-            mdlfilePath = os.path.join(self.__sessionPath, 'assign', instId, instId + '.cif')
+            mdlfilePath = os.path.join(self.__ccReportPath, instId, instId + '.cif')
             if not os.access(mdlfilePath, os.R_OK):
                 self.__lfh.write("+ChemCompAssign.doAssignValidation() - %s not found.\n" % mdlfilePath)
-                errorMessage += 'Chemical component file ' + mdlfilePath + ' not found.\n'
+                errorMessage = 'Chemical component file ' + mdlfilePath + ' not found.\n'
                 continue
             #
             ccAssignVldtnFilePath=os.path.join(assignVldtnDirPath, 'cc-assign-validation.cif')
