@@ -1518,7 +1518,7 @@ class ChemCompWebAppWorker(object):
         self.__getSession()
         sessionId   = self.__sessionId
         depId       = str(self.__reqObj.getValue("identifier")).upper()
-        instIdList      = str(self.__reqObj.getValue("instidlist"))
+        instIdList  = str(self.__reqObj.getValue("instidlist"))
         assgnCcId   = str(self.__reqObj.getValue("ccid"))
         wfInstId    = str(self.__reqObj.getValue("instance")).upper()
         assgnMode   = str(self.__reqObj.getValue("assgn_mode"))
@@ -1675,7 +1675,7 @@ class ChemCompWebAppWorker(object):
         self.__getSession()
         sessionId       = self.__sessionId
         vldtMode        = str(self.__reqObj.getValue("vldtmode"))
-        instIdLst       = str(self.__reqObj.getValue("instidlist"))
+        instIdList      = str(self.__reqObj.getValue("instidlist"))
         instncMode      = str(self.__reqObj.getValue("instncmode"))
         ccId            = str(self.__reqObj.getValue("ccid")).upper()
         #
@@ -1717,7 +1717,7 @@ class ChemCompWebAppWorker(object):
                = would be returned as result of cc-assign match query for the given ligand instance.            
         '''
         ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        ccA.setInstanceIdListForValidation(instIdLst)
+        ccA.setInstanceIdListForValidation(instIdList)
         ccA.setValidationCcRefFilePath(validationPth)
         returnMessage = ccA.doAssignValidation()
         if returnMessage:

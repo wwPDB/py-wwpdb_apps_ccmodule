@@ -54,11 +54,9 @@ class InstanceDataGenerator(object):
         for instId in instIdLst:
             mtchL = self.__ccAssignDataStore.getTopHitsList(instId)
             for tupL in mtchL:
-                self.__lfh.write("instId=%s TopHit=%s\n" % (instId, tupL[0]))
                 refList.append(tupL[0])
             #
         #
-        self.__lfh.write("refList=%d\n" % len(refList))
         if len(refList) > 0:
             uniqList = sorted(set(refList))
             self.__lfh.write("uniqList=%d\n" % len(uniqList))
@@ -71,8 +69,13 @@ class InstanceDataGenerator(object):
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
         """
         """
-        self.__lfh.write("dataList=%d\n" % len(dataList))
-        numProc = multiprocessing.cpu_count() * 2
+        numProc = int(multiprocessing.cpu_count() / 2)
+        if numProc == 0:
+            numProc = 1
+        #
+        if numProc > len(dataList):
+            numProc = len(dataList)
+        #
         subLists = [dataList[i::numProc] for i in range(numProc)]
         workerFunc = getattr(workerObj, workerMethod)
         #
@@ -81,7 +84,6 @@ class InstanceDataGenerator(object):
         #
         workers = [ MultiProcWorker(processLabel=str(i+1), taskQueue=taskQueue, resultQueue=resultQueue, \
                     workerFunc=workerFunc, log=self.__lfh, verbose=self.__verbose) for i in range(numProc) ]
-        self.__lfh.write("workers=%d\n" % len(workers))
         for w in workers:
             w.start()
         #
@@ -164,7 +166,6 @@ class RefReportGenerator(object):
         self.__lfh.write("enter RefReportGenerator.runReportGenerator, context %s\n" % self.__context)
         ccReport = ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         for ccId in dataList:
-            self.__lfh.write("ccId=%s\n" % ccId)
             ccReport.setDefinitionId(definitionId=ccId.lower())
             ccReport.doReport(type='ref',ccAssignPthMdfier=ccId)
         #

@@ -897,7 +897,7 @@ class ChemCompAssign(object):
             mdlfilePath = os.path.join(self.__ccReportPath, instId, instId + '.cif')
             if not os.access(mdlfilePath, os.R_OK):
                 self.__lfh.write("+ChemCompAssign.doAssignValidation() - %s not found.\n" % mdlfilePath)
-                errorMessage = 'Chemical component file ' + mdlfilePath + ' not found.\n'
+                errList.append('Chemical component file ' + mdlfilePath + ' not found.')
                 continue
             #
             ccAssignVldtnFilePath=os.path.join(assignVldtnDirPath, 'cc-assign-validation.cif')
