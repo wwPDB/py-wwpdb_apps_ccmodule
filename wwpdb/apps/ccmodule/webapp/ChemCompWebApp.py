@@ -699,6 +699,7 @@ class ChemCompWebAppWorker(object):
         if (self.__verbose):
             self.__lfh.write("+ChemCompWebAppWorker._chopLaunchOp() \n")
         #
+        bIsWorkflow = self.__isWorkflow()
         
         sessionId   = str(self.__reqObj.getValue("sessionid"))
         depId       = str(self.__reqObj.getValue("identifier")).upper()
@@ -728,6 +729,12 @@ class ChemCompWebAppWorker(object):
         #
         myD['session_url_prefix'] = os.path.join(self.__rltvSessionPath,"assign",instanceId)
         myD['processing_site'] = self.__cI.get('SITE_NAME').upper()
+
+        if ( bIsWorkflow ):
+            myD['cif_url'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.cif'.format(depId, wfInstId, instanceId, sessionId, instanceId)
+        else:
+            myD['cif_url'] = os.path.join(myD['session_url_prefix'], '%s.cif' % instanceId)
+
         rC.setHtmlText(htmlText=self.__processTemplate(fn=os.path.join(self.__pathSnglInstcEditorTmplts,"cc_instnc_chop_tmplt.html"), parameterDict=myD))
         return rC
 
