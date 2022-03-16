@@ -749,6 +749,7 @@ class ChemCompDpUtility(object):
         self._reqObj = InputRequest({}, self._verbose, self._lfh)
         self._reqObj.setValue('WWPDB_SITE_ID', self._cI.get('SITE_PREFIX'))
         self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cICommon.get_site_web_apps_top_sessions_path())
+        self._reqObj.setValue('TopSessionPath', self._cICommon.get_site_web_apps_top_sessions_path())
         self._reqObj.setValue('SessionsPath', self._cICommon.get_site_web_apps_sessions_path())
         self._reqObj.setValue('identifier', depId)
         self._sObj=self._reqObj.newSessionObj()
