@@ -1315,9 +1315,11 @@ class ChemCompAssignDepict(ChemCompDepict):
         self.__lfh.write("+%s.%s() ------ STARTING ------\n" %(className, methodName) )
         
         ### dpstr info handling ###
+        depId = p_strReplDict['identifier']
+        wfInstId = p_strReplDict['instance']
         naStr = "n/a"
         contentTypeDict = self.__cI.get('CONTENT_TYPE_DICTIONARY')
-        
+
         ligType = p_dataStore.getDpstrCcType(p_grpId)
         altLigId = p_dataStore.getDpstrAltCcId(p_grpId)
         chemCompName = p_dataStore.getDpstrCcName(p_grpId)
@@ -1354,7 +1356,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                         self.__lfh.write("+%s.%s() - Generated image file [%s] from %s string [%s].\n" %(className, methodName, toLclSessnImgPth, chemCompDescriptorType.upper(), chemCompDescriptor) )
                     
                     p_strReplDict['display_dscrptr_vw_btn'] = ""
-                    p_strReplDict['dpstr_info_dscrptr_img_pth'] = os.path.join(self.rltvAssgnSessionPath,fileName)
+                    p_strReplDict['dpstr_info_dscrptr_img_pth'] = '/service/cc/report/file?identifier={}&instance={}&source=depositor&file={}'.format(depId, wfInstId, fileName)
                     
                 else:
                     # problem with importing SMILES string
@@ -1390,7 +1392,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             if imageFileList is not None:
                 fileName = imageFileList[0]
                 p_strReplDict['dpstr_info_image'] = fileName
-                p_strReplDict['dpstr_info_image_lnk'] = '<a href="'+os.path.join(self.rltvAssgnSessionPath,fileName)+'" target="_blank">'+fileName+'</a>'
+                p_strReplDict['dpstr_info_image_lnk'] = '<a href="'+'/service/cc/report/file?identifier={}&instance={}&source=depositor&file={}'.format(depId, wfInstId, fileName)+'" target="_blank">'+fileName+'</a>'
                 
         # for any component definition files uploaded need to take into account "cif" extensioned files provided by depositor
         # even though "cif" is no longer officially part of 'component-definition' enum in ConfigInfoData        
@@ -1403,15 +1405,15 @@ class ChemCompAssignDepict(ChemCompDepict):
             if defnFileList is not None:
                 fileName = defnFileList[0]
                 p_strReplDict['dpstr_info_defn'] = fileName
-                p_strReplDict['dpstr_info_defn_lnk'] = '<a href="'+os.path.join(self.rltvAssgnSessionPath,fileName)+'" target="_blank">'+fileName+'</a>'
+                p_strReplDict['dpstr_info_defn_lnk'] = '<a href="'+'/service/cc/report/file?identifier={}&instance={}&source=depositor&file={}'.format(depId, wfInstId, fileName)+'" target="_blank">'+fileName+'</a>'
     
         sketchFileList = p_dataStore.getDpstrSketchFile(p_grpId)
         self.__lfh.write("\n++++ChemCompAssignDepict.__packDpstrViewDict() ----- sketchFileList %r\n" % sketchFileList )
         if sketchFileList is not None:
             fileName = sketchFileList[0]
             p_strReplDict['dpstr_info_sketch_sdf'] = fileName
-            p_strReplDict['dpstr_info_sketch_sdf_lnk'] = '<a href="'+os.path.join(self.rltvAssgnSessionPath,fileName)+'" target="_blank">'+fileName+'</a>'
-            p_strReplDict['dpstr_info_sketch_sdf_img_pth'] = os.path.join(self.rltvAssgnSessionPath,p_grpId+".svg")
+            p_strReplDict['dpstr_info_sketch_sdf_lnk'] = '<a href="'+'/service/cc/report/file?identifier={}&instance={}&source=depositor&file={}'.format(depId, wfInstId, fileName)+'" target="_blank">'+fileName+'</a>'
+            p_strReplDict['dpstr_info_sketch_sdf_img_pth'] = '/service/cc/report/file?identifier={}&instance={}&source=depositor&file={}'.format(depId, wfInstId, p_grpId+".svg")
             
                 
         

@@ -418,7 +418,7 @@ class ChemCompWebAppWorker(object):
                 will affect the Content-Type HTTP header. For now it supports getting
                 svg, gif and cif files.
         """
-        supportedSources = ["ccd", "author", "report", "instance"] # this will tell from where we should get the file
+        supportedSources = ["ccd", "author", "report", "instance", "depositor"] # this will tell from where we should get the file
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
 
         sessionId    = self.__reqObj.getValue("sessionid")
@@ -448,7 +448,7 @@ class ChemCompWebAppWorker(object):
         filename = re.sub('[^a-zA-Z0-9_.-]+', '', filename)
 
         if source not in supportedSources:
-            rC.setError(errMsg="Source should be either 'ccd', 'report' or 'instance'")
+            rC.setError(errMsg="Source should be either 'ccd', 'report', 'instance' or 'depositor'")
             rC.setStatusCode(HTTPStatus.BAD_REQUEST)
             return rC
 
@@ -456,11 +456,20 @@ class ChemCompWebAppWorker(object):
             rC.setError(errMsg="You must pass a valid ligand ID")
             rC.setStatusCode(HTTPStatus.BAD_REQUEST)
             return rC
+        
+        if source == "depositor":
+            # this is to get depositor provided files
+            filesDir = instancePath
+            if instance:
+                filesDir = os.path.join(instancePath, 'assign')
+            
+            filePath = os.path.join(filesDir, filename)
 
-        if fileType == "svg":
+            rC.setReturnFormat("binary")
+            rC.setBinaryFile(filePath)
+        elif fileType == "svg":
             # all svgs, afaik, are located in the root folder of reports
             filePath = os.path.join(ccReportPath, ligandId, "image", filename)
-            self.__logger.info("filePath: %s", filePath)
 
             # even though svg can be considered a text file, we set as binary
             # so ResponseContent can set the correct Content-Type header
@@ -474,19 +483,18 @@ class ChemCompWebAppWorker(object):
             elif source == "instance":
                 filePath = os.path.join(instancePath, filename)
 
-            self.__logger.info("filePath: %s", filePath)
-
             rC.setReturnFormat("text")
             rC.setTextFile(filePath)
         elif fileType == "html":
             filePath = os.path.join(ccReportPath, "html", ligandId, filename)
-            self.__logger.info("filePath: %s", filePath)
 
             rC.setReturnFormat("html")
             rC.setTextFile(filePath)
             rC._cD["htmlcontent"] = rC._cD["textcontent"]
         else:
             rC.setReturnFormat("text")
+
+        self.__logger.info("filePath: %s", filePath)
 
         if rC.get()["RETURN_STRING"] == "" or rC.get()["RETURN_STRING"] == None:
             rC.setError(errMsg="File not found")

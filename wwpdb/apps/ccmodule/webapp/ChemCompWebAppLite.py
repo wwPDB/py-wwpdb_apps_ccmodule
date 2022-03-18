@@ -438,6 +438,8 @@ class ChemCompWebAppLiteWorker(object):
             rC._cD["htmlcontent"] = rC._cD["textcontent"]
         else:
             rC.setReturnFormat("text")
+        
+        self.__logger.info("Requested file path %s", filePath)
 
         if rC.get()["RETURN_STRING"] == "" or rC.get()["RETURN_STRING"] == None:
             rC.setError(errMsg="File not found")
