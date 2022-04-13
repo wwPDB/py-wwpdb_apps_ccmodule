@@ -105,6 +105,9 @@ from mmcif.io.PdbxReader                                import PdbxReader
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
+from mmcif.io.IoAdapterCore                             import IoAdapterCore
+import snoop
+snoop.install(out='/nfs/public/release/msd/services/onedep/cc-validation.log')
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -1306,10 +1309,20 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.__getDpstrOrigCcids() - model file path  %s\n" % fpModel)
             
         if fpModel and os.access(fpModel, os.R_OK):
-            cifObj = mmCIFUtil(filePath=fpModel)
+            categories = ['pdbx_branch_scheme', 'pdbx_nonpoly_scheme']
+
+            ioUtil = IoAdapterCore()
+            container = ioUtil.readFile(
+                inputFilePath=fpModel,
+                selectList=categories,
+            )
             #
-            for category in ( 'pdbx_branch_scheme', 'pdbx_nonpoly_scheme' ):
-                clist = cifObj.GetValue(category)
+            for category in categories:
+                clist = container[0].getObj(category)
+                clist.setMapping('ATTRIBUTE')
+                snoop.pp(clist)
+
+                # clist = cifObj.GetValue(category)
                 for Dict in clist:
                     if ('pdb_mon_id' not in Dict) or ('auth_mon_id' not in Dict):
                         continue
