@@ -438,6 +438,8 @@ class ChemCompWebAppLiteWorker(object):
             rC._cD["htmlcontent"] = rC._cD["textcontent"]
         else:
             rC.setReturnFormat("text")
+        
+        self.__logger.info("Requested file path %s", filePath)
 
         if rC.get()["RETURN_STRING"] == "" or rC.get()["RETURN_STRING"] == None:
             rC.setError(errMsg="File not found")
@@ -1957,10 +1959,15 @@ class ChemCompWebAppLiteWorker(object):
             Logger: instance of Logger class
         """
         logger = getLogger(__name__)
-        handler = StreamHandler(log_file)
 
+        for h in logger.handlers:
+            if h.get_name() == 'default':
+                return logger
+
+        handler = StreamHandler(log_file)
         formatter = Formatter('+%(module)s.%(funcName)s() ++ %(message)s\n')
         handler.setFormatter(formatter)
+        handler.set_name('default')
 
         logger.addHandler(handler)
         

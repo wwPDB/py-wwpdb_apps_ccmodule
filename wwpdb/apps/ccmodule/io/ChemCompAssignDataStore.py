@@ -91,6 +91,7 @@ from mmcif.io.PdbxWriter     import PdbxWriter
 from mmcif.api.PdbxContainers import *
 from mmcif.api.DataCategory   import DataCategory
 from wwpdb.utils.wf.WfDataObject import WfDataObject
+from wwpdb.io.locator.PathInfo import PathInfo
 
 class ChemCompAssignDataStore(object):
     ''' Class serves as data container serving needs for a given user session.
@@ -201,6 +202,8 @@ class ChemCompAssignDataStore(object):
             fileSource  = str(self.__reqOb.getValue("filesource")).lower()
             #
             context = self.__getContext()
+            self.__lfh.write("+ChemCompAssignStore.__setup() - context %s\n" % context)
+
             if context in ['standalone', 'unknown', 'workflow']:
                 picklePathAbs = os.path.join(self.__sessionsPath, sessionId, 'assign')
                 if not os.path.exists(picklePathAbs):
@@ -209,7 +212,7 @@ class ChemCompAssignDataStore(object):
                 if context != 'workflow':
                     self.__filePath = os.path.join(picklePathAbs, depId.lower() + self.__fileNameSuffix)
                 else:
-                    self.__filePath = os.path.join(picklePathAbs, depId.upper() + self.__fileNameSuffix)
+                    self.__filePath = PathInfo().getFilePath(depId, wfInstanceId=self.__reqOb.getValue('instance'), fileSource='wf-instance', contentType='chem-comp-assign-details', formatType='pic')
             elif context == 'deposition':
                 self.__filePath = self.getFileObject(depId, fileSource, 'chem-comp-assign-details', 'pic', wfInstanceId=self.__reqOb.getValue('instance')).getFilePathReference()
             
@@ -376,7 +379,7 @@ class ChemCompAssignDataStore(object):
         except:
             self.__lfh.write("+ChemCompAssignStore.serialize() - exception encountered\n")
             traceback.print_exc(file=self.__lfh)
-            
+    
     def deserialize(self):
         """ Pull data from a pickle file on server into memory so that state can be 
             restored/maintained between web requests within a given ligand module user session

@@ -223,10 +223,15 @@ class LigandAnalysisState:
             Logger: instance of Logger class
         """
         logger = getLogger(__name__)
-        handler = StreamHandler(log_file)
 
+        for h in logger.handlers:
+            if h.get_name() == 'default':
+                return logger
+
+        handler = StreamHandler(log_file)
         formatter = Formatter('+%(module)s.%(funcName)s() ++ %(message)s\n')
         handler.setFormatter(formatter)
+        handler.set_name('default')
 
         logger.addHandler(handler)
         

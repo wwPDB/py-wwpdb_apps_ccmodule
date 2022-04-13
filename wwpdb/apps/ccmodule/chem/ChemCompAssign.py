@@ -148,20 +148,21 @@ class ChemCompAssign(object):
         #
         self.__cI=ConfigInfo()
         #
-        self.__setup()
         self.__pathInfo = PathInfo()
+        self.__setup()
         #
 
     def __setup(self):
         context = self.__getContext()
 
-        if context == 'standalone':
+        if context == 'standalone' or context == 'unknown':
             self.__depId = 'D_0'
             self.__modelDirPath = self.__sessionPath
-            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        elif context == 'workflow' or context == 'unknown':
-            self.__modelDirPath = self.__sessionPath
-            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+            self.__ccReportPath = os.path.join(self.__sessionPath, self._CC_ASSIGN_DIR)
+        elif context == 'workflow':
+            instancePath = self.__pathInfo.getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+            self.__modelDirPath = instancePath
+            self.__ccReportPath = os.path.join(instancePath, self._CC_REPORT_DIR)
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier')
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
@@ -454,7 +455,11 @@ class ChemCompAssign(object):
         #
         assignDirPath       =   self.__ccReportPath
         assignFileUpdtdPath =   os.path.join(assignDirPath,depDataSetId+'-cc-assign-updated.cif')
-        pdbxFileName        =   depDataSetId+'-model.cif'
+        if( bIsWorkflow ):
+            ccI=ChemCompDataImport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+            pdbxFileName    =   ccI.getModelPdxFilePath()
+        else:
+            pdbxFileName    =   depDataSetId+'-model.cif'
         pdbxFilePath        =   os.path.join(self.__modelDirPath,pdbxFileName)
         pdbxOutFilePath     =   os.path.join(self.__modelDirPath,depDataSetId+'-model-update.cif')
         #
@@ -702,11 +707,16 @@ class ChemCompAssign(object):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
                     chemCompFilePathAbs=os.path.join(assignDirPath,srchId,srchId+'.cif')
+                
+                self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - srchId %s, chemCompFilePathAbs %s\n" % (srchId, chemCompFilePathAbs))
+                self.__lfh.flush()
+                
                 #
                 if( p_ccAssgnDataStr.getCcName(srchId) is None ):
                     if os.access(chemCompFilePathAbs,os.R_OK):
                         if self.__verbose:
                             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - instance specific chem comp cif file found: %s\n" % chemCompFilePathAbs)
+                            self.__lfh.flush()
                             #
                         ccR=ChemCompReader(self.__verbose,self.__lfh)
                         ccR.setFilePath(filePath=chemCompFilePathAbs)
@@ -736,7 +746,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - failed while retrieving chem comp data\n")
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
-    
+
     def getTopHitsDataForInstnc(self,p_instId,p_ccAssgnDataStr,p_assignDirPath):
         """ For given instance of author ligand, obtains data pertaining to any top hit candidates
             identified by the chem comp assignment search
@@ -878,7 +888,10 @@ class ChemCompAssign(object):
         retList = []
         errList = []
         for instId in dataList:
-            assignVldtnDirPath=os.path.join(self.__sessionPath, 'assign', 'validation', authAssgnCcId, instId)
+            if self.__isWorkflow():
+                assignVldtnDirPath=os.path.join(self.__modelDirPath, 'assign', 'validation', authAssgnCcId, instId)
+            else:
+                assignVldtnDirPath=os.path.join(self.__sessionPath, 'assign', 'validation', authAssgnCcId, instId)
             vldtnLogFilePth = os.path.join(assignVldtnDirPath, 'cc-assign-validation.log')
         
             if( not os.access(assignVldtnDirPath,os.R_OK)):
@@ -887,7 +900,11 @@ class ChemCompAssign(object):
                 shutil.rmtree(assignVldtnDirPath)
                 os.makedirs(assignVldtnDirPath)
             #
-            mdlfilePath = os.path.join(self.__sessionPath, 'assign', instId, instId + '.cif')
+            if self.__isWorkflow():
+                mdlfilePath = os.path.join(self.__modelDirPath, 'assign', instId, instId + '.cif')
+            else:
+                mdlfilePath = os.path.join(self.__sessionPath, 'assign', instId, instId + '.cif')
+
             if not os.access(mdlfilePath, os.R_OK):
                 self.__lfh.write("+ChemCompAssign.doAssignValidation() - %s not found.\n" % mdlfilePath)
                 errList.append('Chemical component file ' + mdlfilePath + ' not found.')
@@ -1293,7 +1310,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+%s.%s() - failed to register paths for import of depositor provided file:  %s\n" %(className, methodName, p_upldFileName) )
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
-        
+
     def __getDpstrOrigCcids(self):
         rtrnDict={}
         
@@ -1348,7 +1365,7 @@ class ChemCompAssign(object):
             #
         #
         return rtrnDict
-            
+
     def __synchronizeDataStore(self,p_dataDict,p_ccAssgnDataStore,p_instId=None,p_exactOption=False):
         """ Method for synchronizing datastore object with information 
             from the chem component assignment search results
@@ -1559,8 +1576,6 @@ class ChemCompAssign(object):
         """
         className = self.__class__.__name__
         methodName = sys._getframe().f_code.co_name
-        #
-        #assignDirPath = os.path.join(self.__sessionPath,'assign')
         #
         ccE=ChemCompDataExport(self.__reqObj,verbose=self.__verbose,log=self.__lfh)
         #
@@ -2005,6 +2020,7 @@ class ChemCompAssign(object):
             #
 
         else:
+            self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - could not access %s\n" % (ccRefFilePath) )
             if( p_state == "first pass" ):
                 if self.__verbose:
                         self.__lfh.write("+ChemCompAssign.__syncTopHitsData() - processing top hits for %s and NO reference chem comp file found on first pass for %s\n" % (p_instId, ccRefFilePath) )

@@ -61,11 +61,14 @@ class ChemCompReport(object):
         self.__cI=ConfigInfo(self.__siteId)
 
         context = self.__getContext()
-        if context == 'standalone':
+        self.__lfh.write("Context: %s\n" % context)
+
+        if context == 'standalone' or context == 'unknown':
             self.__depId = 'D_0'
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
-        elif context == 'workflow' or context == 'unknown':
-            self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
+        elif context == 'workflow':
+            instancePath = PathInfo().getInstancePath(self.__reqObj.getValue('identifier'), self.__reqObj.getValue('instance'))
+            self.__ccReportPath = os.path.join(instancePath, 'cc_analysis')
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier').upper()
             self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
@@ -148,6 +151,10 @@ class ChemCompReport(object):
         #
         fileName    =    self.__definitionId + ".cif"                
         filePath=os.path.join(reportPath,fileName)
+
+        if not os.path.exists(self.__definitionFilePath):
+            return
+        
         shutil.copyfile(self.__definitionFilePath,filePath)
         
 
