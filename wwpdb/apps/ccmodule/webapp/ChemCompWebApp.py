@@ -174,7 +174,6 @@ from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 from wwpdb.io.locator.PathInfo                          import PathInfo
 
-
 class ChemCompWebApp(object):
     """Handle request and response object processing for the chemical component editor tool application.
     

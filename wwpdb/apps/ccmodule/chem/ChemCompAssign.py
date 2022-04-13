@@ -106,8 +106,7 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from mmcif.io.IoAdapterCore                             import IoAdapterCore
-import snoop
-snoop.install(out='/nfs/public/release/msd/services/onedep/cc-validation.log')
+from debug_tools.tools import debug
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -826,7 +825,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+%s.%s() %s FAILS simple validation.\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, ccId) )
                     
         return rtrnCode
-                    
+
     def doAssignValidation(self):
         """ Perform "full" validation of chem comp ID being assigned to experimental data. i.e. check that:
                 
@@ -1310,7 +1309,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+%s.%s() - failed to register paths for import of depositor provided file:  %s\n" %(className, methodName, p_upldFileName) )
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
-
+        
     def __getDpstrOrigCcids(self):
         rtrnDict={}
         
@@ -1326,7 +1325,7 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.__getDpstrOrigCcids() - model file path  %s\n" % fpModel)
             
         if fpModel and os.access(fpModel, os.R_OK):
-            categories = ['pdbx_branch_scheme', 'pdbx_nonpoly_scheme']
+            categories = ('pdbx_branch_scheme', 'pdbx_nonpoly_scheme') # tuple is hashable and can be used with lru_cache
 
             ioUtil = IoAdapterCore()
             container = ioUtil.readFile(
@@ -1336,8 +1335,11 @@ class ChemCompAssign(object):
             #
             for category in categories:
                 clist = container[0].getObj(category)
+
+                if clist is None:
+                    continue
+
                 clist.setMapping('ATTRIBUTE')
-                snoop.pp(clist)
 
                 # clist = cifObj.GetValue(category)
                 for Dict in clist:
