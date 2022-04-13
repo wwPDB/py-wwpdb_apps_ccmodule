@@ -106,7 +106,6 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from mmcif.io.IoAdapterCore                             import IoAdapterCore
-from debug_tools.tools import debug
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -1309,7 +1308,7 @@ class ChemCompAssign(object):
                 self.__lfh.write("+%s.%s() - failed to register paths for import of depositor provided file:  %s\n" %(className, methodName, p_upldFileName) )
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
-        
+
     def __getDpstrOrigCcids(self):
         rtrnDict={}
         
