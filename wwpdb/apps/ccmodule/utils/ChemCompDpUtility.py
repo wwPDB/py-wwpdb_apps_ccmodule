@@ -205,7 +205,7 @@ class ChemCompDpUtility(object):
             )
             
             # generating the file to be used by jsmol
-            dpCnvrt=RcsbDpUtility(siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
+            dpCnvrt=RcsbDpUtility(tmpPath=self._sessionPath, siteId=self._cI.get('SITE_PREFIX'), verbose=self._verbose, log=self._lfh)
             dpCnvrt.setWorkingDir(self._wfPath)
             dpCnvrt.imp(modelPath)
             dpCnvrt.op("cif2cif-pdbx-skip-process")
