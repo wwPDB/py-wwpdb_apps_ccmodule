@@ -76,6 +76,7 @@
 # 2017-05-24    RPS    Corrected for missing variable initialization in updateWithDepositorInfo().
 # 2017-09-19    ZF     Add runMultiAssignValidation() and change doAssignValidation() to multiprocessing mode
 # 2021-02-25    ZF     Add self.__origUpdIdMap & self.__sortCompositeMatchScore()
+# 2022-05-23    ZF     Move the __getDpstrOrigCcids() method call from __synchronizeDataStore() method to doAssignValidation() for multiple instances case
 ##
 """
 Residue-level chemical component extraction operations.
@@ -639,7 +640,7 @@ class ChemCompAssign(object):
                     
         return ccADS
     
-    def updateDataStoreForInstnc(self,p_instId,p_dataDict):
+    def updateDataStoreForInstnc(self,p_instId,p_dataDict,preFlag=False,preCcidDict={}):
         """ Method for updating datastore as required on rerunning of chem comp assignment searches
             Used in scenarios where the deposition dataset has a previously persisted datastore that will
             be updated for information pertaining to a given instance ID for which new information exists
@@ -659,7 +660,7 @@ class ChemCompAssign(object):
         #
         ccADS=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
         if( ccADS.wasBorn() ):
-            self.__synchronizeDataStore(p_dataDict,ccADS,p_instId)
+            self.__synchronizeDataStore(p_dataDict,ccADS,p_instId,preFlag=preFlag,preCcidDict=preCcidDict)
         #
                             
         return ccADS
@@ -851,6 +852,12 @@ class ChemCompAssign(object):
         if diagList:
             return '\n'.join(diagList)
         #
+        flag = False
+        origCcidDict = {}
+        if len(retLists[0]) > 1:
+            flag = True
+            origCcidDict = self.__getDpstrOrigCcids()
+        #
         for retResult in retLists[0]:
             pR=PdbxChemCompAssignReader(self.__verbose,self.__lfh)
             pR.setFilePath(filePath=retResult[1])
@@ -861,7 +868,7 @@ class ChemCompAssign(object):
                     dd[cN]=pR.getCategory(catName=cN)
                 #
             #
-            ccADS = self.updateDataStoreForInstnc(retResult[0], dd)
+            ccADS = self.updateDataStoreForInstnc(retResult[0], dd, preFlag=flag, preCcidDict=origCcidDict)
             ccADS.serialize()
         #
         
@@ -1336,7 +1343,7 @@ class ChemCompAssign(object):
         #
         return rtrnDict
             
-    def __synchronizeDataStore(self,p_dataDict,p_ccAssgnDataStore,p_instId=None,p_exactOption=False):
+    def __synchronizeDataStore(self,p_dataDict,p_ccAssgnDataStore,p_instId=None,p_exactOption=False,preFlag=False,preCcidDict={}):
         """ Method for synchronizing datastore object with information 
             from the chem component assignment search results
             
@@ -1363,7 +1370,11 @@ class ChemCompAssign(object):
             srtdAssignL = sorted(srtdAssignL, key=lambda row: row['_pdbx_instance_assignment.status'] );
             
             # get original depositor CCIDs
-            origCcidDict = self.__getDpstrOrigCcids()
+            if preFlag:
+                origCcidDict = preCcidDict
+            else:
+                origCcidDict = self.__getDpstrOrigCcids()
+            #
             
             for row in srtdAssignL:
                 
