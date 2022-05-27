@@ -106,8 +106,6 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from mmcif.io.IoAdapterCore                             import IoAdapterCore
-import snoop
-snoop.install(out='/nfs/public/release/msd/services/onedep/cc-validation.log')
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -1309,7 +1307,7 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.__getDpstrOrigCcids() - model file path  %s\n" % fpModel)
             
         if fpModel and os.access(fpModel, os.R_OK):
-            categories = ['pdbx_branch_scheme', 'pdbx_nonpoly_scheme']
+            categories = ('pdbx_branch_scheme', 'pdbx_nonpoly_scheme') # tuple is hashable and can be used with lru_cache
 
             ioUtil = IoAdapterCore()
             container = ioUtil.readFile(
@@ -1320,7 +1318,6 @@ class ChemCompAssign(object):
             for category in categories:
                 clist = container[0].getObj(category)
                 clist.setMapping('ATTRIBUTE')
-                snoop.pp(clist)
 
                 # clist = cifObj.GetValue(category)
                 for Dict in clist:
