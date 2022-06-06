@@ -1322,9 +1322,14 @@ class ChemCompAssign(object):
                 selectList=categories,
             )
             #
+            if len(container) == 0:
+                return rtrnDict
+
             for category in categories:
                 clist = container[0].getObj(category)
-                clist.setMapping('ATTRIBUTE')
+
+                if clist is None:
+                    clist = []
 
                 # clist = cifObj.GetValue(category)
                 for Dict in clist:
