@@ -329,6 +329,7 @@ class ChemCompAssignDataStore(object):
             self.__lfh.write("+ChemCompAssignStore.serialize() - starting\n")            
         try:
             fb=open(self.__filePath,'wb')
+            # fb=open('/hps/software/users/pdbe/onedep/deployments/dev/source/cc_traces/assign_no_remote.pkl','wb')
             pickle.dump(self.__authAssignment,fb,self.__pickleProtocol)
             pickle.dump(self.__batchBestHitAssignment,fb,self.__pickleProtocol)
             pickle.dump(self.__annotAssignment,fb,self.__pickleProtocol)

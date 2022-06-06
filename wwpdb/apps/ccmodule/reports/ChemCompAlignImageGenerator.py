@@ -85,10 +85,16 @@ class ChemCompAlignImageGenerator(object):
         if foundList:
             self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - Generating images \n')
 
-            dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
-            dp.addInput(name='image_file', value=imageFile)
-            dp.setWorkingDir(self.__imagePath)
-            returnCode = dp.op('chem-comp-align-img-gen')
+            if not self.__runLocal:
+                dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+                dp.addInput(name='image_file', value=imageFile)
+                dp.setWorkingDir(self.__imagePath)
+                returnCode = dp.op('chem-comp-align-img-gen')
+                dp.cleanup()
+            else:
+                ccbai = ChemCompBigAlignImages(imageFile)
+                ccbai.generateImage()
+                returnCode = 0
 
             self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - remote process returned %d \n' % returnCode)
 
@@ -123,12 +129,37 @@ class ChemCompAlignImageGenerator(object):
     def __generateSingleImage(self, Id=None, FileName=None, size=300, labelAtomName=False, suffix=''):
         imgPth = os.path.join(self.__imagePath, Id + suffix + '.svg')
 
-        dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
-        dp.addInput(name="title", value=Id)
-        dp.addInput(name="path", value=FileName)
-        dp.addInput(name="image_path", value=imgPth)
-        dp.addInput(name="size", value=size)
-        dp.addInput(name="label", value=labelAtomName)
-        
-        return dp.op("chem-comp-gen-images")
+        if not self.__runLocal:
+            dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+            dp.addInput(name="title", value=Id)
+            dp.addInput(name="path", value=FileName)
+            dp.addInput(name="image_path", value=imgPth)
+            dp.addInput(name="size", value=size)
+            dp.addInput(name="label", value=labelAtomName)
+            
+            retStatus = dp.op("chem-comp-gen-images")
+            dp.cleanup()
+            return retStatus
+        else:
+            if( os.access(FileName,os.R_OK) ):
+                try:
+                    #
+                    oeU=OeChemCompIoUtils(verbose=True,log=sys.stdout)
+                    oemList=oeU.getFromPathList([FileName],use3D=True,coordType='model')
+                    oed=OeDepict(verbose=True,log=sys.stdout)
+                    oedInputTupl = (Id,oemList[0],"")
+                    oed.setMolTitleList([oedInputTupl])
+                    oed.setDisplayOptions(imageSizeX=size,imageSizeY=size,labelAtomName=labelAtomName,labelAtomCIPStereo=True,
+                                        labelAtomIndex=False,labelBondIndex=False,
+                                        highlightStyleFit='ballAndStickInverse',
+                                        bondDisplayWidth=1.0)
+                    oed.setGridOptions(rows=1,cols=1,cellBorders=False)
+                    oed.prepare()
+                    oed.write(imgPth)
+                
+                except Exception as e:
+                    self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - error generating images: %s \n' % e)
+
+            else:      
+                return -1
         #

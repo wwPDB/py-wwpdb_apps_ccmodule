@@ -13,6 +13,7 @@ from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
 from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
 from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssignReader
+from wwpdb.apps.ccmodule.chem.ChemCompAssignDepict      import ChemCompAssignDepict
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
 from wwpdb.utils.session.WebRequest                     import InputRequest
 from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
@@ -25,6 +26,7 @@ from wwpdb.utils.oe_util.oedepict.OeDepict              import OeDepict
 from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.apps.ccmodule.reports.InstanceDataGenerator  import InstanceDataGenerator
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
+from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 
 
 class ChemCompDpInputs:
@@ -55,8 +57,10 @@ class ChemCompDpUtility(object):
         self._cI = ConfigInfo()
         self._cICommon = ConfigInfoAppCommon()
 
-        # templates path
-        self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
+        if self._context == ChemCompContext.CONTEXT_ANNOTATION:
+            self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule')
+        else:
+            self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
 
         # setting up session object
         self._setupSession(self._depId, self._context)
@@ -73,10 +77,12 @@ class ChemCompDpUtility(object):
             if not self._wfInstance:
                 raise Exception('Missing workflow instance id when executing ligand analysis under annotation context')
             
+            self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule')
             self._wfPath = Path(pathInfo.getInstancePath(dataSetId=self._depId, wfInstanceId=self._wfInstance))
             self._ccReportPath = os.path.join(self._wfPath, self._CC_REPORT_DIR)
             self._assignFilePath = os.path.join(self._wfPath, self._CC_ASSIGN_DIR)
         else:
+            self._templatePath = os.path.join(self._cI.get('SITE_WEB_APPS_TOP_PATH'), 'htdocs', 'ccmodule_lite')
             self._ccReportPath = os.path.join(self._depositPath, self._CC_REPORT_DIR)
             self._assignFilePath = os.path.join(self._depositPath, self._CC_ASSIGN_DIR)
         
@@ -234,13 +240,50 @@ class ChemCompDpUtility(object):
 
             instIdLst = ccAssignDataStore.getAuthAssignmentKeys()
 
+            self._logger.info('InstIdList %s', instIdLst)
+
             if len(instIdLst) > 0:
                 cca.getDataForInstncSrch(instIdLst, ccAssignDataStore)
                 ccAssignDataStore.dumpData(self._lfh)
                 ccAssignDataStore.serialize()
+
+            ccAD = ChemCompAssignDepict(self._verbose, self._lfh)
+            ccAD.generateInstancesMainHtml(ccAssignDataStore, instIdLst, self._readCovalentBondingInfo(), self._reqObj)
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
             self._ligState.abort()
+    
+    def _readCovalentBondingInfo(self):
+        """ Read inter-residue covalent bonding information from D_xxxxxxxxxx-cc-link.cif file.
+        """
+        ccLinkFilePath = PathInfo().getFilePath(
+            self._depId,
+            wfInstanceId=self._wfInstance,
+            fileSource='wf-instance',
+            contentType='chem-comp-link',
+            formatType='pdbx'
+        )
+        if not os.access(ccLinkFilePath, os.F_OK):
+            self._logger.error('Chem comp link file not found in %s', ccLinkFilePath)
+            return {}
+
+        try:
+            cifObj = mmCIFUtil(filePath=ccLinkFilePath)
+            retList = cifObj.GetValue("pdbx_covalent_bonding")
+            linkInfoMap = {}
+            for retDir in retList:
+                if ("inst_id" not in retDir) or ("first_atom_id" not in retDir) or ("second_atom_id" not in retDir) or ("dist" not in retDir):
+                    continue
+
+                if retDir["inst_id"] in linkInfoMap:
+                    linkInfoMap[retDir["inst_id"]] += "<br />" + retDir["first_atom_id"] + " - " + retDir["second_atom_id"] + " = " + retDir["dist"]
+                else:
+                    linkInfoMap[retDir["inst_id"]] = "The following atoms are linked together:<br />" + retDir["first_atom_id"] \
+                                                   + " - " + retDir["second_atom_id"] + " = " + retDir["dist"]
+            return linkInfoMap
+        except Exception as e:
+            self._logger.error('Error reading covalent bonding info', exc_info=True)
+            return {}
 
     def _processCcAssignFile(self):
         """Interrogate resulting assign results file for desired match data.

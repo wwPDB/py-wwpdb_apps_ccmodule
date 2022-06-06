@@ -173,6 +173,7 @@ from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 from wwpdb.io.locator.PathInfo                          import PathInfo
+from viztracer import trace_and_save
 
 class ChemCompWebApp(object):
     """Handle request and response object processing for the chemical component editor tool application.
@@ -1277,6 +1278,7 @@ class ChemCompWebAppWorker(object):
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
 
+    @trace_and_save(output_dir='/hps/software/users/pdbe/onedep/deployments/dev/source/cc_traces', ignore_c_function=True)
     def _ccAssign_generateEntityBrowser(self):
         """ Generate "Entity Browser" content for "Instance-Level Searching" view
             This view allows user to navigate ligand instance data via entity CCID groupings
@@ -1337,7 +1339,8 @@ class ChemCompWebAppWorker(object):
         linkInfoMap = self.__readCovalentBondingInfo()
         ccAD=ChemCompAssignDepict(self.__verbose,self.__lfh)
         ccAD.setSessionPaths(self.__reqObj)
-        oL=ccAD.doRender_EntityBrwsr(srchIdsL,ccADS,linkInfoMap,self.__reqObj)
+        # oL=ccAD.doRender_EntityBrwsr(srchIdsL,ccADS,linkInfoMap,self.__reqObj)
+        oL=ccAD.generateInstancesMainHtml(ccADS,srchIdsL,linkInfoMap,self.__reqObj)
         #
         rC.setHtmlText( ''.join(oL) )
         return rC

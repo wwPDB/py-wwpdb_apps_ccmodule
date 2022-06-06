@@ -88,6 +88,7 @@ __license__   = "Creative Commons Attribution 3.0 Unported"
 __version__   = "V0.01"
 
 import os, sys, traceback
+from pathlib                                            import Path
 from operator                                           import itemgetter
 from wwpdb.apps.ccmodule.depict.ChemCompDepict          import ChemCompDepict
 from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxCategoryDefinition
@@ -333,6 +334,312 @@ class ChemCompAssignDepict(ChemCompDepict):
                         
         return oL
     
+    def generateInstancesMainHtml(self, ccAssignDataStore, instanceIdList, linkInfoMap, reqObj):
+        bIsWorkflow     = self.isWorkflow(reqObj)
+        depId           = str(reqObj.getValue("identifier"))
+        wfInstId        = str(reqObj.getValue("instance")).upper()
+        sessionId       = reqObj.getSessionId()
+        fileSource      = str(reqObj.getValue("filesource")).lower()
+        htmlTmpltPth    = reqObj.getValue("TemplatePath")
+        #
+        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+
+        self.__lfh.write("+ChemCompAssignDepict.generateInstancesMainHtml() starting html snippet generation for %s %s with session %s\n" % (depId, wfInstId, sessionId))
+        #
+        # Establish helper dictionary of elements used to populate html templates
+        #
+        hlprDict={}
+        hlprDict['sessionid']    = sessionId
+        hlprDict['depositionid'] = depId
+        hlprDict['filesource'] = fileSource
+        hlprDict['instance'] = wfInstId #i.e. workflow instance ID 
+        hlprDict['identifier'] = depId
+        hlprDict['html_template_path'] = htmlTmpltPth
+        hlprDict['jmol_code_base'] = self.jmolCodeBase 
+        #
+        oL=[]
+        #
+        oL.append('<div id="cc_entity_browser">\n<h4>Browse Chem Components by Entity Group</h4>\n<div id="pagi" class="noprint fltlft"></div>\n<br class="clearfloat" />\n')
+        oL.append('<div id="cc_entity_browse_content">\n') 
+        i=0
+        # prevGrp and newGrp to keep track of changes in the entity grouping as we move from ligand instance to ligand instance
+        prevGrp = ''
+        newGrp = False
+        #
+        if (self.__verbose):
+            for k in instanceIdList:
+                self.__lfh.write("+ChemCompAssignDepict.generateInstancesMainHtml() instId key in instanceIdList: %30s\n" % k)
+        index = 0
+        for instId in instanceIdList:
+            ##
+            instWarnStyle = ""
+            if instId in linkInfoMap:
+                instWarnStyle = 'style="color:red"'
+            #
+            hlprDict['inst_warn_style'] = instWarnStyle
+            hlprDict['instanceid']   = instId
+            authAssignedGrp = ccAssignDataStore.getAuthAssignment(instId)
+            hlprDict['2dpath_labld_w_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
+            hlprDict['2dpath_labld_no_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
+            ##
+            index += 1
+            ##
+            # following if checks for whether we have arrived at a new ligand grouping
+            if( authAssignedGrp != prevGrp ):
+                i+=1
+                prevGrp = authAssignedGrp
+                newGrp = True
+            else:
+                newGrp = False
+            ##
+            tabStyle="displaynone"
+            if i==1:
+                tabStyle="_current"
+            ##
+            if newGrp:
+                ## if this is a new ligand group we create a new "all-instances" section
+                if i > 1:
+                    oL.append('</div></div>') #one terminal div for inneraccordion then another terminal div for p<N>
+                
+                oL.append('<div id="p%s" class="%s tabscount">'% (str(i),tabStyle))
+                oL.append('<div class="cmpnt_grp displaynone">%s</div>' % authAssignedGrp)
+                oL.append('<div class="inneraccordion" id="%s_inneraccordion">' % authAssignedGrp)
+                # call method to generate html content for "All Instances" profile
+                self.doRender_AllInstncsProfile(authAssignedGrp,instanceIdList,ccAssignDataStore,linkInfoMap,hlprDict,oL)
+                #
+                #
+            ###################################################################################################
+            # Call method below to generate html content for "Single Instance" profile, content is in form of html  
+            # fragments stored in files on the server. The files are then recruited by AJAX calls made by the front end
+            ###################################################################################################
+            # self._generateInstanceProfileHtml(ccAssignDataStore,hlprDict,rerun=False,reqObj=reqObj)
+            ##
+            #################################################################################################
+            # while we're iterating through the ligand instances, we will
+            # also populate "cc_all_instncs_viz_cmp_li_tmplt.html" template used for displaying ligand instances in viz compare grid
+            # and which contains placeholders for "auth_assgnd_grp", "name", "instanceid" and "2dpath"
+            #################################################################################################
+            topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
+            #
+            if topHitCcId == "None":
+                bHaveTopHit = False
+            else:
+                bHaveTopHit = True
+            #
+            if bHaveTopHit:
+                vizCmpTmpltName = "cc_all_instncs_viz_cmp_li_tmplt.html"
+            else:
+                vizCmpTmpltName = "cc_all_instncs_viz_cmp_li_nomatch_tmplt.html"
+            #
+            # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
+            wfPath = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+            ccReportPath = os.path.join(wfPath, 'cc_analysis')
+            htmlDirPathAbs = os.path.join(ccReportPath, 'html', instId)
+            if not os.path.exists(htmlDirPathAbs):
+                os.makedirs(htmlDirPathAbs)
+
+            htmlFilePathAbs = os.path.join(htmlDirPathAbs,instId+'_viz_cmp_li.html')
+
+            fp=open(htmlFilePathAbs,'w')
+            fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathAllInstncsCmprTmplts),fn=vizCmpTmpltName,parameterDict=hlprDict) )
+            fp.close()
+            #            
+            oL.append( self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathSnglInstcTmplts),fn="cc_instnc_disp_tmplt.html",parameterDict=hlprDict) )
+            
+        #end of iterating through all chem components
+        oL.append('</div>\n')
+        #above is end of cc_entity_browse_content div
+        oL.append('</div>\n')
+        oL.append('</div>\n')
+        #above needed to seal off last chem cmpnt_grp div
+        oL.append('</div>\n')
+        #above is end tag for <div id="cc_entity_browser">
+        return oL
+    
+    def _generateInstanceProfileHtml(self, ccAssignDataStore, hlprDict, rerun=False, reqObj=None):
+        ''' Generate html "single-instance" profile content for given ligand instance
+                       
+            :Params:
+            
+                + ``ccAssignDataStore``: ChemCompAssignDataStore object representing current state of ligand matches/assignments
+                + ``hlprDict``: dictionary of data to be used for subsitution/population of HTML template(s)
+                + ``rerun``: boolean indicating whether or not HTML being generated as result of rerunning cc-assign search for this ligand
+        '''
+        ##
+        instId          = hlprDict['instanceid']
+        sessionId       = hlprDict['sessionid']
+        depId           = hlprDict['depositionid']
+        wfInstId        = hlprDict['instance']
+        htmlTmpltPth    = os.path.join(hlprDict['html_template_path'],self.__pathSnglInstcTmplts)
+        ##
+        if (self.__verbose):
+                    self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceProfile() ----- starting for instId: %s\n" % instId)
+                    self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceProfile() ----- Rerun condition is: %s\n" % rerun)
+        ##
+        ## interrogate ChemCompAssign DataStore for necessary data items
+        authAssignedGrp = ccAssignDataStore.getAuthAssignment(instId)
+        topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
+        bGrpIsGlbllyAssgnd = (authAssignedGrp in ccAssignDataStore.getGlbllyAssgndGrpList())
+        bInstIdHadSearchRerun = (instId in ccAssignDataStore.getInstIdRerunSrchLst())
+        ## determine whether or not a top candidate hit has been found for this instance 
+        if topHitCcId == "None":
+            bHaveTopHit = False
+            if (self.__verbose):
+                    self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceProfile() ----- instId %s has no top hit\n" % instId)
+        else:
+            bHaveTopHit = True
+        #
+        #######################################################################################################################################################
+        #######################################################################################################################################################
+        ##
+        ##    Establish dictionary of elements used to populate html template for instance profile
+        ##
+        #######################################################################################################################################################
+        #######################################################################################################################################################
+        hlprDict['top_hit_ccid'] = topHitCcId
+        hlprDict['2dpath_labld_w_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, topHitCcId+'_Big')
+        hlprDict['2dpath_labld_no_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, topHitCcId+'_Big')
+        topHitsList = ccAssignDataStore.getTopHitsList(instId)
+        hlprDict['top_hit_ccname']   = (len(topHitsList) and [topHitsList[0][3]] or [''])[0]
+        hlprDict['top_hit_ccname_displ']  = self.truncateForDisplay(hlprDict['top_hit_ccname'])
+        hlprDict['top_hit_ccformula']   = (len(topHitsList) and [topHitsList[0][4]] or [''])[0]
+        hlprDict['top_hit_ccformula_displ'] = self.truncateForDisplay(hlprDict['top_hit_ccformula'])
+        hlprDict['auth_assgnd_grp'] = ccAssignDataStore.getAuthAssignment(instId)
+        hlprDict['status']       = ccAssignDataStore.getBatchBestHitStatus(instId)
+        hlprDict['name']         = ccAssignDataStore.getCcName(instId)
+        hlprDict['formula']      = ccAssignDataStore.getCcFormula(instId)
+        hlprDict['formula_displ'] = self.truncateForDisplay(hlprDict['formula'])
+        hlprDict['fmlcharge']    = ccAssignDataStore.getCcFormalChrg(instId)
+        #
+        hlprDict['dsplyvizopt'] = "" if( str(ccAssignDataStore.getCcSingleAtomFlag(instId) ).lower() == 'n') else "displaynone"
+        #
+        ##
+        #
+        hlprDict['2dpath']           = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId)
+        hlprDict['2dpath_top_hit']   = '/service/cc/report/file?identifier={}&instance={}&source=ccd&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, topHitCcId)
+
+        ##
+        #
+        ## added by ZF. It is needed by directly call from ChemCompWebApp._ccAssign_rerunInstncSrch && ChemCompWebApp._ccAssign_rerunInstncCompSrch
+        hlprDict['jmol_code_base'] = self.jmolCodeBase
+        hlprDict['2dpath_labld_w_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
+        hlprDict['2dpath_labld_no_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
+        ############################################################################################################################################################
+        #################################################################################################################################
+        ## below we are setting dictionary items that pertain to different display states depending
+        ## on whether or not given ligand instance has been assigned a CC ID by annotator
+        ## ------------------------------------------------------------------------------------------------------------------------
+        ## NOTE: 'ccid_assgnmnt', 'displaynone', and 'is_assgnd', key/value pairs are used in cc_instnc_disp_tmplt.html template
+        ## which is populated NOT by this by function but by the code calling this function and which reuses the dictionary built here.
+        #################################################################################################################################
+        ccid = ccAssignDataStore.getAnnotAssignment(instId)
+        if( ccid != "Not Assigned" ):
+            ##
+            hlprDict['ccid_assgnmnt'] = ccid
+            hlprDict['displaynone'] = ''
+            hlprDict['is_assgnd'] = 'is_assgnd'
+            ##
+            hlprDict['disabled'] = 'disabled="disabled"'
+            if( not(bGrpIsGlbllyAssgnd) ):
+                hlprDict['assgn_lbl'] = 'Un-Assign'
+                hlprDict['assgn_disabled'] = ''
+            else:
+                hlprDict['assgn_lbl'] = 'Assign'
+                hlprDict['assgn_disabled'] = 'disabled="disabled"'
+        else:
+            ##
+            hlprDict['ccid_assgnmnt']=''
+            hlprDict['displaynone'] = 'displaynone'
+            hlprDict['is_assgnd'] = ''
+            ##
+            hlprDict['disabled'] = ''
+            hlprDict['assgn_disabled'] = ''
+            hlprDict['assgn_lbl'] = 'Assign'
+        ##
+        
+        ############################################################################################################################################################
+        ## if the assign search yielded top hit(s) we need to generate tabular display of match results  ###########################################################
+        if bHaveTopHit:
+            hlprDict['assgn_sess_path_rel'] = self.rltvAssgnSessionPath #this key/value is used in private renderInstanceMatchResults function for cc_viz_cmp_li_tmplt.html
+            hlprDict['cc_instnc_match_rslts_tbl'] = ''.join(self.__renderInstanceMatchRslts(ccAssignDataStore,hlprDict,reqObj))
+        ##
+        ############################################################################################################################################################
+        
+        ############################################################################################################################################################
+        ######### below we are managing items as relates to rerunning of assignment searches on entity group or instance ###########################################
+        ##
+        hlprDict['link_radius_dlta'] = ccAssignDataStore.getRerunParam_linkRadii( instId )
+        hlprDict['bond_radius_dlta'] = ccAssignDataStore.getRerunParam_bondRadii( instId )
+        ##
+        if rerun:
+            instncProfileLbl = "rerun_srch_instnc_profile.html"
+            instncAtmMpLbl = "rerun_srch_instnc_atm_mp_li.html"
+        else:
+            instncProfileLbl = "instnc_profile.html"
+            instncAtmMpLbl = "instnc_atm_mp_li.html"
+        ##
+        if( bInstIdHadSearchRerun ): #i.e. was rerun called specifically on this single instance as opposed to being called on whole entity group
+            hlprDict['rerun_display_class']=''
+            hlprDict['rerun_btn_lbl']="Hide Rerun Search Form"
+        else:
+            hlprDict['rerun_display_class']='displaynone'
+            hlprDict['rerun_btn_lbl']="Show Rerun Search Form"
+        ##
+        ############################################################################################################################################################
+        ############################################################################################################################################################
+        
+        # establishing values for RELATIVE path used by FRONT end for locating file that serves as instance profile markup and is called by front end on-demand 
+        htmlFilePathRel = '/service/cc_lite/report/file?identifier={}&source=report&ligid={}&file={}'.format(depId.upper(), instId, instId + instncProfileLbl)
+        ############################################################################################################################################################
+        ## NOTE: 'instnc_profile_path" key/value below is used in cc_instnc_disp_tmplt and cc_all_instncs_disp_tmplt 
+        ## which are populated NOT by this by function but by code that has called this function
+        hlprDict['instnc_profile_path'] = htmlFilePathRel
+        ############################################################################################################################################################
+        
+        # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
+        wfPath = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+        ccReportPath = os.path.join(wfPath, 'cc_analysis')
+        htmlDirPathAbs = os.path.join(ccReportPath, 'html', instId)
+        if not os.path.exists(htmlDirPathAbs):
+            os.makedirs(htmlDirPathAbs)
+        htmlFilePathAbs = os.path.join(htmlDirPathAbs,instId+instncProfileLbl)
+        #
+        fp=open(htmlFilePathAbs,'w')
+        #
+        if bHaveTopHit:
+            instncProfileTmpltName = "cc_instnc_profile_tmplt.html"
+        else:
+            instncProfileTmpltName = "cc_instnc_profile_nomatch_tmplt.html"
+        #
+        fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth,fn=instncProfileTmpltName,parameterDict=hlprDict) )
+        fp.close()
+        
+        ############################################################################################################################################################
+        ##    Atom Mapping rendering
+        ############################################################################################################################################################
+        ##
+        if bHaveTopHit:
+            # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as atom mapping markup and is called by front end on-demand
+            atmMpFilePathAbs = os.path.join(htmlDirPathAbs,instId+instncAtmMpLbl)
+            self.doRender_AtmMpList(ccAssignDataStore,hlprDict,atmMpFilePathAbs)
+        ##
+        ############################################################################################################################################################
+        ############################################################################################################################################################
+        
+        ############################################################################################################################################################
+        ## 3D JMOL renderings
+        ############################################################################################################################################################
+        if not rerun:
+            self.__renderInstance3dViews(ccAssignDataStore,hlprDict)
+        ##
+        
+        ############################################################################################################################################################
+        ###################################                     END creating "single instance" view                                 ##############################
+        ############################################################################################################################################################
+        ##
+        if (self.__verbose):
+                    self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceProfile() ----- reached end for instId: %s\n" % instId)
+
     def doRender_EntityBrwsr(self,p_instncIdLst,p_ccAssgnDataStr,p_linkInfoMap,p_reqOb):
         ''' Render HTML markup for the Entity (i.e. ligand group) Browser
             The Entity Browser provides navigation of sections devoted to each entity group (one entity group viewed at a time)
@@ -1456,13 +1763,20 @@ class ChemCompAssignDepict(ChemCompDepict):
         p_hlprDict['3dpath_environ'] = '/service/cc/report/file?identifier={}&instance={}&source=instance&sessionid={}&file={}'.format(depId, wfInstId, p_hlprDict['sessionid'], depId+'-jmol-mdl')
         p_hlprDict['residue_num'] = residueNum
         p_hlprDict['chain_id'] = chainId
+
+        wfPath = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+        ccReportPath = os.path.join(wfPath, 'cc_analysis')
+        htmlDirPathAbs = os.path.join(ccReportPath, 'html', instId)
+        if not os.path.exists(htmlDirPathAbs):
+            os.makedirs(htmlDirPathAbs)
+        
         # establishing values for ABSOLUTE paths used by BACK end for writing to files that serve as additional resources that may be called by front end on-demand
-        jmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_jmol_instVw.html")
-        environJmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_environ_jmol_instVw.html")
-        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_stndaln_jmol_instVw.html")
-        jmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_jmol_allInstVw.html")
-        environJmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_environ_jmol_allInstVw.html")
-        stndalnJmolFilePathAbs_AllInstVw = os.path.join(self.absltAssgnSessionPath,instId,instId+"instnc_stndaln_jmol_allInstVw.html")
+        jmolFilePathAbs_SnglInstVw = os.path.join(htmlDirPathAbs,instId+"instnc_jmol_instVw.html")
+        environJmolFilePathAbs_SnglInstVw = os.path.join(htmlDirPathAbs,instId+"instnc_environ_jmol_instVw.html")
+        stndalnJmolFilePathAbs_SnglInstVw = os.path.join(htmlDirPathAbs,instId+"instnc_stndaln_jmol_instVw.html")
+        jmolFilePathAbs_AllInstVw = os.path.join(htmlDirPathAbs,instId+"instnc_jmol_allInstVw.html")
+        environJmolFilePathAbs_AllInstVw = os.path.join(htmlDirPathAbs,instId+"instnc_environ_jmol_allInstVw.html")
+        stndalnJmolFilePathAbs_AllInstVw = os.path.join(htmlDirPathAbs,instId+"instnc_stndaln_jmol_allInstVw.html")
         #
         if bHaveTopHit:
             # set default templates to be used
@@ -1593,8 +1907,13 @@ class ChemCompAssignDepict(ChemCompDepict):
             # while we're iterating through the candidate assignments for the given instance, we will
             # also populate templates used for displaying chem comp references in viz compare grid
             #################################################################################################
-            htmlPathAbs = os.path.join(self.absltAssgnSessionPath,instId)
-            jmolPathAbs = os.path.join(self.absltAssgnSessionPath,instId)
+            wfPath = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+            ccReportPath = os.path.join(wfPath, 'cc_analysis')
+            htmlPathAbs = os.path.join(ccReportPath, 'html', instId)
+            jmolPathAbs = os.path.join(ccReportPath, 'html', instId)
+            if not os.path.exists(htmlPathAbs):
+                os.makedirs(htmlPathAbs)
+
             htmlFilePathAbs = os.path.join(htmlPathAbs,ccid+'_viz_cmp_li.html')
             atmMpFilePathAbs = os.path.join(htmlPathAbs,ccid+'_ref_atm_mp_li.html')
             jmolFilePathAbs = os.path.join(jmolPathAbs,ccid+'_ref_jmol.html')
@@ -1608,8 +1927,6 @@ class ChemCompAssignDepict(ChemCompDepict):
             ## added by ZF.
             lclDict['2dpath'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, p_hlprDict['sessionid'], ccid)
             #
-            if not os.path.exists(htmlPathAbs):
-                os.makedirs(htmlPathAbs)
             fp=open(htmlFilePathAbs,'w')
             fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathSnglInstcCmprTmplts),fn="cc_viz_cmp_li_tmplt.html",parameterDict=lclDict) )
             fp.close()
@@ -1628,8 +1945,6 @@ class ChemCompAssignDepict(ChemCompDepict):
             #################################################################################################
             #
             #
-            if not os.path.exists(jmolPathAbs):
-                os.makedirs(jmolPathAbs)
             fp=open(jmolFilePathAbs,'w')
             
             fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathSnglInstcJmolTmplts),fn="cc_ref_jmol_tmplt.html",parameterDict=lclDict) )
