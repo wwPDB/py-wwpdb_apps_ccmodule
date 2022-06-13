@@ -412,7 +412,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             # Call method below to generate html content for "Single Instance" profile, content is in form of html  
             # fragments stored in files on the server. The files are then recruited by AJAX calls made by the front end
             ###################################################################################################
-            # self._generateInstanceProfileHtml(ccAssignDataStore,hlprDict,rerun=False,reqObj=reqObj)
+            self._generateInstanceProfileHtml(ccAssignDataStore,hlprDict,rerun=False,reqObj=reqObj)
             ##
             #################################################################################################
             # while we're iterating through the ligand instances, we will
@@ -454,7 +454,10 @@ class ChemCompAssignDepict(ChemCompDepict):
         #above needed to seal off last chem cmpnt_grp div
         oL.append('</div>\n')
         #above is end tag for <div id="cc_entity_browser">
-        return oL
+        # return oL
+        fp = open(os.path.join(ccReportPath, 'html', 'cc_entity_browser.html'), 'w')
+        fp.write(''.join(oL))
+        fp.close()
     
     def _generateInstanceProfileHtml(self, ccAssignDataStore, hlprDict, rerun=False, reqObj=None):
         ''' Generate html "single-instance" profile content for given ligand instance

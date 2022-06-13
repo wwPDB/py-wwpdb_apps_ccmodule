@@ -239,6 +239,7 @@ class ChemCompDpUtility(object):
             IDG.run()
 
             instIdLst = ccAssignDataStore.getAuthAssignmentKeys()
+            instIdLst.sort(key=lambda k: k.split('_')[2])
 
             self._logger.info('InstIdList %s', instIdLst)
 

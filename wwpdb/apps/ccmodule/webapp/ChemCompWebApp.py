@@ -1278,7 +1278,6 @@ class ChemCompWebAppWorker(object):
         rC.setHtmlText( '\n'.join(oL) )
         return rC    
 
-    @trace_and_save(output_dir='/hps/software/users/pdbe/onedep/deployments/dev/source/cc_traces', ignore_c_function=True)
     def _ccAssign_generateEntityBrowser(self):
         """ Generate "Entity Browser" content for "Instance-Level Searching" view
             This view allows user to navigate ligand instance data via entity CCID groupings
@@ -1324,25 +1323,11 @@ class ChemCompWebAppWorker(object):
         #        
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         #
-        ccA=ChemCompAssign(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        # unpickle assign data from ccAssignDataStore
-        if (self.__verbose):
-            self.__lfh.write("+ChemCompWebAppWorker._ccAssign_generateEntityBrowser() ----- unpickling ccAssignDataStore\n")
-        ccADS=ChemCompAssignDataStore(self.__reqObj,verbose=True,log=self.__lfh)
-        ccADS.dumpData(self.__lfh);
-        #
-        ccA.getDataForInstncSrch(srchIdsL,ccADS)
-        #
-        ccADS.dumpData(self.__lfh);
-        ccADS.serialize()
-        # call render() methods to generate data unique to this deposition data set
-        linkInfoMap = self.__readCovalentBondingInfo()
-        ccAD=ChemCompAssignDepict(self.__verbose,self.__lfh)
-        ccAD.setSessionPaths(self.__reqObj)
-        # oL=ccAD.doRender_EntityBrwsr(srchIdsL,ccADS,linkInfoMap,self.__reqObj)
-        oL=ccAD.generateInstancesMainHtml(ccADS,srchIdsL,linkInfoMap,self.__reqObj)
-        #
-        rC.setHtmlText( ''.join(oL) )
+        instancePath = PathInfo().getInstancePath(depId, wfInstId)
+        ccReportPath = os.path.join(instancePath, "cc_analysis")
+
+        with open(os.path.join(ccReportPath, 'html', 'cc_entity_browser.html')) as fp:
+            rC.setHtmlText(fp.read())
         return rC
     
     def _ccAssign_rerunEntityGrpSrch(self):
