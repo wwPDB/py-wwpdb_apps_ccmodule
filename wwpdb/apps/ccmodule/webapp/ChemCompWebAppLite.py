@@ -1248,167 +1248,167 @@ class ChemCompWebAppLiteWorker(object):
         rC.setStatusCode(rtrnStatus)
         return rC            
         
-    def _searchGraphOp(self):
-        if (self.__verbose):
-            self.__lfh.write("+ChemCompWebAppLiteWorker._searchGraphOp() starting\n")
+    # def _searchGraphOp(self):
+    #     if (self.__verbose):
+    #         self.__lfh.write("+ChemCompWebAppLiteWorker._searchGraphOp() starting\n")
 
-        self.__getSession()
-        self.__reqObj.setDefaultReturnFormat(return_format="html")        
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+    #     self.__getSession()
+    #     self.__reqObj.setDefaultReturnFormat(return_format="html")        
+    #     rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         
-        if self.__isFileUpload():
-            # make a copy of the file in the session directory and set 'fileName'
-            self.__uploadFile()
-        #
+    #     if self.__isFileUpload():
+    #         # make a copy of the file in the session directory and set 'fileName'
+    #         self.__uploadFile()
+    #     #
         
-        ccE=ChemCompSearch(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        rD=ccE.doGraphIso()
-        if (self.__verbose):
-            for k,v in rD.items():
-                self.__lfh.write("+ChemCompWebAppLite._searchGraphOp() key %30s   value %s\n" % (k,v))
-        if len(rD) > 0:
-            ccSD=ChemCompSearchDepict(self.__verbose,self.__lfh)
-            oL=ccSD.doRenderGraph(rD)                        
-            rC.setHtmlList(oL)
-        else:
-            rC.setError(errMsg='No search result')
+    #     ccE=ChemCompSearch(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+    #     rD=ccE.doGraphIso()
+    #     if (self.__verbose):
+    #         for k,v in rD.items():
+    #             self.__lfh.write("+ChemCompWebAppLite._searchGraphOp() key %30s   value %s\n" % (k,v))
+    #     if len(rD) > 0:
+    #         ccSD=ChemCompSearchDepict(self.__verbose,self.__lfh)
+    #         oL=ccSD.doRenderGraph(rD)                        
+    #         rC.setHtmlList(oL)
+    #     else:
+    #         rC.setError(errMsg='No search result')
 
-        return rC
+    #     return rC
 
-    def _searchIndexOp(self):
-        if (self.__verbose):
-            self.__lfh.write("+ChemCompWebAppLiteWorker._searchIndexOp() starting\n")
-        #
-        self.__reqObj.setDefaultReturnFormat(return_format="html")        
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-        #
-        ccS=ChemCompSearch(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        rD=ccS.doIndex()
-        if len(rD) > 0:
-            ccSD=ChemCompSearchDepict(self.__verbose,self.__lfh)
-            oL=ccSD.doRenderIndex(rD)                        
-            rC.setHtmlList(oL)
-        else:
-            rC.setError(errMsg='No search result')
+    # def _searchIndexOp(self):
+    #     if (self.__verbose):
+    #         self.__lfh.write("+ChemCompWebAppLiteWorker._searchIndexOp() starting\n")
+    #     #
+    #     self.__reqObj.setDefaultReturnFormat(return_format="html")        
+    #     rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+    #     #
+    #     ccS=ChemCompSearch(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+    #     rD=ccS.doIndex()
+    #     if len(rD) > 0:
+    #         ccSD=ChemCompSearchDepict(self.__verbose,self.__lfh)
+    #         oL=ccSD.doRenderIndex(rD)                        
+    #         rC.setHtmlList(oL)
+    #     else:
+    #         rC.setError(errMsg='No search result')
 
-        return rC
+    #     return rC
 
-    def _searchDbOp(self):
-        if (self.__verbose):
-            self.__lfh.write("+ChemCompWebAppLiteWorker._searchDbOp() starting\n")
-        #
-        self.__reqObj.setDefaultReturnFormat(return_format="html")        
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-        #
-        ccS=ChemCompSearchDb(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        rD=ccS.doIdSearch()
-        if len(rD) > 0:
-            ccSD=ChemCompSearchDbDepict(self.__verbose,self.__lfh)
-            oL=ccSD.doRender(rD)                        
-            rC.setHtmlList(oL)
-        else:
-            rC.setError(errMsg='No search result')
+    # def _searchDbOp(self):
+    #     if (self.__verbose):
+    #         self.__lfh.write("+ChemCompWebAppLiteWorker._searchDbOp() starting\n")
+    #     #
+    #     self.__reqObj.setDefaultReturnFormat(return_format="html")        
+    #     rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+    #     #
+    #     ccS=ChemCompSearchDb(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+    #     rD=ccS.doIdSearch()
+    #     if len(rD) > 0:
+    #         ccSD=ChemCompSearchDbDepict(self.__verbose,self.__lfh)
+    #         oL=ccSD.doRender(rD)                        
+    #         rC.setHtmlList(oL)
+    #     else:
+    #         rC.setError(errMsg='No search result')
 
-        return rC
+    #     return rC
 
-    def _extractOp(self):
-        if (self.__verbose):
-            self.__lfh.write("+%s.%s() starting\n"%( self.__class__.__name__, sys._getframe().f_code.co_name))
+    # def _extractOp(self):
+    #     if (self.__verbose):
+    #         self.__lfh.write("+%s.%s() starting\n"%( self.__class__.__name__, sys._getframe().f_code.co_name))
 
-        self.__getSession()
-        self.__reqObj.setDefaultReturnFormat(return_format="html")        
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+    #     self.__getSession()
+    #     self.__reqObj.setDefaultReturnFormat(return_format="html")        
+    #     rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         
-        if not self.__isFileUpload():
-            rC.setError(errMsg='No file uploaded')            
-            return rC
-        #
-        self.__uploadFile()
-        ccE=ChemCompExtract(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        rD=ccE.doExtract()
-        if (self.__verbose):
-            for k,v in rD.items():
-                self.__lfh.write("+%s.%s() key %30s   value %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name,k,v) )
-        if ('extractlist' in rD and len(rD['extractlist']) > 0):
-            ccExD=ChemCompExtractDepict(self.__verbose,self.__lfh)
-            oL=ccExD.doRender(rD['extractlist'])
-            rC.setHtmlList(oL)
-        else:
-            rC.setError(errMsg="No components extracted")
-        return rC
+    #     if not self.__isFileUpload():
+    #         rC.setError(errMsg='No file uploaded')            
+    #         return rC
+    #     #
+    #     self.__uploadFile()
+    #     ccE=ChemCompExtract(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+    #     rD=ccE.doExtract()
+    #     if (self.__verbose):
+    #         for k,v in rD.items():
+    #             self.__lfh.write("+%s.%s() key %30s   value %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name,k,v) )
+    #     if ('extractlist' in rD and len(rD['extractlist']) > 0):
+    #         ccExD=ChemCompExtractDepict(self.__verbose,self.__lfh)
+    #         oL=ccExD.doRender(rD['extractlist'])
+    #         rC.setHtmlList(oL)
+    #     else:
+    #         rC.setError(errMsg="No components extracted")
+    #     return rC
 
-    def _viewOp(self):
-        """ Call to display data for given chem component in comparison grid of standalone version of chem comp module.
-            Delegates primary processing to ChemCompView class.
+    # def _viewOp(self):
+    #     """ Call to display data for given chem component in comparison grid of standalone version of chem comp module.
+    #         Delegates primary processing to ChemCompView class.
             
-            :Helpers:
-                wwpdb.apps.ccmodule.view.ChemCompView.ChemCompView
+    #         :Helpers:
+    #             wwpdb.apps.ccmodule.view.ChemCompView.ChemCompView
            
-            :Returns:
-                Operation output is packaged in a ResponseContent() object.
-        """    
-        if (self.__verbose):
-            self.__lfh.write("--------------------------------------------\n")                    
-            self.__lfh.write("+ChemCompWebAppLiteWorker._viewOp() starting\n")
-        #
-        self.__getSession()
-        sessionId   = self.__sessionId
-        if (self.__verbose):
-            self.__lfh.write("+%s.%s() session ID is: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )
-        #
-        self.__reqObj.setReturnFormat(return_format="json")
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-        #
-        ccV=ChemCompView(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-        #
-        rtrnCode=ccV.doView()
-        #
-        if self.__verbose:
-            self.__lfh.write("+ChemCompWebAppLiteWorker._viewOp() - return code is %s\n" % str(rtrnCode) )
+    #         :Returns:
+    #             Operation output is packaged in a ResponseContent() object.
+    #     """    
+    #     if (self.__verbose):
+    #         self.__lfh.write("--------------------------------------------\n")                    
+    #         self.__lfh.write("+ChemCompWebAppLiteWorker._viewOp() starting\n")
+    #     #
+    #     self.__getSession()
+    #     sessionId   = self.__sessionId
+    #     if (self.__verbose):
+    #         self.__lfh.write("+%s.%s() session ID is: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )
+    #     #
+    #     self.__reqObj.setReturnFormat(return_format="json")
+    #     rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+    #     #
+    #     ccV=ChemCompView(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+    #     #
+    #     rtrnCode=ccV.doView()
+    #     #
+    #     if self.__verbose:
+    #         self.__lfh.write("+ChemCompWebAppLiteWorker._viewOp() - return code is %s\n" % str(rtrnCode) )
             
-        rC.addDictionaryItems({'sessionid':str(sessionId)});
-        rC.setStatusCode(str(rtrnCode))
+    #     rC.addDictionaryItems({'sessionid':str(sessionId)});
+    #     rC.setStatusCode(str(rtrnCode))
         
-        return rC
+    #     return rC
 
-    def _editLaunchOp(self):
-        """ Launch chemical component editor
+    # def _editLaunchOp(self):
+    #     """ Launch chemical component editor
             
-            :Returns:
-                Operation output is packaged in a ResponseContent() object.
-        """
-        if (self.__verbose):
-            self.__lfh.write("+ChemCompWebAppLiteWorker._editLaunchOp() \n")
-        #
+    #         :Returns:
+    #             Operation output is packaged in a ResponseContent() object.
+    #     """
+    #     if (self.__verbose):
+    #         self.__lfh.write("+ChemCompWebAppLiteWorker._editLaunchOp() \n")
+    #     #
         
-        sessionId   = str(self.__reqObj.getValue("sessionid"))
-        depId       = str(self.__reqObj.getValue("identifier")).upper()
-        instanceId  = str(self.__reqObj.getValue("instanceid")).upper()
-        fileSource  = str(self.__reqObj.getValue("filesource")).lower()
-        wfInstId    = str(self.__reqObj.getValue("instance")).upper()
-        #
-        self.__getSession()
-        #
-        self.__reqObj.setDefaultReturnFormat(return_format="html")        
-        rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
-        #
+    #     sessionId   = str(self.__reqObj.getValue("sessionid"))
+    #     depId       = str(self.__reqObj.getValue("identifier")).upper()
+    #     instanceId  = str(self.__reqObj.getValue("instanceid")).upper()
+    #     fileSource  = str(self.__reqObj.getValue("filesource")).lower()
+    #     wfInstId    = str(self.__reqObj.getValue("instance")).upper()
+    #     #
+    #     self.__getSession()
+    #     #
+    #     self.__reqObj.setDefaultReturnFormat(return_format="html")        
+    #     rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
+    #     #
         
-        ###########################################################################
-        # create dictionary of content that will be used to populate HTML template
-        ###########################################################################
-        myD={}
-        myD['sessionid'] = sessionId
-        myD['depositionid'] = depId
-        myD['instanceid'] = instanceId
-        myD['related_instanceids'] = ''
-        myD['filesource'] = fileSource
-        myD['identifier'] = depId
-        myD['instance'] = wfInstId
-        #
-        myD['session_url_prefix'] = os.path.join(self.__rltvSessionPath,"assign",instanceId)
-        myD['processing_site'] = self.__cI.get('SITE_NAME').upper()
-        rC.setHtmlText(htmlText=self.__processTemplate(fn=os.path.join(self.__pathSnglInstcEditorTmplts,"cc_instnc_edit_tmplt.html"), parameterDict=myD))
-        return rC
+    #     ###########################################################################
+    #     # create dictionary of content that will be used to populate HTML template
+    #     ###########################################################################
+    #     myD={}
+    #     myD['sessionid'] = sessionId
+    #     myD['depositionid'] = depId
+    #     myD['instanceid'] = instanceId
+    #     myD['related_instanceids'] = ''
+    #     myD['filesource'] = fileSource
+    #     myD['identifier'] = depId
+    #     myD['instance'] = wfInstId
+    #     #
+    #     myD['session_url_prefix'] = os.path.join(self.__rltvSessionPath,"assign",instanceId)
+    #     myD['processing_site'] = self.__cI.get('SITE_NAME').upper()
+    #     rC.setHtmlText(htmlText=self.__processTemplate(fn=os.path.join(self.__pathSnglInstcEditorTmplts,"cc_instnc_edit_tmplt.html"), parameterDict=myD))
+    #     return rC
         
                                                                                
     def _exit_Finished(self):
