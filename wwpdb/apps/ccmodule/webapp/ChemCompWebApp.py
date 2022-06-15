@@ -173,7 +173,6 @@ from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 from wwpdb.io.locator.PathInfo                          import PathInfo
-from viztracer import trace_and_save
 
 class ChemCompWebApp(object):
     """Handle request and response object processing for the chemical component editor tool application.

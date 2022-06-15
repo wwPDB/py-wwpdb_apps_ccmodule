@@ -27,7 +27,7 @@ from wwpdb.utils.oe_util.build.OeBuildMol               import OeBuildMol
 from wwpdb.apps.ccmodule.reports.InstanceDataGenerator  import InstanceDataGenerator
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore     import ChemCompAssignDataStore
 from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
-
+import debugpy
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
@@ -184,6 +184,8 @@ class ChemCompDpUtility(object):
             self._ligState.abort()
     
     def doAnalysisAnnotation(self):
+        debugpy.listen(("0.0.0.0", 5678))
+        debugpy.wait_for_client()
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
         pathInfo = PathInfo()
 
@@ -252,7 +254,7 @@ class ChemCompDpUtility(object):
             ccAD.generateInstancesMainHtml(ccAssignDataStore, instIdLst, self._readCovalentBondingInfo(), self._reqObj)
         except Exception as e:
             self._logger.error('Error performing ligand analysis', exc_info=True)
-            self._ligState.abort()
+            # self._ligState.abort()
     
     def _readCovalentBondingInfo(self):
         """ Read inter-residue covalent bonding information from D_xxxxxxxxxx-cc-link.cif file.

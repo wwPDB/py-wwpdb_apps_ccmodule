@@ -28,15 +28,23 @@ from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
 from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
 from wwpdb.io.locator.PathInfo                               import PathInfo
 
+from wwpdb.apps.ccmodule.reports.ChemCompBigAlignImages import ChemCompBigAlignImages
+from wwpdb.utils.oe_util.oedepict.OeDepict            import OeDepict
+from wwpdb.utils.oe_util.build.OeChemCompIoUtils      import OeChemCompIoUtils
 #
 
 class ChemCompAlignImageGenerator(object):
     """Utility Class for generating aligned ligand images
     """
-    def __init__(self, reqObj=None, verbose=False, log=sys.stderr):
+    def __init__(self, reqObj=None, verbose=False, log=sys.stderr, runLocal=False):
+        """
+            runLocal: runs image generation code on local machine instead of using
+                the WFE. This should be used only when generating single images
+        """
         self.__reqObj=reqObj
         self.__verbose=verbose
         self.__lfh=log
+        self.__runLocal=runLocal
         #
         self.__sObj=self.__reqObj.getSessionObj()
         self.__sessionPath=self.__sObj.getPath()

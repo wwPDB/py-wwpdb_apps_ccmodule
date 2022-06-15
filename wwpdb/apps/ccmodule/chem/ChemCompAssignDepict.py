@@ -592,7 +592,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         ############################################################################################################################################################
         
         # establishing values for RELATIVE path used by FRONT end for locating file that serves as instance profile markup and is called by front end on-demand 
-        htmlFilePathRel = '/service/cc_lite/report/file?identifier={}&source=report&ligid={}&file={}'.format(depId.upper(), instId, instId + instncProfileLbl)
+        htmlFilePathRel = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}'.format(depId.upper(), wfInstId, instId, instId + instncProfileLbl)
         ############################################################################################################################################################
         ## NOTE: 'instnc_profile_path" key/value below is used in cc_instnc_disp_tmplt and cc_all_instncs_disp_tmplt 
         ## which are populated NOT by this by function but by code that has called this function
@@ -1028,6 +1028,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         
         # establishing value for ABSOLUTE path used by BACK end for writing to file that serves as instance profile markup and is called by front end on-demand
         htmlFilePathAbs = os.path.join(self.absltAssgnSessionPath,instId,instId+instncProfileLbl)
+        os.makedirs(os.path.dirname(htmlFilePathAbs), exist_ok=True)
         #
         fp=open(htmlFilePathAbs,'w')
         #
@@ -1930,6 +1931,8 @@ class ChemCompAssignDepict(ChemCompDepict):
             ## added by ZF.
             lclDict['2dpath'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, p_hlprDict['sessionid'], ccid)
             #
+            if not os.path.exists(htmlPathAbs):
+                os.makedirs(htmlPathAbs)
             fp=open(htmlFilePathAbs,'w')
             fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathSnglInstcCmprTmplts),fn="cc_viz_cmp_li_tmplt.html",parameterDict=lclDict) )
             fp.close()
@@ -1948,6 +1951,8 @@ class ChemCompAssignDepict(ChemCompDepict):
             #################################################################################################
             #
             #
+            if not os.path.exists(jmolPathAbs):
+                os.makedirs(jmolPathAbs)
             fp=open(jmolFilePathAbs,'w')
             
             fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathSnglInstcJmolTmplts),fn="cc_ref_jmol_tmplt.html",parameterDict=lclDict) )

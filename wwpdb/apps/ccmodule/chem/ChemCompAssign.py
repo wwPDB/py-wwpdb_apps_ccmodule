@@ -106,7 +106,6 @@ from wwpdb.io.file.mmCIFUtil                            import mmCIFUtil
 from pathlib                                            import Path
 from wwpdb.io.locator.PathInfo                          import PathInfo
 from mmcif.io.IoAdapterCore                             import IoAdapterCore
-from viztracer import trace_and_save
 
 class ChemCompAssign(object):
     """Residue-level chemical component assignment operations
@@ -826,7 +825,6 @@ class ChemCompAssign(object):
                     
         return rtrnCode
 
-    @trace_and_save(output_dir='/hps/software/users/pdbe/onedep/deployments/dev/source/cc_traces', ignore_c_function=True)
     def doAssignValidation(self):
         """ Perform "full" validation of chem comp ID being assigned to experimental data. i.e. check that:
                 
@@ -880,7 +878,6 @@ class ChemCompAssign(object):
         
         return ''
 
-    # @trace_and_save(output_dir='/hps/software/users/pdbe/onedep/deployments/dev/source/cc_traces', ignore_c_function=True)
     def runMultiAssignValidation(self, dataList, procName, optionsD, workingDir):
         """ Perform multiprocessing version of "full" validation of chem comp ID being assigned to experimental data.
         """
