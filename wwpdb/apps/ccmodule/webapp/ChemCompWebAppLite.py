@@ -1188,7 +1188,6 @@ class ChemCompWebAppLiteWorker(object):
         bIsWorkflow = self.__isWorkflow()
         #
         self.__getSession()
-        self.__reqObj.setValue("RelativeSessionPath", self.__rltvSessionPath)
         #
         self.__reqObj.setReturnFormat(return_format="json")
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
@@ -1236,7 +1235,6 @@ class ChemCompWebAppLiteWorker(object):
         bIsWorkflow = self.__isWorkflow()
         #
         self.__getSession()
-        self.__reqObj.setValue("RelativeSessionPath", self.__rltvSessionPath)
         #
         self.__reqObj.setReturnFormat(return_format="json")
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
@@ -1441,12 +1439,6 @@ class ChemCompWebAppLiteWorker(object):
                 for fileName in dpstrUploadFilesDict[p_ccID][fileType].keys():
                     if( fileName == p_fileName ):
                         try:
-                            # delete local copy of file
-                            lclFlPth = os.path.join(self.__sessionPath,fileName)
-                            if( os.access(lclFlPth,os.R_OK) ):
-                                os.remove(lclFlPth)
-                                if (self.__verbose):
-                                    self.__lfh.write("+%s.%s() ---- removing uploaded file from local storage: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, lclFlPth) )
                             # delete any copy of file in "deposit" storage
                             wfFlPth = ccADS.getDpstrUploadFileWfPath(p_ccID,fileType,p_fileName)
                             if( wfFlPth is not None ):
@@ -1485,19 +1477,11 @@ class ChemCompWebAppLiteWorker(object):
         dpstrUploadFilesDict = ccADS.getDpstrUploadFilesDict()
         if( p_ccID in dpstrUploadFilesDict ):
             for fileType in dpstrUploadFilesDict[p_ccID]:
-                if fileType in acceptedFileTypes:                
-                    for fileName in dpstrUploadFilesDict[p_ccID][fileType].keys():
-                        lclFlPth = os.path.join(self.__sessionPath,fileName)
-                        if( not os.access(lclFlPth,os.R_OK) ):
-                            if (self.__verbose):
-                                self.__lfh.write("+%s.%s() ---- uploaded file does not exist at path: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, lclFlPth) )
-                            # if currently don't have local copy of file then need to obtain copy from "deposit" storage
-                            wfFlPth = ccADS.getDpstrUploadFileWfPath(p_ccID,fileType,fileName)
-                            if( wfFlPth is not None ):
-                                if (self.__verbose):
-                                    self.__lfh.write("+%s.%s() ---- copy of uploaded file being obtained from: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, wfFlPth) )
-                                shutil.copyfile( wfFlPth, lclFlPth )
-                        if( os.access(lclFlPth,os.R_OK) ):
+                if fileType in acceptedFileTypes:           
+                    fileDict = dpstrUploadFilesDict[p_ccID][fileType]     
+                    for fileName in fileDict.keys():
+                        wfFlPth = ccADS.getDpstrUploadFileWfPath(p_ccID,fileType,fileName)
+                        if( wfFlPth is not None and os.access(wfFlPth,os.R_OK) ):
                             rtrnFlLst.append(fileName)
                         else:
                             if (self.__verbose):
