@@ -154,7 +154,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #
         depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)
         #
-        self.__workingRltvAssgnSessionPath=self.__siteSrvcUrlPathPrefix#+self.rltvAssgnSessionPath
+        self.__workingRltvAssgnSessionPath=self.__siteSrvcUrlPathPrefix+str(self.rltvAssgnSessionPath)
         #
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")

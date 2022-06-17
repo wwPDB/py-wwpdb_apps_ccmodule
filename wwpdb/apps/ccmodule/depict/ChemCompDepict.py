@@ -213,6 +213,10 @@ class ChemCompDepict(object):
         
         #### absolute paths ####
         absSessPth = sessionMgr.getPath()
+
+        if absSessPth is None or not os.access(absSessPth, os.R_OK):
+            return
+
         # absolute path used for referencing session directory content from front end
         self.absltSessionPath = absSessPth
         # absolute path used for generating assign content on server-side

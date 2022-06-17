@@ -503,6 +503,7 @@ class ChemCompWebAppLiteWorker(object):
             self.__lfh.write("+%s.%s() Called with workflow: %r\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, bIsWorkflow) )
             
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+        ccAD.setSessionPaths(self.__reqObj)
         oL = ccAD.doRender_LigSrchSummary(self.__reqObj,bIsWorkflow)
         rC.setHtmlText( '\n'.join(oL) )
         #
@@ -762,6 +763,7 @@ class ChemCompWebAppLiteWorker(object):
             self.__saveLigModState("intermittent")
         
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+        ccAD.setSessionPaths(self.__reqObj)
         ccAD.generateInstancesMainHtml(ccADS, [authAssgndGrp])
         
         return rC
@@ -1096,6 +1098,7 @@ class ChemCompWebAppLiteWorker(object):
             self.__saveLigModState("intermittent")
 
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+        ccAD.setSessionPaths(self.__reqObj)
         ccAD.generateInstancesMainHtml(ccADS, [authAssgndGrp])
             
         return rC   
@@ -1181,6 +1184,7 @@ class ChemCompWebAppLiteWorker(object):
         bIsWorkflow = self.__isWorkflow()
         #
         self.__getSession()
+        self.__reqObj.setValue("RelativeSessionPath", self.__rltvSessionPath)
         #
         self.__reqObj.setReturnFormat(return_format="json")
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
@@ -1188,6 +1192,7 @@ class ChemCompWebAppLiteWorker(object):
         uploadedFilesLst = self.__verifyUploadedFiles(authAssgndGrp,contentType)
         #
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+        ccAD.setSessionPaths(self.__reqObj)
         htmlMrkp = ccAD.doRender_UploadedFilesList(authAssgndGrp,uploadedFilesLst,self.__reqObj)
         #
         rtrnDict['filesonrecord'] = 'true' if len(uploadedFilesLst) > 0 else 'false'
@@ -1227,6 +1232,7 @@ class ChemCompWebAppLiteWorker(object):
         bIsWorkflow = self.__isWorkflow()
         #
         self.__getSession()
+        self.__reqObj.setValue("RelativeSessionPath", self.__rltvSessionPath)
         #
         self.__reqObj.setReturnFormat(return_format="json")
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
@@ -1431,6 +1437,13 @@ class ChemCompWebAppLiteWorker(object):
                 for fileName in dpstrUploadFilesDict[p_ccID][fileType].keys():
                     if( fileName == p_fileName ):
                         try:
+                            # delete local copy of file
+                            if self.__sessionPath is not None:
+                                lclFlPth = os.path.join(self.__sessionPath,fileName)
+                                if( os.access(lclFlPth,os.R_OK) ):
+                                    os.remove(lclFlPth)
+                                    if (self.__verbose):
+                                        self.__lfh.write("+%s.%s() ---- removing uploaded file from local storage: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, lclFlPth) )
                             # delete any copy of file in "deposit" storage
                             wfFlPth = ccADS.getDpstrUploadFileWfPath(p_ccID,fileType,p_fileName)
                             if( wfFlPth is not None ):
@@ -1473,6 +1486,17 @@ class ChemCompWebAppLiteWorker(object):
                     fileDict = dpstrUploadFilesDict[p_ccID][fileType]     
                     for fileName in fileDict.keys():
                         wfFlPth = ccADS.getDpstrUploadFileWfPath(p_ccID,fileType,fileName)
+
+                        if self.__sessionPath is not None and os.access(self.__sessionPath, os.R_OK):
+                            lclFlPth = os.path.join(self.__sessionPath,fileName)
+                            if not os.path.exists(lclFlPth):
+                                if (self.__verbose):
+                                    self.__lfh.write("+%s.%s() ---- uploaded file does not exist at path: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, lclFlPth) )
+                            
+                            if wfFlPth is not None:
+                                if (self.__verbose):
+                                    self.__lfh.write("+%s.%s() ---- copy of uploaded file being obtained from: %s\n" %( self.__class__.__name__, sys._getframe().f_code.co_name, wfFlPth) )
+                                shutil.copyfile( wfFlPth, lclFlPth )
                         if( wfFlPth is not None and os.access(wfFlPth,os.R_OK) ):
                             rtrnFlLst.append(fileName)
                         else:
@@ -1705,6 +1729,7 @@ class ChemCompWebAppLiteWorker(object):
         if( mode != "intermittent" ):
             bIsWorkflow = self.__isWorkflow()
             ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
+            ccAD.setSessionPaths(self.__reqObj)
             ccAD.doRender_ResultFilesPage(self.__reqObj,bIsWorkflow)
         #
         return bSuccess
