@@ -1009,7 +1009,6 @@ class ChemCompWebAppLiteWorker(object):
             self.__lfh.write("+%s.%s() Starting now\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
         #
         self.__getSession()
-        sessionId   = self.__sessionId
         depId       = str(self.__reqObj.getValue("identifier")).upper()
         wfInstId    = str(self.__reqObj.getValue("instance")).upper()
         authAssgndGrp   = str(self.__reqObj.getValue("auth_assgnd_grp"))
@@ -1074,6 +1073,7 @@ class ChemCompWebAppLiteWorker(object):
         ccADS.dumpData(self.__lfh);
         
         if( molData and len(molData)>0 ):
+            # is this ever reached?
             #ccADS.setDpstrSketchMolDataStr(authAssgndGrp,molData)
             try:
                 fileName = authAssgndGrp+'-sketch.sdf'
@@ -1795,7 +1795,13 @@ class ChemCompWebAppLiteWorker(object):
             #
             # Store upload file in session directory - 
 
-            fPathAbs=os.path.join(self.__sessionPath,fName)
+            if self.__sessionPath is not None and os.access(self.__sessionPath, os.R_OK):
+                fPathAbs=os.path.join(self.__sessionPath,fName)
+            else:
+                fPathAbs = os.path.join(self.__ccReportPath, 'uploads', fName)
+
+            os.makedirs(os.path.dirname(fPathAbs), exist_ok=True)
+
             ofh=open(fPathAbs,'wb')
             ofh.write(fs.file.read())
             ofh.close()

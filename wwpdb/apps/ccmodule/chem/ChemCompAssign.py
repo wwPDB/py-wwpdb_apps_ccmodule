@@ -1663,7 +1663,11 @@ class ChemCompAssign(object):
             getExportPth = getattr(ccE,mthd0,None)
             recordWfPath = getattr(p_ccADS,mthd1,None)
             #            
-            filePth = os.path.join(self.__sessionPath,p_fileName)
+            if self.__sessionPath is not None and os.access(self.__sessionPath, os.R_OK):
+                filePth = os.path.join(self.__sessionPath,p_fileName)
+            else:
+                filePth = os.path.join(self.__ccReportPath, 'uploads', p_fileName)
+
             if( self.__verbose and self.__debug ):
                 self.__lfh.write("+%s.%s() - depositor provided file determined to be: [%s].\n" %(className, methodName, filePth) )
                 self.__lfh.write("+%s.%s() - partitionCnt before calling getExportPth is: '%s'.\n" %(className, methodName, p_partitionId) )
@@ -1673,6 +1677,10 @@ class ChemCompAssign(object):
                 recordWfPath(p_ligId,p_fileType,p_fileName,wfFlPth)
                 shutil.copyfile( filePth, wfFlPth )
                 shutil.copyfile( filePth, os.path.join(wfDirPth,p_fileName) ) #safety measure so as to retain copy of uploaded file as originally named
+
+                # removing the original file
+                os.remove(filePth)
+
                 p_ccADS.serialize()
                 if( self.__verbose ):
                     self.__lfh.write("+%s.%s() - Copied depositor provided component file '%s' to workflow as '%s'.\n" %(className, methodName, filePth, wfFlPth) )
