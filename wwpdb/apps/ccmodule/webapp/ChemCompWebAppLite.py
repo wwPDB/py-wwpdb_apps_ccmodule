@@ -503,7 +503,6 @@ class ChemCompWebAppLiteWorker(object):
             self.__lfh.write("+%s.%s() Called with workflow: %r\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, bIsWorkflow) )
             
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-        ccAD.setSessionPaths(self.__reqObj)
         oL = ccAD.doRender_LigSrchSummary(self.__reqObj,bIsWorkflow)
         rC.setHtmlText( '\n'.join(oL) )
         #
@@ -528,7 +527,6 @@ class ChemCompWebAppLiteWorker(object):
             self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
         # determine if currently operating in Workflow Managed environment
         self.__getSession()
-        sessionId=self.__sessionId
         self.__reqObj.setDefaultReturnFormat(return_format="html")        
         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
         #
@@ -728,9 +726,6 @@ class ChemCompWebAppLiteWorker(object):
             self.__lfh.write("+%s.%s() Starting now\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
         #
         self.__getSession()
-        sessionId   = self.__sessionId
-        depId       = str(self.__reqObj.getValue("identifier")).upper()
-        wfInstId    = str(self.__reqObj.getValue("instance")).upper()
         authAssgndGrp   = str(self.__reqObj.getValue("auth_assgnd_grp"))
         mode   = str(self.__reqObj.getValue("mode"))
         #
@@ -767,7 +762,6 @@ class ChemCompWebAppLiteWorker(object):
             self.__saveLigModState("intermittent")
         
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-        ccAD.setSessionPaths(self.__reqObj)
         ccAD.generateInstancesMainHtml(ccADS, [authAssgndGrp])
         
         return rC
@@ -1102,7 +1096,6 @@ class ChemCompWebAppLiteWorker(object):
             self.__saveLigModState("intermittent")
 
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-        ccAD.setSessionPaths(self.__reqObj)
         ccAD.generateInstancesMainHtml(ccADS, [authAssgndGrp])
             
         return rC   
@@ -1195,7 +1188,6 @@ class ChemCompWebAppLiteWorker(object):
         uploadedFilesLst = self.__verifyUploadedFiles(authAssgndGrp,contentType)
         #
         ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-        ccAD.setSessionPaths(self.__reqObj)
         htmlMrkp = ccAD.doRender_UploadedFilesList(authAssgndGrp,uploadedFilesLst,self.__reqObj)
         #
         rtrnDict['filesonrecord'] = 'true' if len(uploadedFilesLst) > 0 else 'false'
@@ -1713,7 +1705,6 @@ class ChemCompWebAppLiteWorker(object):
         if( mode != "intermittent" ):
             bIsWorkflow = self.__isWorkflow()
             ccAD=ChemCompAssignDepictLite(self.__reqObj,self.__verbose,self.__lfh)
-            ccAD.setSessionPaths(self.__reqObj)
             ccAD.doRender_ResultFilesPage(self.__reqObj,bIsWorkflow)
         #
         return bSuccess
