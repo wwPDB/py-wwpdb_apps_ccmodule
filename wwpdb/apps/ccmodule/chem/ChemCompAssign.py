@@ -1053,6 +1053,7 @@ class ChemCompAssign(object):
             dp.op("chem-comp-assign-comp")
             
             dp.exp(ccAssignFilePath)
+            dp.cleanup()
             #
             if os.access(ccAssignFilePath,os.R_OK):
                 self.__lfh.write("+ChemCompAssign.doAssignInstanceComp() - assignment file created: %s\n" % ccAssignFilePath)
@@ -1884,9 +1885,8 @@ class ChemCompAssign(object):
             iFilePath=os.path.join(assignDirPath,ccTargetInstanceId,ccTargetInstanceId+'_coord.cif')
             dp.imp(iFilePath)
             dp.op("chem-comp-assign")
-            
             dp.exp(ccAssignFilePath)
-            #if (self.__cleanUp): dp.cleanup()            
+            dp.cleanup()
             if (self.__verbose):
                 self.__lfh.write("+ChemCompAssign.__ccAssignOneInstanceOp() - instance file path  : %s\n" % iFilePath)
                 self.__lfh.write("+ChemCompAssign.__ccAssignOneInstanceOp() - CC assign file path : %s\n" % ccAssignFilePath)
@@ -2046,7 +2046,7 @@ class ChemCompAssign(object):
             dp.imp(pdbxPath)
             dp.op("chem-comp-link")
             dp.exp(ccLinkPath)
-            #if (self.__cleanUp): dp.cleanup()            
+            dp.cleanup()
             if (self.__verbose):
                 self.__lfh.write("+ChemCompAssign.__ccLinkOp() - PDBx file path      : %s\n" % pdbxPath)
                 self.__lfh.write("+ChemCompAssign.__ccLinkOp() - CC link file path   : %s\n" % ccLinkPath)

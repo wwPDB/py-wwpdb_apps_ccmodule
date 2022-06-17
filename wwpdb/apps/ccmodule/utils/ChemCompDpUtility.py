@@ -443,7 +443,7 @@ class ChemCompDpUtility(object):
                     reportDefinitionFilePath = os.path.join(self._ccReportPath, definitionFileName)
                     wfFilePath = ccAssignDataStore.getDpstrSketchFileWfPath(ligId, definitionFileName, 'sdf')
 
-                    self._copyFileToReportDir(self, wfFilePath, reportDefinitionFilePath)
+                    self._copyFileToReportDir(wfFilePath, reportDefinitionFilePath)
                 # then check if any files were uploaded
                 dpstrUploadFilesDict = ccAssignDataStore.getDpstrUploadFilesDict()
                 if ligId in dpstrUploadFilesDict:
@@ -453,13 +453,13 @@ class ChemCompDpUtility(object):
                                 reportImageFilePath = os.path.join(self._ccReportPath, fileName)
                                 wfImageFilePath = ccAssignDataStore.getDpstrUploadFileWfPath(ligId, fileType, fileName)
 
-                                self._copyFileToReportDir(self, wfImageFilePath, reportImageFilePath)
+                                self._copyFileToReportDir(wfImageFilePath, reportImageFilePath)
                         elif fileType in contentTypeDict['component-definition'][0]:
                             for fileName in dpstrUploadFilesDict[ligId][fileType].keys():
                                 reportDefinitionFilePath = os.path.join(self._ccReportPath, fileName)
                                 wfDefinitionFilePath = ccAssignDataStore.getDpstrUploadFileWfPath(ligId, fileType, fileName)
 
-                                self._copyFileToReportDir(self, wfDefinitionFilePath, reportDefinitionFilePath)
+                                self._copyFileToReportDir(wfDefinitionFilePath, reportDefinitionFilePath)
             except:
                 if self._verbose:
                     self._logger.error('----- WARNING ----- processing failed id: %s', self._depId, exc_info=True)
