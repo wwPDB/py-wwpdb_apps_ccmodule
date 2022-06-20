@@ -560,7 +560,10 @@ class ChemCompDpUtility(object):
         else:
             self._logger.warning('processing undefined filesource %r', fileSource)
 
-        # call on ChemCompAssign to save current state of ligand assignments 
+        # call on ChemCompAssign to save current state of ligand assignments
+        sessionsPath = self._reqObj.getValue('SessionsPath')
+        if sessionsPath is not None and os.access(sessionsPath, os.R_OK):
+            os.chdir(sessionsPath)
         cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
         bSuccess,msg = cca.saveState(pathDict, context='deposit', mode=mode)
 
