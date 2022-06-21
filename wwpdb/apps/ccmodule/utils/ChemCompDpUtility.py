@@ -184,8 +184,8 @@ class ChemCompDpUtility(object):
             self._ligState.abort()
     
     def doAnalysisAnnotation(self):
-        debugpy.listen(("0.0.0.0", 5678))
-        debugpy.wait_for_client()
+        # debugpy.listen(("0.0.0.0", 5678))
+        # debugpy.wait_for_client()
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
         pathInfo = PathInfo()
 

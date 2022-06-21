@@ -1651,7 +1651,10 @@ class ChemCompAssignDepict(ChemCompDepict):
             try:
                 #creating 2D image representation of the SMILES string
                 fileName = p_grpId+"_dscrptr_depict.svg"
-                toLclSessnImgPth = os.path.join(self.absltAssgnSessionPath,fileName)
+                # toLclSessnImgPth = os.path.join(self.absltAssgnSessionPath,fileName)
+                wfPath = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+                ccReportPath = os.path.join(wfPath, 'cc_analysis')
+                toLclSessnImgPth = os.path.join(ccReportPath,fileName)
                 oem=OeBuildMol(verbose=self.__verbose,log=self.__lfh)
                 smilesImportOk=oem.importSmiles(chemCompDescriptor.strip('"'))
         
