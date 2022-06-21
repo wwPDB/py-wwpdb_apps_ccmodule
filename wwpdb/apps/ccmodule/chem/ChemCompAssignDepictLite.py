@@ -113,7 +113,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__cI=ConfigInfo(self.__siteId)
         self.__deployPath=self.__cI.get('SITE_DEPLOY_PATH')
         self.__siteSrvcUrlPathPrefix=self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
-        self.__workingRltvAssgnSessionPath=''
         
         self.__alternateTopHitMarkup='''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''
 
@@ -154,8 +153,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #
         depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)
         #
-        self.__workingRltvAssgnSessionPath=self.__siteSrvcUrlPathPrefix+str(self.rltvAssgnSessionPath)
-        #
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")
             self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
@@ -164,7 +161,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource) )
             self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId) )
             self.__lfh.write("+%s.%s() self.__siteSrvcUrlPathPrefix  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__siteSrvcUrlPathPrefix) )       
-            self.__lfh.write("+%s.%s() self.__workingRltvAssgnSessionPath  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__workingRltvAssgnSessionPath) )
             self.__lfh.flush()
         #
         ############################################################################
@@ -196,7 +192,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 depDataSetId="TMP_ID"
             myD['identifier'] = depDataSetId
         #
-        myD['session_url_prefix'] = self.__workingRltvAssgnSessionPath
         myD['service_url_prefix'] = self.__siteSrvcUrlPathPrefix
         #
         contentTypeDict = self.__cI.get('CONTENT_TYPE_DICTIONARY')
@@ -910,7 +905,6 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         if hasTopHit:
             # if the assign search yielded top hit(s) we need to generate tabular display of match results
             helperDict['2dpath_top_hit'] = '/service/cc_lite/report/file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId, topHitCcId, topHitCcId)
-            helperDict['assgn_sess_path_rel'] = self.__workingRltvAssgnSessionPath # this key/value is used in private renderInstanceMatchResults function for cc_viz_cmp_li_tmplt.html
             helperDict['cc_instnc_match_rslts_tbl'] = ''.join(self._generateMatchResultsTable(ccAssignDataStore, helperDict))
 
         instanceProfileLabel = 'instnc_profile.html'
@@ -1050,6 +1044,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         """
         #
         sessionId   = p_reqObj.getSessionId()
+        depId       = str(p_reqObj.getValue("identifier")).upper()
         tmpltPath   = p_reqObj.getValue("TemplatePath")
         #
         replDict = {}
@@ -1063,6 +1058,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
  
         #
         replDict['sessionid'] = sessionId
+        replDict['identifier'] = depId
         #
         if( len(p_filesLst) > 0 ):
             fileUpldsMrkp.append('<div id="upload_inventory" ><br /><p>Each item listed links to respective file.</p><ul>')
@@ -1071,7 +1067,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 if (self.__verbose):
                     self.__lfh.write("+ChemCompAssignDepictLite.doRender_UploadedFilesList() listing includes file: %s\n" % fileName) 
                 replDict['filename'] = fileName
-                fileListing = ('<li><a href="/sessions/%(sessionid)s/%(filename)s" target="_blank">%(filename)s</a><input id="%(ccid)s" name="%(filename)s" type="button" value="Remove" title="Remove file from deposition dataset" class="remove_file" style="margin-left:10px;"/></li>' % replDict)
+                fileListing = ('<li><a href="/service/cc_lite/file?identifier=%(identifier)s&file=%(filename)s" target="_blank">%(filename)s</a><input id="%(ccid)s" name="%(filename)s" type="button" value="Remove" title="Remove file from deposition dataset" class="remove_file" style="margin-left:10px;"/></li>' % replDict)
                 fileUpldsMrkp.append(fileListing)
             fileUpldsMrkp.append("</ul></div>")
         else:
@@ -1136,7 +1132,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                         
                         replDict['filename'] = fileName
                         
-                        fileListing = ('<li><a href="/sessions/%(sessionid)s/%(filename)s">%(filename)s uploaded for %(ligid)s</a></li>' % replDict)
+                        fileListing = ('<li><a href="/service/cc_lite/file?identifier=%(identifier)s&file=%(filename)s">%(filename)s uploaded for %(ligid)s</a></li>' % replDict)
                         fileUpldsLst.append(fileListing)
                 
             sbmttdStrctrData = ccADS.getDpstrSubmitChoice(ligId)
@@ -1144,7 +1140,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
                 self.__lfh.write("+%s.%s() sbmttdStrctrData is: %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, sbmttdStrctrData) )
             if( sbmttdStrctrData is not None and sbmttdStrctrData == 'sketch' ):
                 replDict['filename'] = ligId+'-sketch.sdf'
-                fileListing = ('<li><a href="/sessions/%(sessionid)s/assign/%(filename)s">%(filename)s structure sketch data submitted for %(ligid)s</a></li>' % replDict)
+                fileListing = ('<li><a href="/service/cc_lite/file?identifier=%(identifier)s&file=%(filename)s">%(filename)s structure sketch data submitted for %(ligid)s</a></li>' % replDict)
                 fileUpldsLst.append(fileListing)
         
         
