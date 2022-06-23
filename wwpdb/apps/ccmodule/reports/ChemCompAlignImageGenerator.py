@@ -98,7 +98,7 @@ class ChemCompAlignImageGenerator(object):
                 dp.addInput(name='image_file', value=imageFile)
                 dp.setWorkingDir(self.__imagePath)
                 returnCode = dp.op('chem-comp-align-img-gen')
-                dp.cleanup()
+                # dp.cleanup()
             else:
                 ccbai = ChemCompBigAlignImages(imageFile)
                 ccbai.generateImage()
@@ -146,7 +146,7 @@ class ChemCompAlignImageGenerator(object):
             dp.addInput(name="label", value=labelAtomName)
             
             retStatus = dp.op("chem-comp-gen-images")
-            dp.cleanup()
+            # dp.cleanup()
             return retStatus
         else:
             if( os.access(FileName,os.R_OK) ):

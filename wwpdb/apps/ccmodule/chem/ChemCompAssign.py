@@ -944,6 +944,7 @@ class ChemCompAssign(object):
         dd={}        
         #
         depDataSetId    = self.__reqObj.getValue("identifier")
+        wfInstId        = self.__reqObj.getValue("instance")
         sessionId       = self.__reqObj.getValue("sessionid") 
         assignDirPath   = self.__ccReportPath
         
@@ -951,9 +952,6 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - Starting doAssignInstance() \n")
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - deposition data set id  %s\n" % depDataSetId)
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - session id  %s\n" % sessionId)            
-            #self.__lfh.write("+ChemCompAssign.doAssignInstance() - caller           %s\n" % caller)
-            #self.__lfh.write("+ChemCompAssign.doAssignInstance() - model file path  %s\n" % filePath)
-            #self.__lfh.write("+ChemCompAssign.doAssignInstance() - file type        %s\n" % fileType)
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - target instance  %s\n" % self.__ccTargetInstanceId)
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - bond radii ext   %s\n" % self.__ccBondRadii)
             self.__lfh.write("+ChemCompAssign.doAssignInstance() - link radii ext   %s\n" % self.__ccLinkRadii)                        
@@ -965,7 +963,15 @@ class ChemCompAssign(object):
             depDataSetId = depDataSetId.lower()
             mdlFileName = depDataSetId+'.cif'
         else:
-            mdlFileName = depDataSetId+'-model.cif'
+            # mdlFileName = depDataSetId+'-model.cif'
+            mdlFileName = self.__pathInfo.getFileName(
+                dataSetId=depDataSetId,
+                wfInstanceId=wfInstId,
+                fileSource="wf-instance",
+                contentType="model",
+                formatType="pdbx",
+                versionId="latest"
+            )
         #            
         mdlfilePath = os.path.join(self.__modelDirPath,mdlFileName)
         ccLinkFilePath  =os.path.join(assignDirPath,self.__ccTargetInstanceId,depDataSetId+'-cc-rerun-link.cif')
@@ -1042,10 +1048,10 @@ class ChemCompAssign(object):
             self.__lfh.write("+ChemCompAssign.doAssignInstanceComp() - target instance  %s\n" % self.__ccTargetInstanceId)
             self.__lfh.flush()
         #
-        mdlfilePath = os.path.join(assignDirPath,self.__ccTargetInstanceId,self.__ccTargetInstanceId+'.cif')
+        mdlfilePath = os.path.join(assignDirPath,self.__ccTargetInstanceId,"report",self.__ccTargetInstanceId+'.cif')
         #
         # store the assignments in the instance directory -- 
-        ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
+        ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,"report",'instance-rerun-assign.cif')
         #
         try:
             os.chdir(self.__modelDirPath)
@@ -1060,13 +1066,12 @@ class ChemCompAssign(object):
                 mdlfilePath=None
                 
             dp=RcsbDpUtility(tmpPath=self.__sessionPath,siteId=self.__cI.get("SITE_PREFIX"),verbose=True)
-            dp.setWorkingDir(assignDirPath)
+            dp.setWorkingDir(os.path.join(assignDirPath,self.__ccTargetInstanceId))
             dp.addInput(name="id",value=depDataSetId)
             dp.addInput(name="cc_instance_id",value=self.__ccTargetInstanceId,type='param')
             #
             # Compute the path to the file -
-            iFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,self.__ccTargetInstanceId+'.cif')
-            dp.imp(iFilePath)
+            dp.imp(mdlfilePath)
             dp.op("chem-comp-assign-comp")
             
             dp.exp(ccAssignFilePath)
@@ -1887,7 +1892,7 @@ class ChemCompAssign(object):
                 dp.addInput(name="cc_instance_id",value=ccTargetInstanceId,type='param')
             #
             # Compute the path to the file -
-            iFilePath=os.path.join(assignDirPath,ccTargetInstanceId,ccTargetInstanceId+'_coord.cif')
+            iFilePath=os.path.join(assignDirPath,ccTargetInstanceId,'report',ccTargetInstanceId+'.cif')
             dp.imp(iFilePath)
             dp.op("chem-comp-assign")
             

@@ -487,8 +487,9 @@ class ChemCompWebAppWorker(object):
         elif fileType == "html":
             filePath = os.path.join(ccReportPath, "html", ligandId, filename)
 
-            rC.setReturnFormat("html")
-            rC.setTextFile(filePath)
+            with open(filePath) as fp:
+                rC.setReturnFormat("html")
+                rC.setText(fp.read() % {'sessionid': sessionId})
             rC._cD["htmlcontent"] = rC._cD["textcontent"]
         else:
             rC.setReturnFormat("text")
@@ -1326,7 +1327,8 @@ class ChemCompWebAppWorker(object):
         ccReportPath = os.path.join(instancePath, "cc_analysis")
 
         with open(os.path.join(ccReportPath, 'html', 'cc_entity_browser.html')) as fp:
-            rC.setHtmlText(fp.read())
+            # we only replace sessionid field now
+            rC.setHtmlText(fp.read() % {'sessionid': sessionId})
         return rC
     
     def _ccAssign_rerunEntityGrpSrch(self):
@@ -1489,7 +1491,7 @@ class ChemCompWebAppWorker(object):
         rD = ccA.doAssignInstanceComp() # do comp search
         #
         ccADS= ccA.updateDataStoreForInstnc(instId,rD['dataDict'])  # updating data store with new match results
-        self.__generateReportData(ccADS)
+        # self.__generateReportData(ccADS)
         ccA.getTopHitsDataForInstnc(instId,ccADS,rD['assignDirPath'])
         ccADS.addInstIdToRerunSrchLst(instId)
         ccADS.serialize()
@@ -1498,7 +1500,8 @@ class ChemCompWebAppWorker(object):
         # call render() methods to generate data unique to this deposition data set
         ccAD=ChemCompAssignDepict(self.__verbose,self.__lfh)
         ccAD.setSessionPaths(self.__reqObj)
-        ccAD.doRender_InstanceProfile(ccADS,hlprDict,True,self.__reqObj)
+        # ccAD.doRender_InstanceProfile(ccADS,hlprDict,True,self.__reqObj)
+        ccAD._generateInstanceProfileHtml(ccADS,hlprDict,rerun=True,reqObj=self.__reqObj)
         #
         return rC
 
@@ -2038,7 +2041,7 @@ class ChemCompWebAppWorker(object):
         ccADS.setRerunParam_linkRadii(p_instId,p_linkRadii)     # also remembering what value was used to adjust link radii
         ccADS.setRerunParam_bondRadii(p_instId,p_bondRadii)     # also remembering what value was used to adjust bond radii
         #
-        self.__generateReportData(ccADS)
+        # self.__generateReportData(ccADS)
         p_ccA.getTopHitsDataForInstnc(p_instId,ccADS,rD['assignDirPath'])
         #
         ccADS.serialize()

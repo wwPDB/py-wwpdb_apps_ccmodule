@@ -349,7 +349,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         # Establish helper dictionary of elements used to populate html templates
         #
         hlprDict={}
-        hlprDict['sessionid']    = sessionId
+        hlprDict['sessionid'] = r'%(sessionid)s'
         hlprDict['depositionid'] = depId
         hlprDict['filesource'] = fileSource
         hlprDict['instance'] = wfInstId #i.e. workflow instance ID 
@@ -500,8 +500,8 @@ class ChemCompAssignDepict(ChemCompDepict):
         #######################################################################################################################################################
         #######################################################################################################################################################
         hlprDict['top_hit_ccid'] = topHitCcId
-        hlprDict['2dpath_labld_w_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, topHitCcId+'_Big')
-        hlprDict['2dpath_labld_no_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, topHitCcId+'_Big')
+        hlprDict['2dpath_labld_w_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, topHitCcId+'_Big')
+        hlprDict['2dpath_labld_no_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, topHitCcId+'_Big')
         topHitsList = ccAssignDataStore.getTopHitsList(instId)
         hlprDict['top_hit_ccname']   = (len(topHitsList) and [topHitsList[0][3]] or [''])[0]
         hlprDict['top_hit_ccname_displ']  = self.truncateForDisplay(hlprDict['top_hit_ccname'])
@@ -518,15 +518,15 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         ##
         #
-        hlprDict['2dpath']           = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId)
-        hlprDict['2dpath_top_hit']   = '/service/cc/report/file?identifier={}&instance={}&source=ccd&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, topHitCcId)
+        hlprDict['2dpath']           = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, instId)
+        hlprDict['2dpath_top_hit']   = '/service/cc/report/file?identifier={}&instance={}&source=ccd&ligid={}&file={}.svg'.format(depId, wfInstId, instId, topHitCcId)
 
         ##
         #
         ## added by ZF. It is needed by directly call from ChemCompWebApp._ccAssign_rerunInstncSrch && ChemCompWebApp._ccAssign_rerunInstncCompSrch
         hlprDict['jmol_code_base'] = self.jmolCodeBase
-        hlprDict['2dpath_labld_w_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
-        hlprDict['2dpath_labld_no_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, sessionId, instId+'_Big')
+        hlprDict['2dpath_labld_w_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, instId+'_Big')
+        hlprDict['2dpath_labld_no_hy'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, instId+'_Big')
         ############################################################################################################################################################
         #################################################################################################################################
         ## below we are setting dictionary items that pertain to different display states depending
@@ -1182,8 +1182,8 @@ class ChemCompAssignDepict(ChemCompDepict):
         sessionId       = p_reqOb.getSessionId()
         fileSource      = str(p_reqOb.getValue("filesource")).lower()
         htmlTmpltPth    = p_reqOb.getValue("TemplatePath")
-
-        self.__lfh.write(">>> +ChemCompAssignDepict.doRender_InstanceNewCandidate() depId %s wfInstId %s\n" % (depId,wfInstId) )
+        wfPath          = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+        ccReportPath    = os.path.join(wfPath, 'cc_analysis')
         #
         depId = self.__formatDepositionDataId(depId, bIsWorkflow)
         #
@@ -1220,8 +1220,8 @@ class ChemCompAssignDepict(ChemCompDepict):
                 #################################################################################################
                 # also populate templates used for displaying chem comp references in viz compare grid
                 #################################################################################################
-                htmlPathAbs = os.path.join(self.absltAssgnSessionPath,p_instId)
-                jmolPathAbs = os.path.join(self.absltAssgnSessionPath,p_instId)
+                htmlPathAbs = os.path.join(ccReportPath,'html',p_instId)
+                jmolPathAbs = os.path.join(ccReportPath,'html',p_instId)
                 htmlFilePathAbs = os.path.join(htmlPathAbs,p_ccId+'_viz_cmp_li.html')
                 #atmMpFilePathAbs = os.path.join(htmlPathAbs,p_ccId+'_ref_atm_mp_li.html')
                 jmolFilePathAbs = os.path.join(jmolPathAbs,p_ccId+'_ref_jmol.html')
@@ -1440,8 +1440,9 @@ class ChemCompAssignDepict(ChemCompDepict):
         sessionId       = p_reqOb.getSessionId()
         fileSource      = str(p_reqOb.getValue("filesource")).lower()
         htmlTmpltPth    = p_reqOb.getValue("TemplatePath")
-        #
-        depId = self.__formatDepositionDataId(depId, bIsWorkflow)
+        depId           = self.__formatDepositionDataId(depId, bIsWorkflow)
+        wfPath          = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
+        ccReportPath    = os.path.join(wfPath, 'cc_analysis')
         #
         hlprDict={}
         oL=[]
@@ -1471,15 +1472,15 @@ class ChemCompAssignDepict(ChemCompDepict):
             # also populate "cc_all_instncs_viz_cmp_li_tmplt.html" template used for displaying ligand instances in viz compare grid
             # and which contains placeholders for "instanceid" and "2dpath"
             #################################################################################################
-            htmlPathAbs = os.path.join(self.absltAssgnSessionPath,instId)
+            htmlPathAbs = os.path.join(ccReportPath,'html',instId)
             htmlFilePathAbs = os.path.join(htmlPathAbs,instId+'_viz_cmp_li.html')
             fp=open(htmlFilePathAbs,'w')
-            fp.write("%s" % self.processTemplate(tmpltPth=htmlTmpltPth,fn="cc_all_instncs_viz_cmp_li_tmplt.html",parameterDict=hlprDict) )
+            fp.write("%s" % self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathAllInstncsCmprTmplts),fn="cc_all_instncs_viz_cmp_li_tmplt.html",parameterDict=hlprDict) )
             fp.close()
             #
             oL.append( self.processTemplate(tmpltPth=os.path.join(htmlTmpltPth,self.__pathSnglInstcTmplts),fn="cc_instnc_disp_tmplt.html",parameterDict=hlprDict) )
         
-        rerunHtmlPathAbs = os.path.join(self.absltAssgnSessionPath,"entity_grp_rerun_srchs",p_entityGrp)
+        rerunHtmlPathAbs = os.path.join(ccReportPath,"html",p_entityGrp)
         rerunHtmlFilePathAbs = os.path.join(rerunHtmlPathAbs,p_entityGrp+"_rerun_srch_entitygrp_profile.html")
         if (not os.access(rerunHtmlPathAbs,os.F_OK)):
             try:
@@ -1651,7 +1652,6 @@ class ChemCompAssignDepict(ChemCompDepict):
             try:
                 #creating 2D image representation of the SMILES string
                 fileName = p_grpId+"_dscrptr_depict.svg"
-                # toLclSessnImgPth = os.path.join(self.absltAssgnSessionPath,fileName)
                 wfPath = Path(PathInfo().getInstancePath(dataSetId=depId, wfInstanceId=wfInstId))
                 ccReportPath = os.path.join(wfPath, 'cc_analysis')
                 toLclSessnImgPth = os.path.join(ccReportPath,fileName)
@@ -1766,8 +1766,8 @@ class ChemCompAssignDepict(ChemCompDepict):
         chainId = instIdPieces[1]
         residueNum = instIdPieces[3]
         ##
-        p_hlprDict['3dpath'] = '/service/cc/report/file?identifier={}&instance={}&ligid={}&source=report&sessionid={}&file={}'.format(depId, wfInstId, instId, p_hlprDict['sessionid'], authAssignedGrp)
-        p_hlprDict['3dpath_environ'] = '/service/cc/report/file?identifier={}&instance={}&source=instance&sessionid={}&file={}'.format(depId, wfInstId, p_hlprDict['sessionid'], depId+'-jmol-mdl')
+        p_hlprDict['3dpath'] = '/service/cc/report/file?identifier={}&instance={}&ligid={}&source=report&file={}'.format(depId, wfInstId, instId, authAssignedGrp)
+        p_hlprDict['3dpath_environ'] = '/service/cc/report/file?identifier={}&instance={}&source=instance&file={}'.format(depId, wfInstId, depId+'-jmol-mdl')
         p_hlprDict['residue_num'] = residueNum
         p_hlprDict['chain_id'] = chainId
 
@@ -1898,9 +1898,9 @@ class ChemCompAssignDepict(ChemCompDepict):
             lclDict['cc_formula_displ'] = self.truncateForDisplay(formula)
             lclDict['checked'] = checked
             lclDict['index'] = cnt
-            lclDict['3dpath_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, ccid, p_hlprDict['sessionid'], ccid)
-            lclDict['2dpath_labld_w_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, p_hlprDict['sessionid'], ccid+'_Big')
-            lclDict['2dpath_labld_no_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, p_hlprDict['sessionid'], ccid+'_Big')
+            lclDict['3dpath_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, ccid, ccid)
+            lclDict['2dpath_labld_w_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, ccid+'_Big')
+            lclDict['2dpath_labld_no_hy_ref'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, ccid+'_Big')
             #
             lclDict['a'] = '%a'
             #
@@ -1932,7 +1932,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             #
             #
             ## added by ZF.
-            lclDict['2dpath'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&sessionid={}&file={}.svg'.format(depId, wfInstId, instId, p_hlprDict['sessionid'], ccid)
+            lclDict['2dpath'] = '/service/cc/report/file?identifier={}&instance={}&source=report&ligid={}&file={}.svg'.format(depId, wfInstId, instId, ccid)
             #
             if not os.path.exists(htmlPathAbs):
                 os.makedirs(htmlPathAbs)
