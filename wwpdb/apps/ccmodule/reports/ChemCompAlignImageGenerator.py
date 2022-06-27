@@ -136,6 +136,7 @@ class ChemCompAlignImageGenerator(object):
 
     def __generateSingleImage(self, Id=None, FileName=None, size=300, labelAtomName=False, suffix=''):
         imgPth = os.path.join(self.__imagePath, Id + suffix + '.svg')
+        os.makedirs(self.__imagePath, exist_ok=True)
 
         if not self.__runLocal:
             dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
