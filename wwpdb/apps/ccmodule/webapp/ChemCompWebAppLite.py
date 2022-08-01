@@ -439,7 +439,7 @@ class ChemCompWebAppLiteWorker(object):
         else:
             rC.setReturnFormat("text")
 
-        if rC.get()["RETURN_STRING"] == "" or rC.get()["RETURN_STRING"] == None:
+        if not filePath or not os.path.exists(filePath):
             rC.setError(errMsg="File not found")
             rC.setStatusCode(HTTPStatus.NOT_FOUND)
 
