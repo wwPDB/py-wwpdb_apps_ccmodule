@@ -118,9 +118,8 @@ class ChemCompSearch(object):
         ccIndexPath    = self.__ccConfig.getPath('serializedCcIndexPath')
         ccDictPath     = self.__ccConfig.getPath('serializedCcDictPath')
         outputFile     = "index-search.out"
-        os.chdir(self.__sessionPath)
-        cmd = "%s  -type %s -index %s  -query \"%s\"  -op %s -o %s " % \
-              ( scriptPath, qType, ccIndexPath,target,op,outputFile)
+        cmd = "cd %s ; %s  -type %s -index %s  -query \"%s\"  -op %s -o %s " % \
+              (self.__sessionPath, scriptPath, qType, ccIndexPath, target, op, outputFile)
 
         if (self.__verbose):
             self.__lfh.write("Beginning report in path = %s\n" % self.__sessionPath)
@@ -134,14 +133,14 @@ class ChemCompSearch(object):
 
         os.system(cmd)
         # 
+        outputFile = os.path.join(self.__sessionPath, outputFile)
         if (not os.access(outputFile,os.F_OK)):
             if (self.__verbose):
                 self.__lfh.write("++INFO -  %s does not exist\n" % outputFile)
                 return retDict
             
-        f=open(outputFile,'r')
-        oLines = f.readlines()
-        f.close()
+        with open(outputFile,'r') as f:
+            oLines = f.readlines()
         #
         lineOne = str(oLines[0]).strip().split('\t')
         query=str(lineOne[0])
@@ -197,9 +196,8 @@ class ChemCompSearch(object):
         outputEmFile   = "ss-search-em.out"
         qType = "structure"
         #
-        os.chdir(self.__sessionPath)        
-        cmd = "%s  -type %s -index %s -fplib %s  -lib %s -i %s  -op %s  -o %s -om %s " % \
-              ( scriptPath, qType, ccIndexPath, patternPath, ccDictPath, filePath,op,outputFile,outputEmFile)
+        cmd = "cd %s ; %s  -type %s -index %s -fplib %s  -lib %s -i %s  -op %s  -o %s -om %s " % \
+              (self.__sessionPath, scriptPath, qType, ccIndexPath, patternPath, ccDictPath, filePath, op,outputFile, outputEmFile)
 
         if (self.__verbose):
             self.__lfh.write("Beginning report in path = %s\n" % self.__sessionPath)	
@@ -212,11 +210,13 @@ class ChemCompSearch(object):
 
         os.system(cmd)
         # 
+        outputFile = os.path.join(self.__sessionPath, outputFile)
         if (not os.access(outputFile,os.F_OK)):
             if (self.__verbose):
                 self.__lfh.write("++INFO -  %s does not exist\n" % outputFile)
                 return retDict
 
+        outputEmFile = os.path.join(self.__sessionPath, outputEmFile)
         if (not os.access(outputEmFile,os.F_OK)):
             if (self.__verbose):
                 self.__lfh.write("++INFO -  %s does not exist\n" % outputEmFile)
@@ -260,7 +260,7 @@ class ChemCompSearch(object):
             rD['nameReference']          =lT[5]
             rD['formulaReference']       =lT[6]
             rD['heavyAtomCountReference']=lT[7]
-            fn1=idRef + "-em.txt"
+            fn1 = os.path.join(self.__sessionPath, idRef + "-em.txt")
             rD['mappingFile']=os.path.join(self.__sessionRelativePath,fn1)
             f=open(fn1,'w')
             for emline in emLines:
