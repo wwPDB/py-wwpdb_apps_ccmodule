@@ -1382,7 +1382,7 @@ class ChemCompWebAppWorker(object):
         rD = ccA.doAssignInstanceComp() # do comp search
         #
         ccADS= ccA.updateDataStoreForInstnc(instId,rD['dataDict'])  # updating data store with new match results
-        self.__generateReportData(ccADS)
+        # self.__generateReportData(ccADS)
         ccA.getTopHitsDataForInstnc(instId,ccADS,rD['assignDirPath'])
         ccADS.addInstIdToRerunSrchLst(instId)
         ccADS.serialize()
@@ -1923,7 +1923,7 @@ class ChemCompWebAppWorker(object):
         ccADS.setRerunParam_linkRadii(p_instId,p_linkRadii)     # also remembering what value was used to adjust link radii
         ccADS.setRerunParam_bondRadii(p_instId,p_bondRadii)     # also remembering what value was used to adjust bond radii
         #
-        self.__generateReportData(ccADS)
+        # self.__generateReportData(ccADS)
         p_ccA.getTopHitsDataForInstnc(p_instId,ccADS,rD['assignDirPath'])
         #
         ccADS.serialize()
