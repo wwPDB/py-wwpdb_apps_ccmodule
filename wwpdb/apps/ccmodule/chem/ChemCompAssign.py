@@ -313,11 +313,11 @@ class ChemCompAssign(object):
             ############################################################################################################
             # Make local copy of coordinate file
             ############################################################################################################
-            os.chdir(self.__sessionPath)            
+            # os.chdir(self.__sessionPath)  # Confimed no longer needed
             if fpModel is not None and os.access(fpModel,os.R_OK):
                 shutil.copyfile(fpModel, pdbxFilePath)
             #
-            os.system("env > LOGENV")
+            os.system("cd %s ; env > LOGENV" % self.__sessionPath)
             ############################################################################################################
             # invoke RcsbDpUtility 'cc-link' operation
             ############################################################################################################
@@ -332,6 +332,7 @@ class ChemCompAssign(object):
             ############################################################################################################
             # invoke RcsbDpUtility 'cc-assign' operation
             ############################################################################################################
+
             self.__ccAssignOp(depDataSetId,pdbxFilePath,assignDirPath,ccAssignFilePath,ccLinkFilePath,self.__ccBondRadii,self.__ccTargetInstanceId,exactMatchOption)
             #
             if os.access(ccAssignFilePath,os.R_OK):
@@ -688,7 +689,8 @@ class ChemCompAssign(object):
         assignDirPath=self.__ccReportPath
 
         try:
-            os.chdir(self.__modelDirPath)
+            # os.chdir(self.__modelDirPath)  # No longer needed
+
             for srchId in p_srchIdsL:
                 # dd is data dictionary for a given instance of chem component
                 dd={}
@@ -696,18 +698,18 @@ class ChemCompAssign(object):
                 #    set up access to instance level assignment data
                 #######################################################
                 # below is instance specific chem comp cif file for data at cc *instance* level
-                chemCompFilePathAbs = os.path.join(self.__pathInfo.getDepositPath(depDataSetId),'assign',srchId,srchId+".cif")
-                if not os.access(chemCompFilePathAbs,os.R_OK):
+                chemCompFilePathAbs = os.path.join(self.__pathInfo.getDepositPath(depDataSetId), 'assign', srchId, srchId + ".cif")
+                if not os.access(chemCompFilePathAbs, os.R_OK):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
-                    chemCompFilePathAbs=os.path.join(assignDirPath,srchId,srchId+'.cif')
+                    chemCompFilePathAbs = os.path.join(assignDirPath, srchId, srchId+'.cif')
                 #
-                if( p_ccAssgnDataStr.getCcName(srchId) is None ):
-                    if os.access(chemCompFilePathAbs,os.R_OK):
+                if p_ccAssgnDataStr.getCcName(srchId) is None:
+                    if os.access(chemCompFilePathAbs, os.R_OK):
                         if self.__verbose:
                             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - instance specific chem comp cif file found: %s\n" % chemCompFilePathAbs)
                             #
-                        ccR=ChemCompReader(self.__verbose,self.__lfh)
+                        ccR=ChemCompReader(self.__verbose, self.__lfh)
                         ccR.setFilePath(filePath=chemCompFilePathAbs)
                         ##################################################################################################
                         #    Currently getting data contained in "chem_comp" and "chem_comp_bond" cif categories
@@ -728,7 +730,7 @@ class ChemCompAssign(object):
                         if self.__verbose:
                             self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - NO instance specific chem comp cif file  found for %s at %s\n" % (srchId,chemCompFilePathAbs) )
                 
-                self.getTopHitsDataForInstnc(srchId,p_ccAssgnDataStr,assignDirPath)
+                self.getTopHitsDataForInstnc(srchId, p_ccAssgnDataStr, assignDirPath)
                 
         except:
             if (self.__verbose):
@@ -957,8 +959,8 @@ class ChemCompAssign(object):
         ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
         #
         try:
-            os.chdir(self.__modelDirPath)
-            os.system("env > LOGENV")
+            # os.chdir(self.__modelDirPath)  # no longer needed
+            os.system("cd %s ; env > LOGENV" % self.__modelDirPath)
             #
             # bond distance calculation is done on the full model file using current link radii setting.
             #
@@ -1031,8 +1033,8 @@ class ChemCompAssign(object):
         ccAssignFilePath=os.path.join(assignDirPath,self.__ccTargetInstanceId,'instance-rerun-assign.cif')
         #
         try:
-            os.chdir(self.__modelDirPath)
-            os.system("env > LOGENV")
+            # os.chdir(self.__modelDirPath)  # Believe safe to remove
+            os.system("cd %s ; env > LOGENV" % self.__modelDirPath)
             #
             # bond distance calculation is done on the full model file using current link radii setting.
             #
@@ -1990,7 +1992,7 @@ class ChemCompAssign(object):
         #
         if os.access(ccRefFilePath,os.R_OK):
             if self.__verbose:
-                self.__lfh.write("+ChemCompAssign.getDataForInstncSrch() - processing top hits for %s and reference chem comp file found on %s check: %s\n" % (p_instId, p_state, ccRefFilePath) )
+                self.__lfh.write("+ChemCompAssign.__syncTopHitsData) - processing top hits for %s and reference chem comp file found on %s check: %s\n" % (p_instId, p_state, ccRefFilePath) )
                 
             ccRefR=ChemCompReader(self.__verbose,self.__lfh)
             ccRefR.setFilePath(filePath=ccRefFilePath)
