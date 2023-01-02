@@ -7,6 +7,7 @@
 #    2013-04-09    RPS    Methods added to support "Lite" LigModule processing.
 #    2013-06-20    RPS    Accommodating new 'deposit' filesource/storage type.
 #    2013-10-23    RPS    Updates in support of handling data propagation from LigandLite of DepUI to LigandModule of annotation.
+#    2022-11-13    ZF     Changed sketch file type from 'component-definition-deposit' to 'component-definition-upload'
 ##
 
 """
@@ -83,7 +84,7 @@ class ChemCompDataExport(object):
         return self.__getWfFilePath(contentType='chem-comp-depositor-info',format='pdbx',fileSource=self.__fileSource,version='next')
 
     def getChemCompSketchFilePath(self,format='sdf',partitionNum=None):
-        return self.__getWfFilePath(contentType='component-definition-deposit',format='sdf',fileSource=self.__fileSource,version='next',partitionNum=partitionNum)
+        return self.__getWfFilePath(contentType='component-definition-upload',format='sdf',fileSource=self.__fileSource,version='next',partitionNum=partitionNum)
 
     def getChemCompImageFilePath(self,format,partitionNum=None):
         return self.__getWfFilePath(contentType='component-image-upload',format=format,fileSource=self.__fileSource,version='next',partitionNum=partitionNum)
