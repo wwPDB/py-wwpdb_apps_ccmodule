@@ -5,7 +5,7 @@
 #
 # Updated:
 # 26-Sep-2018 EP    Created based on ChemCompWebAppLite implementation of doServiceRequestWebObListCC.fcgi
-# 
+#
 """
 This top-level responder for requests to /services/.... url for the
 wwPDB Lite Chemical Component editor application framework.
@@ -14,10 +14,10 @@ This version depends on WSGI and WebOb.
 
 """
 __docformat__ = "restructuredtext en"
-__author__    = "John Westbrook"
-__email__     = "jwest@rcsb.rutgers.edu"
-__license__   = "Creative Commons Attribution 3.0 Unported"
-__version__   = "V0.07"
+__author__ = "John Westbrook"
+__email__ = "jwest@rcsb.rutgers.edu"
+__license__ = "Creative Commons Attribution 3.0 Unported"
+__version__ = "V0.07"
 
 import sys
 import traceback
@@ -39,6 +39,8 @@ logger.setLevel(logging.DEBUG)
 
 l2 = logging.getLogger('wwpdb.apps.msgmodule.io.MessagingDataImport')
 l2.setLevel(logging.INFO)
+
+
 class MyRequestApp(object):
     """  Handle server interaction using FCGI/WSGI and WebOb Request
          and Response objects.
@@ -65,7 +67,7 @@ class MyRequestApp(object):
             outL.append("Parameter List:\n")
             for name, value in request.params.items():
                 outL.append("Request parameter:    %s:  %r\n" % (name, value))
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             traceback.print_exc(file=self.__lfh)
 
         outL.append("\n------------------------------------------------\n\n")
@@ -82,19 +84,19 @@ class MyRequestApp(object):
         try:
             if 'WWPDB_SITE_ID' in environment:
                 siteId = environment['WWPDB_SITE_ID']
-            
+
             self.__lfh.write("+MyRequestApp.__call__() - WWPDB_SITE_ID environ variable captured as %s\n" % siteId)
-            '''
-            for name,value in environment.items():
-                self.__lfh.write("+MyRequestApp.__call__() - ENVIRON parameter:    %s:  %r\n" % (name,value))
-            '''
+            # '''
+            # for name,value in environment.items():
+            #     self.__lfh.write("+MyRequestApp.__call__() - ENVIRON parameter:    %s:  %r\n" % (name,value))
+            # '''
             for name, value in myRequest.params.items():
                 if name not in myParameterDict:
                     myParameterDict[name] = []
                 myParameterDict[name].append(value)
                 self.__lfh.write("+MyRequestApp.__call__() - REQUEST parameter:    %s:  %r\n" % (name, value))
             myParameterDict['request_path'] = [myRequest.path.lower()]
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             traceback.print_exc(file=self.__lfh)
             self.__lfh.write("+MyRequestApp.__call__() - contents of request data\n")
             self.__lfh.write("%s" % ("".join(self.__dumpEnv(request=myRequest))))
@@ -102,9 +104,9 @@ class MyRequestApp(object):
         ###
         #  At this point we have everything needed from the request !
 
-        ccmodule_lite= ChemCompWebAppLite(parameterDict=myParameterDict, verbose=self.__verbose, 
-                           log=self.__lfh, siteId=siteId)
-        rspD=ccmodule_lite.doOp()
+        ccmodule_lite = ChemCompWebAppLite(parameterDict=myParameterDict, verbose=self.__verbose,
+                                           log=self.__lfh, siteId=siteId)
+        rspD = ccmodule_lite.doOp()
 
         myResponse = Response(rspD['RETURN_STRING'])
         myResponse.mimetype = rspD['CONTENT_TYPE']
@@ -112,9 +114,11 @@ class MyRequestApp(object):
 
         ####
         ###
-        return myResponse(environment,responseApplication)
+        return myResponse(environment, responseApplication)
+
+
 ##
-##  NOTE -  Path to top of the web application tree and verbose setting are set here ONLY! 
+#   NOTE -  Path to top of the web application tree and verbose setting are set here ONLY!
 ##
-application = MyRequestApp(textString="doServiceRequest() - WebOb version",verbose=True,log=sys.stderr)
+application = MyRequestApp(textString="doServiceRequest() - WebOb version", verbose=True, log=sys.stderr)
 #

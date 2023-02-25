@@ -15,30 +15,30 @@ License described at http://creativecommons.org/licenses/by/3.0/.
 
 """
 __docformat__ = "restructuredtext en"
-__author__    = "Zukang Feng"
-__email__     = "zfeng@rcsb.rutgers.edu"
-__license__   = "Creative Commons Attribution 3.0 Unported"
-__version__   = "V0.01"
+__author__ = "Zukang Feng"
+__email__ = "zfeng@rcsb.rutgers.edu"
+__license__ = "Creative Commons Attribution 3.0 Unported"
+__version__ = "V0.01"
 
-import os, sys
+import os
+import sys
 
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
-from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
-#
 
 class ChemCompAlignImageGenerator(object):
     """Utility Class for generating aligned ligand images
     """
     def __init__(self, reqObj=None, verbose=False, log=sys.stderr):
-        self.__reqObj=reqObj
-        self.__verbose=verbose
-        self.__lfh=log
+        self.__reqObj = reqObj
+        self.__verbose = verbose
+        self.__lfh = log
         #
-        self.__sObj=self.__reqObj.getSessionObj()
-        self.__sessionPath=self.__sObj.getPath()
+        self.__sObj = self.__reqObj.getSessionObj()
+        self.__sessionPath = self.__sObj.getPath()
         #
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
@@ -55,7 +55,7 @@ class ChemCompAlignImageGenerator(object):
         if not os.access(self.__imagePath, os.F_OK):
             try:
                 os.makedirs(self.__imagePath)
-            except:
+            except:  # noqa: E722 pylint: disable=bare-except
                 return
             #
         #
@@ -94,7 +94,7 @@ class ChemCompAlignImageGenerator(object):
                     FounImage = False
                 #
                 for id in hitList:
-                    imageFile = os.path.join(self.__imagePath, id  + '.svg')
+                    imageFile = os.path.join(self.__imagePath, id + '.svg')
                     if not os.access(imageFile, os.F_OK):
                         FounImage = False
                     #
@@ -124,6 +124,6 @@ class ChemCompAlignImageGenerator(object):
         dp.addInput(name="image_path", value=imgPth)
         dp.addInput(name="size", value=size)
         dp.addInput(name="label", value=labelAtomName)
-        
+
         return dp.op("chem-comp-gen-images")
         #

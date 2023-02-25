@@ -15,32 +15,36 @@ License described at http://creativecommons.org/licenses/by/3.0/.
 
 """
 __docformat__ = "restructuredtext en"
-__author__    = "Zukang Feng"
-__email__     = "zfeng@rcsb.rutgers.edu"
-__license__   = "Creative Commons Attribution 3.0 Unported"
-__version__   = "V0.01"
+__author__ = "Zukang Feng"
+__email__ = "zfeng@rcsb.rutgers.edu"
+__license__ = "Creative Commons Attribution 3.0 Unported"
+__version__ = "V0.01"
 
-import os, sys, multiprocessing, traceback
+import os
+import sys
+import multiprocessing
+import traceback
 
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
-from wwpdb.apps.ccmodule.reports.ChemCompReports             import ChemCompReport
+from wwpdb.apps.ccmodule.reports.ChemCompReports import ChemCompReport
 #
+
 
 class InstanceDataGenerator(object):
     """Utility Class for generating report material that will support 2D,3D renderings.
     """
     def __init__(self, reqObj=None, dataStore=None, verbose=False, log=sys.stderr):
-        self.__reqObj=reqObj
-        self.__ccAssignDataStore=dataStore
-        self.__verbose=verbose
-        self.__lfh=log
+        self.__reqObj = reqObj
+        self.__ccAssignDataStore = dataStore
+        self.__verbose = verbose
+        self.__lfh = log
         #
-        self.__sObj=self.__reqObj.getSessionObj()
-        self.__sessionPath=self.__sObj.getPath()
+        self.__sObj = self.__reqObj.getSessionObj()
+        self.__sessionPath = self.__sObj.getPath()
         #
 
     def run(self):
-        depId = str(self.__reqObj.getValue("identifier")).upper()
+        # depId = str(self.__reqObj.getValue("identifier")).upper()
         instIdLst = self.__ccAssignDataStore.getAuthAssignmentKeys()
         if len(instIdLst) == 0:
             return
@@ -54,10 +58,10 @@ class InstanceDataGenerator(object):
         #
         if len(refList) > 0:
             uniqList = sorted(set(refList))
-            rrG = RefReportGenerator(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+            rrG = RefReportGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
             self.__runMultiprocessing(uniqList, rrG, 'runReportGenerator')
         #
-        irG = InstReportGenerator(reqObj=self.__reqObj,dataStore=self.__ccAssignDataStore,verbose=self.__verbose,log=self.__lfh)
+        irG = InstReportGenerator(reqObj=self.__reqObj, dataStore=self.__ccAssignDataStore, verbose=self.__verbose, log=self.__lfh)
         self.__runMultiprocessing(instIdLst, irG, 'runReportGenerator')
 
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
@@ -76,8 +80,8 @@ class InstanceDataGenerator(object):
         taskQueue = multiprocessing.Queue()
         resultQueue = multiprocessing.Queue()
         #
-        workers = [ MultiProcWorker(processLabel=str(i+1), taskQueue=taskQueue, resultQueue=resultQueue, \
-                    workerFunc=workerFunc, log=self.__lfh, verbose=self.__verbose) for i in range(numProc) ]
+        workers = [MultiProcWorker(processLabel=str(i + 1), taskQueue=taskQueue, resultQueue=resultQueue,
+                                   workerFunc=workerFunc, log=self.__lfh, verbose=self.__verbose) for i in range(numProc)]
         for w in workers:
             w.start()
         #
@@ -88,18 +92,19 @@ class InstanceDataGenerator(object):
             taskQueue.put(None)
         #
         for i in range(len(subLists)):
-            msg = resultQueue.get()
+            _msg = resultQueue.get()  # noqa: F841
         #
         try:
             for w in workers:
                 w.terminate()
                 w.join(1)
             #
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             if self.__verbose:
                 traceback.print_exc(file=self.__lfh)
             #
         #
+
 
 class MultiProcWorker(multiprocessing.Process):
     """
@@ -110,12 +115,12 @@ class MultiProcWorker(multiprocessing.Process):
         self.__taskQueue = taskQueue
         self.__resultQueue = resultQueue
         self.__workerFunc = workerFunc
-        self.__lfh=log
-        self.__verbose=verbose
+        self.__lfh = log
+        self.__verbose = verbose
 
     def run(self):
         while True:
-            nextList=self.__taskQueue.get()
+            nextList = self.__taskQueue.get()
             if nextList is None:
                 break
             #
@@ -123,41 +128,43 @@ class MultiProcWorker(multiprocessing.Process):
             self.__resultQueue.put("OK")
         #
 
+
 class RefReportGenerator(object):
     """
     """
     def __init__(self, reqObj=None, verbose=False, log=sys.stderr):
-        self.__reqObj=reqObj
-        self.__verbose=verbose
-        self.__lfh=log
+        self.__reqObj = reqObj
+        self.__verbose = verbose
+        self.__lfh = log
         #
 
     def runReportGenerator(self, dataList=None, processLabel=None):
-        ccReport = ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
+        ccReport = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         for ccId in dataList:
             ccReport.setDefinitionId(definitionId=ccId.lower())
-            ccReport.doReport(type='ref',ccAssignPthMdfier=ccId)
+            ccReport.doReport(type='ref', ccAssignPthMdfier=ccId)
         #
+
 
 class InstReportGenerator(object):
     """
     """
     def __init__(self, reqObj=None, dataStore=None, verbose=False, log=sys.stderr):
-        self.__ccAssignDataStore=dataStore
-        self.__reqObj=reqObj
-        self.__verbose=verbose
-        self.__lfh=log
+        self.__ccAssignDataStore = dataStore
+        self.__reqObj = reqObj
+        self.__verbose = verbose
+        self.__lfh = log
         #
-        self.__sObj=self.__reqObj.getSessionObj()
-        self.__sessionPath=self.__sObj.getPath()
+        self.__sObj = self.__reqObj.getSessionObj()
+        self.__sessionPath = self.__sObj.getPath()
         #
 
     def runReportGenerator(self, dataList=None, processLabel=None):
         for instId in dataList:
-            chemCompFilePathAbs = os.path.join(self.__sessionPath,'assign',instId,instId+'.cif')
-            instChemCompRprt=ChemCompReport(reqObj=self.__reqObj,verbose=self.__verbose,log=self.__lfh)
-            instChemCompRprt.setFilePath(chemCompFilePathAbs,instId)
-            instChemCompRprt.doReport(type='exp',ccAssignPthMdfier=instId)
+            chemCompFilePathAbs = os.path.join(self.__sessionPath, 'assign', instId, instId + '.cif')
+            instChemCompRprt = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+            instChemCompRprt.setFilePath(chemCompFilePathAbs, instId)
+            instChemCompRprt.doReport(type='exp', ccAssignPthMdfier=instId)
             #
             mtchL = self.__ccAssignDataStore.getTopHitsList(instId)
             HitList = []

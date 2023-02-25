@@ -6,23 +6,25 @@
 import os
 import sys
 import shutil
-from logging                                            import getLogger, StreamHandler, Formatter, DEBUG, INFO
-from wwpdb.apps.ccmodule.chem.ChemCompAssign            import ChemCompAssign
-from wwpdb.apps.ccmodule.utils.ChemCompConfig           import ChemCompConfig
-from wwpdb.apps.ccmodule.utils.LigandAnalysisState      import LigandAnalysisState
-from wwpdb.apps.ccmodule.io.ChemCompDataExport          import ChemCompDataExport
-from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign        import PdbxChemCompAssignReader
-from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite  import ChemCompAssignDepictLite
-from wwpdb.utils.session.WebRequest                     import InputRequest
-from wwpdb.utils.config.ConfigInfo                      import ConfigInfo
+from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
+from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
+from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
+from wwpdb.apps.ccmodule.utils.LigandAnalysisState import LigandAnalysisState
+from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
+from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxChemCompAssignReader
+from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite import ChemCompAssignDepictLite
+from wwpdb.utils.session.WebRequest import InputRequest
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
-from pathlib                                            import Path
-from wwpdb.io.locator.PathInfo                          import PathInfo
-from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
+from pathlib import Path
+from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
+
 
 class ChemCompDpInputs:
     FILE_CC_ASSIGN = 'file_cc_assign'
+
 
 class ChemCompDpUtility(object):
     """ Wrapper class for ligand analysis operations
@@ -30,7 +32,7 @@ class ChemCompDpUtility(object):
     _CC_REPORT_DIR = 'cc_analysis'
     _CC_ASSIGN_DIR = 'assign'
     _CC_HTML_FILES_DIR = 'html'
-    
+
     def __init__(self, depId, verbose=False, log=sys.stderr):
         self._verbose = verbose
         self._debug = False
@@ -57,7 +59,7 @@ class ChemCompDpUtility(object):
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
         self._ligState = LigandAnalysisState(self._depId, self._verbose, self._lfh)
-    
+
     def doAnalysis(self):
         self._logger.info('Starting analysis for deposition "%s"', self._depId)
 
@@ -68,7 +70,7 @@ class ChemCompDpUtility(object):
             if os.path.exists(self._ccReportPath):
                 self._logger.info('Removing existing %s directory', self._CC_ASSIGN_DIR)
                 shutil.rmtree(self._ccReportPath, ignore_errors=True)
-            
+
             os.makedirs(self._ccReportPath, exist_ok=True)
 
             # initializing the ligand state monitor
@@ -90,29 +92,29 @@ class ChemCompDpUtility(object):
 
             instIdList = ccAssignDataStore.getAuthAssignmentKeys()
             origCcId = set(map(ccAssignDataStore.getAuthAssignment, instIdList))
-            
+
             if len(instIdList) == 0:
                 # if we get an empty list here, there nothing else to do
                 self._logger.warning('Empty assignment keys')
                 self._ligState.finish()
                 return
-            
-            ccIdAlreadySeenList=[]
-            fitTupleDict={}
+
+            ccIdAlreadySeenList = []
+            fitTupleDict = {}
 
             updateStep = .3 / len(instIdList)
 
             for instId in instIdList:
                 if self._verbose:
                     self._logger.debug('instId item: %s', instId)
-                
+
                 authAssignedId = ccAssignDataStore.getAuthAssignment(instId)
                 topHitCcId = ccAssignDataStore.getBatchBestHitId(instId)
 
                 if authAssignedId not in fitTupleDict:
                     fitTupleDict[authAssignedId] = {}
                     fitTupleDict[authAssignedId]['alignList'] = []
-                    fitTupleDict[authAssignedId]['masterAlignRef'] = None 
+                    fitTupleDict[authAssignedId]['masterAlignRef'] = None
 
                 # report material and imaging setup for this experimental instance
                 instanceChemCompFilePath = os.path.join(self._depositAssignPath, instId, instId + '.cif')
@@ -124,15 +126,15 @@ class ChemCompDpUtility(object):
                     self._genLigandReportData(authAssignedId, rtype='ref')
                     self._imagingSetupForTopHit(authAssignedId, authAssignedId, fitTupleDict)
                     ccIdAlreadySeenList.append(authAssignedId)
-                
+
                 # report material and imaging setup for the best dictionary reference
                 if topHitCcId not in ccIdAlreadySeenList and topHitCcId.lower() != 'none':
                     self._genLigandReportData(topHitCcId, rtype='ref')
                     self._imagingSetupForTopHit(authAssignedId, topHitCcId, fitTupleDict)
                     ccIdAlreadySeenList.append(topHitCcId)
-                
+
                 self._ligState.addProgress(updateStep, instId)
-            
+
             self._genAligned2dImages(fitTupleDict)
 
             # parse cif files for data needed in instance browser
@@ -149,7 +151,7 @@ class ChemCompDpUtility(object):
 
             self._ligState.addProgress(.3)
             self._ligState.finish()
-        except Exception as e:
+        except Exception as _e:  # noqa: F841
             self._logger.error('Error performing ligand analysis', exc_info=True)
             self._ligState.abort()
 
@@ -169,7 +171,7 @@ class ChemCompDpUtility(object):
         # checking if the required cc assign file was provided
         if ChemCompDpInputs.FILE_CC_ASSIGN not in self._inputParamDict:
             raise RuntimeError('Chemical components assignment file is required')
-        
+
         fPath = self._inputParamDict[ChemCompDpInputs.FILE_CC_ASSIGN]
 
         if not os.access(fPath, os.R_OK):
@@ -182,12 +184,12 @@ class ChemCompDpUtility(object):
         pR.setFilePath(filePath=fPath)
         pR.getBlock()
 
-        for cN in ['pdbx_entry_info','pdbx_instance_assignment','pdbx_match_list','pdbx_atom_mapping','pdbx_missing_atom']:
+        for cN in ['pdbx_entry_info', 'pdbx_instance_assignment', 'pdbx_match_list', 'pdbx_atom_mapping', 'pdbx_missing_atom']:
             if pR.categoryExists(cN):
-                dataDict[cN]=pR.getCategory(catName=cN)
-        
+                dataDict[cN] = pR.getCategory(catName=cN)
+
         return dataDict
-    
+
     def _genLigandReportData(self, instId, instanceCcAbsFilePath=None, rtype='ref'):
         """Generate the actual report file. The file path is based on
         the deposition ID and instance ID, as:
@@ -205,7 +207,7 @@ class ChemCompDpUtility(object):
         """
         if self._verbose:
             self._logger.debug('Generating report for %s (%s), %s.', instId, rtype, instanceCcAbsFilePath)
-        
+
         tmpDir = os.path.join(self._ccReportPath, "logs")
         os.makedirs(tmpDir, exist_ok=True)
 
@@ -240,7 +242,7 @@ class ChemCompDpUtility(object):
             fitTupleDict[authAssignedId]['masterAlignRef'] = (instId, instanceCcAbsFilePath, instImageOutputPath)
         else:
             fitTupleDict[authAssignedId]['alignList'].append((instId, instanceCcAbsFilePath, instImageOutputPath))
-    
+
     def _imagingSetupForTopHit(self, authAssignedId, topHitCcId, fitTupleDict):
         """Setup for generating ligand reference images.
 
@@ -262,7 +264,7 @@ class ChemCompDpUtility(object):
             # raising here since it's expected to be able to read the ligand ".cif"
             # file from the ligand dict
             raise IOError('Could not access file "{}"'.format((chemCompCifPath)))
-    
+
     def _checkLigandPath(self, ccid):
         """Helper method to check if a given ligand has a correspondent
         entry in the dictionary.
@@ -282,7 +284,7 @@ class ChemCompDpUtility(object):
             return False
 
         return True
-    
+
     def _genAligned2dImages(self, fitTupleDict):
         """Generate images used in the report.
 
@@ -302,8 +304,8 @@ class ChemCompDpUtility(object):
             try:
                 if fitTupleDict[ccid]['alignList'] is not None and len(fitTupleDict[ccid]['alignList']) > 0:
                     fileListPath = os.path.join(self._ccReportPath, 'alignfilelist_{}.txt'.format(ccid))
-                    logPath = os.path.join(self._ccReportPath, 'alignfile_{}.log'.format(ccid))
-                    
+                    # logPath = os.path.join(self._ccReportPath, 'alignfile_{}.log'.format(ccid))
+
                     self._createAlignFileList(ccid, fileListPath, fitTupleDict)
                     if not self._alignImages(ccid, fileListPath):
                         redoCcidLst.append(ccid)
@@ -312,8 +314,8 @@ class ChemCompDpUtility(object):
                     # and there is only one instance of the experimental ccid
                     # there will only be one image to generate
                     redoCcidLst.append(ccid)
-                
-            except:
+
+            except:  # noqa: E722 pylint: disable=bare-except
                 self._logger.error('Error aligning images for ligand "%s"', ccid, exc_info=True)
 
             # safeguard measure required if above process fails silently
@@ -322,9 +324,9 @@ class ChemCompDpUtility(object):
             if not os.access(masterImgPath, os.F_OK):
                 self._logger.warning('WARNING: could not find expected master image file at %s, so had to revisit image generation for ccid: %s', masterImgPath, ccid)
                 redoCcidLst.append(ccid)
-            
+
             self._ligState.addProgress(updateStep, ccid)
-        
+
         # generate non-aligned images for those cases where exception occurred due to timeout/error
         pathList = []
         for ccid in redoCcidLst:
@@ -333,22 +335,22 @@ class ChemCompDpUtility(object):
             try:
                 imgTupl = fitTupleDict[ccid]['masterAlignRef']
                 pathList.append(imgTupl)
-                
+
                 for anImgTupl in fitTupleDict[ccid]['alignList']:
-                    pathList.append( anImgTupl )
-                
-                logPath = os.path.join(self._ccReportPath,'genimagefile_'+ccid+'.log')
-                
+                    pathList.append(anImgTupl)
+
+                # logPath = os.path.join(self._ccReportPath, 'genimagefile_' + ccid + '.log')
+
                 for title, path, imagePath in pathList:
                     if not self._genImages(title, path, imagePath):
-                        self._logger.warning('WARNING: image generation failed for: %s',(imagePath))
-            except:
+                        self._logger.warning('WARNING: image generation failed for: %s', (imagePath))
+            except:  # noqa: E722 pylint: disable=bare-except
                 self._logger.error('Error generating non-aligned images for ligand "%s"', ccid, exc_info=True)
             finally:
                 self._ligState.addProgress(updateStep, ccid)
-        
+
         return
-    
+
     def _createAlignFileList(self, ccid, fileListPath, fitTupleDict):
         """Utility to write the align list file.
 
@@ -380,7 +382,7 @@ class ChemCompDpUtility(object):
 
             for (thisId, fileDefPath, imgFilePth) in fitTupleDict[ccid]['alignList']:
                 f.write(_ALIGN_REFS.format(thisId, fileDefPath, imgFilePth))
-    
+
     def _alignImages(self, ccid, fileListPath):
         tmpDir = os.path.join(self._ccReportPath, "img_align_logs")
         os.makedirs(tmpDir, exist_ok=True)
@@ -395,9 +397,9 @@ class ChemCompDpUtility(object):
 
         if returncode != 0:
             return False
-        
+
         return True
-    
+
     def _genImages(self, title, path, imagePath):
         tmpDir = os.path.join(self._ccReportPath, "img_gen_logs")
         os.makedirs(tmpDir, exist_ok=True)
@@ -407,22 +409,21 @@ class ChemCompDpUtility(object):
         dp.addInput(name="path", value=path)
         dp.addInput(name="image_path", value=imagePath)
         returncode = dp.op("chem-comp-gen-images")
-        
+
         if self._verbose:
             self._logger.debug('Image generation process returned with %s', returncode)
 
         if returncode != 0:
             return False
-        
+
         return True
-    
+
     def _importDepositorFiles(self, ccAssignDataStore):
         """Copy user edited files to the report path.
 
         Args:
             ccAssignDataStore (ChemComAssignDataStore): current datastore
         """
-        instIdLst = []
         contentTypeDict = self._cI.get('CONTENT_TYPE_DICTIONARY')
 
         self._logger.info('Processing previously addressed ligand groups')
@@ -460,10 +461,10 @@ class ChemCompDpUtility(object):
                                 wfDefinitionFilePath = ccAssignDataStore.getDpstrUploadFileWfPath(ligId, fileType, fileName)
 
                                 self._copyFileToReportDir(self, wfDefinitionFilePath, reportDefinitionFilePath)
-            except:
+            except:  # noqa: E722 pylint: disable=bare-except
                 if self._verbose:
                     self._logger.error('----- WARNING ----- processing failed id: %s', self._depId, exc_info=True)
-    
+
     def _copyFileToReportDir(self, sourceFilePath, destFilePath):
         """Helper method to copy files between CC folders.
 
@@ -487,20 +488,20 @@ class ChemCompDpUtility(object):
             - ChemCompAssignDataStore pickle file as 'chem-comp-assign-details' file.
             - cc depositor info file is generated if user has completed Ligand Lite submission -- this file is used to propagate
                 the relevant depositor provided info to the annotation pipeline
-            
+
             Args:
                 mode (str):
                     'completed' if annotator has designated all assignments for all ligands and wishes to
                         conclude work in the ligand module.
                     'unfinished' if annotator wishes to leave ligand module but resume work at a later point.
-                    'intermittent' save of state on intermittent commits of ligand description data for an 
+                    'intermittent' save of state on intermittent commits of ligand description data for an
                                     *individual* ligand ID (i.e. not for entire dataset of ligands)
-                                    this mode is used when user chooses to update information 
+                                    this mode is used when user chooses to update information
                                     being submitted for an individual ligand ID.
             Returns:
                 ok: boolean indicating success/failure of the save operation
         """
-        pathDict={}
+        pathDict = {}
         # pickle file
         pathDict['picFileDirPth'] = None
         pathDict['picFileFlPth'] = None
@@ -528,7 +529,7 @@ class ChemCompDpUtility(object):
         if fileSource:
             ccE = ChemCompDataExport(self._reqObj, self._verbose, self._lfh)
             pathDict['dpstrInfoFileFlPth'] = ccE.getChemCompDpstrInfoFilePath()
-            
+
             if pathDict['dpstrInfoFileFlPth']:
                 pathDict['dpstrInfoFileDirPth'] = os.path.split(pathDict['dpstrInfoFileFlPth'])[0]
 
@@ -540,10 +541,10 @@ class ChemCompDpUtility(object):
 
             # pickle file
             pathDict['picFileFlPth'] = ccE.getChemCompAssignDetailsFilePath()
-            
+
             if pathDict['picFileFlPth']:
                 pathDict['picFileDirPth'] = os.path.split(pathDict['picFileFlPth'])[0]
-            
+
                 if (self._verbose):
                     self._logger.debug('CC assign details export directory path: %s', pathDict['picFileDirPth'])
                     self._logger.debug('CC assign details export file path: %s', pathDict['picFileFlPth'])
@@ -553,16 +554,16 @@ class ChemCompDpUtility(object):
             # chem comp depositor progress file
             pathDict['dpstrPrgrssFileFlPth'] = os.path.join(self._depositPath, depId, 'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = os.path.split(pathDict['dpstrPrgrssFileFlPth'])[0]
-            
+
             if (self._verbose):
                 self._logger.debug('CC assign dpstr progress directory path: %s', pathDict['dpstrPrgrssFileDirPth'])
                 self._logger.debug('CC assign dpstr progress file path: %s', pathDict['dpstrPrgrssFileFlPth'])
         else:
             self._logger.warning('processing undefined filesource %r', fileSource)
 
-        # call on ChemCompAssign to save current state of ligand assignments 
+        # call on ChemCompAssign to save current state of ligand assignments
         cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
-        bSuccess,msg = cca.saveState(pathDict, context='deposit', mode=mode)
+        bSuccess, msg = cca.saveState(pathDict, context='deposit', mode=mode)
 
         return bSuccess
 
@@ -599,7 +600,7 @@ class ChemCompDpUtility(object):
             raise ValueError('Error - %s', str(e))
 
             return False
-    
+
     def _setupSession(self, depId):
         """Setup the session object (even though we don't rely on sessions here)
         used by auxiliary classes.
@@ -641,7 +642,7 @@ class ChemCompDpUtility(object):
         handler.setFormatter(formatter)
 
         logger.addHandler(handler)
-        
+
         if self._verbose:
             logger.setLevel(DEBUG)
         else:

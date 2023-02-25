@@ -12,20 +12,19 @@ definition data for use by the chemical component editing tool.
 
 """
 __docformat__ = "restructuredtext en"
-__author__    = "John Westbrook"
-__email__     = "jwest@rcsb.rutgers.edu"
-__license__   = "Creative Commons Attribution 3.0 Unported"
-__version__   = "V0.01"
+__author__ = "John Westbrook"
+__email__ = "jwest@rcsb.rutgers.edu"
+__license__ = "Creative Commons Attribution 3.0 Unported"
+__version__ = "V0.01"
 
 
 import sys
-import time
 import os.path
+import traceback
 try:
     import cPickle as pickle
-except ImportError as e:
+except ImportError as _e:  # noqa: F841
     import pickle
-
 
 
 class ChemCompEdit(object):
@@ -35,140 +34,138 @@ class ChemCompEdit(object):
               Edit operation type ('replace-value','row-insert-after','row-insert-before','row-delete'),
               Data block Id,
 
-           Item value edits -    
+           Item value edits -
               Target item name (for replace value edits).
               New value (for replace value edits),
               Prior value (for replace value edits)
            Row level edits:
               Target row identifier    -
-              Inserted row identifier - (for inserts) 
+              Inserted row identifier - (for inserts)
 
         """
-    def __init__(self,verbose=False,log=sys.stderr):
-        self.__verbose=verbose
-        self.__lfh=log
+    def __init__(self, verbose=False, log=sys.stderr):
+        self.__verbose = verbose
+        self.__lfh = log
         self.__reset()
 
     def __reset(self):
-        self.__editOpNumber=0
-        self.__targetId=None
-        self.__editType=None
-        self.__blockId=None
-        self.__targetItemName=None
-        self.__valueNew=None
-        self.__valuePrevious=None
-        self.__targetRowId=None
-        self.__insertedRowId=None                
+        self.__editOpNumber = 0
+        self.__targetId = None
+        self.__editType = None
+        self.__blockId = None
+        self.__targetItemName = None
+        self.__valueNew = None
+        self.__valuePrevious = None
+        self.__targetRowId = None
+        self.__insertedRowId = None
 
-    def setTargetId(self,id):
-        self.__targetId=id
+    def setTargetId(self, id):
+        self.__targetId = id
         return True
 
     def getTargetId(self):
         return self.__targetId
 
-    def setBlockId(self,blockId):
+    def setBlockId(self, blockId):
         if (blockId is not None):
-            self.__blockId=blockId
+            self.__blockId = blockId
         else:
             return False
         return True
-        
+
     def getBlockId(self):
         return self.__blockId
 
-    def setTargetRowId(self,rowId):
-        self.__targetRowId=rowId
+    def setTargetRowId(self, rowId):
+        self.__targetRowId = rowId
         return True
 
     def getTargetRowId(self):
         return self.__targetRowId
 
-    def setInsertedRowId(self,rowId):
-        self.__insertedRowId=rowId
+    def setInsertedRowId(self, rowId):
+        self.__insertedRowId = rowId
         return True
 
     def getInsertedRowId(self):
         return self.__insertedRowId
-    
 
-    def setValueNew(self,value):
-        self.__valueNew=value
+    def setValueNew(self, value):
+        self.__valueNew = value
 
     def getValueNew(self):
         return self.__valueNew
-    
-    def setValuePrevious(self,value):
-        self.__valuePrevious=value
+
+    def setValuePrevious(self, value):
+        self.__valuePrevious = value
 
     def getValuePrevious(self):
         return self.__valuePrevious
 
-
-    def setEditType(self,eType):
-        if eType in ['replace-value','row-insert-after','row-insert-before','row-delete']:
-            self.__editType=eType
+    def setEditType(self, eType):
+        if eType in ['replace-value', 'row-insert-after', 'row-insert-before', 'row-delete']:
+            self.__editType = eType
         else:
             return False
         return True
-        
+
     def getEditType(self):
         return self.__editType
 
-    def setTargetItemName(self,targetItemName):
-        self.__targetItemName=targetItemName
+    def setTargetItemName(self, targetItemName):
+        self.__targetItemName = targetItemName
         return True
 
     def getTargetItemName(self):
         return self.__targetItemName
 
-    def setEditOpNumber(self,opNumber):
+    def setEditOpNumber(self, opNumber):
         try:
-            self.__editOpNumber=int(opNumber)
+            self.__editOpNumber = int(opNumber)
             if (self.__editOpNumber < 0):
                 return False
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             return False
-        
+
         return True
 
     def getEditOpNumber(self):
         return self.__editOpNumber
 
     def pack(self):
-        return (self.__editOpNumber,self.__editType,self.__targetId,self.__blockId,self.__targetItemName,self.__valueNew,
-                self.__valuePrevious,self.__targetRowId,self.__insertedRowId)
+        return (self.__editOpNumber, self.__editType, self.__targetId, self.__blockId, self.__targetItemName, self.__valueNew,
+                self.__valuePrevious, self.__targetRowId, self.__insertedRowId)
 
-    def unpack(self,editTuple):
-        #self.__reset()
+    def unpack(self, editTuple):
+        # self.__reset()
         try:
-            self.__editOpNumber    = int(editTuple[0])
-            self.__editType        = editTuple[1]
-            self.__targetId        = editTuple[2]            
-            self.__blockId         = editTuple[3]
-            self.__targetItemName  = editTuple[4]
-            self.__valueNew        = editTuple[5]
-            self.__valuePrevious   = editTuple[6]
-            self.__targetRowId     = editTuple[7]
-            self.__insertedRowId   = editTuple[8]             
-        except:
+            self.__editOpNumber = int(editTuple[0])
+            self.__editType = editTuple[1]
+            self.__targetId = editTuple[2]
+            self.__blockId = editTuple[3]
+            self.__targetItemName = editTuple[4]
+            self.__valueNew = editTuple[5]
+            self.__valuePrevious = editTuple[6]
+            self.__targetRowId = editTuple[7]
+            self.__insertedRowId = editTuple[8]
+        except:  # noqa: E722 pylint: disable=bare-except
             traceback.print_exc(file=self.__lfh)
             return False
         return True
 
-    def printIt(self,ofh):
+    def printIt(self, ofh):
         ofh.write("\nChemical Component Edit Object Contents:\n")
         ofh.write("  Edit operation no %d\n" % self.__editOpNumber)
         ofh.write("  Edit type         %s\n" % self.__editType)
-        ofh.write("  Target Id         %s\n" % self.__targetId)        
+        ofh.write("  Target Id         %s\n" % self.__targetId)
         ofh.write("  Block Id          %s\n" % self.__blockId)
         ofh.write("  Target item name  %s\n" % self.__targetItemName)
         ofh.write("  New value         %s\n" % self.__valueNew)
         ofh.write("  Previous value    %s\n" % self.__valuePrevious)
         ofh.write("  Target row Id     %s\n" % self.__targetRowId)
-        ofh.write("  Inserted  row Id  %s\n" % self.__insertedRowId)                
-        
-       
+        ofh.write("  Inserted  row Id  %s\n" % self.__insertedRowId)
+
+
 class ChemCompEditStore(object):
     """ Store incremental edits on the chemical component definitions -
 
@@ -177,37 +174,37 @@ class ChemCompEditStore(object):
     Storage model is a list of tuples where each tuple contains the above attributes.
 
     """
-    def __init__(self,reqObj,fileName='chemCompEditStore.pic',verbose=False,log=sys.stderr):
+    def __init__(self, reqObj, fileName='chemCompEditStore.pic', verbose=False, log=sys.stderr):
         """Chemical component edit operations -
 
 
          :param `verbose`:  boolean flag to activate verbose logging.
          :param `log`:      stream for logging.
-          
+
         """
         #
-        self.__fileName=fileName                
-        self.__verbose=verbose
-        self.__lfh=log
-        self.__debug=True
+        self.__fileName = fileName
+        self.__verbose = verbose
+        self.__lfh = log
+        self.__debug = True
         #
-        self.__reqObj=reqObj
-        self.__sessionObj=self.__reqObj.getSessionObj()
-        self.__sessionPath=self.__sessionObj.getPath()
-        self.__sessionId  =self.__sessionObj.getId()        
-        self.__sessionRelativePath=self.__sessionObj.getRelativePath()
+        self.__reqObj = reqObj
+        self.__sessionObj = self.__reqObj.getSessionObj()
+        self.__sessionPath = self.__sessionObj.getPath()
+        self.__sessionId = self.__sessionObj.getId()
+        self.__sessionRelativePath = self.__sessionObj.getRelativePath()
         #
-        #self.__ccConfig=ChemCompConfig(reqObj, verbose=self.__verbose,log=self.__lfh)        
+        # self.__ccConfig=ChemCompConfig(reqObj, verbose=self.__verbose,log=self.__lfh)
         #
-        # List of ChemCompEdit objects - 
-        self.__editList=[]
+        # List of ChemCompEdit objects -
+        self.__editList = []
         #
-        self.__editDirPath = os.path.join(self.__sessionPath,'edit')
-        self.__filePath = os.path.join(self.__sessionPath,'edit',self.__fileName)        
+        self.__editDirPath = os.path.join(self.__sessionPath, 'edit')
+        self.__filePath = os.path.join(self.__sessionPath, 'edit', self.__fileName)
 
-        #self.__pickleProtocol = pickle.HIGHEST_PROTOCOL
-        self.__pickleProtocol=0        
-        
+        # self.__pickleProtocol = pickle.HIGHEST_PROTOCOL
+        self.__pickleProtocol = 0
+
         self.__setup()
         #
 
@@ -215,111 +212,111 @@ class ChemCompEditStore(object):
         try:
             # create the edit path in the session directory if it does not exist
             #
-            if (not os.access(self.__editDirPath,os.F_OK)):
-                    os.makedirs(self.__editDirPath)
+            if not os.access(self.__editDirPath, os.F_OK):
+                os.makedirs(self.__editDirPath)
 
             if (self.__verbose):
                 self.__lfh.write("+ChemCompEditStore.__setup - session id %s  edit store file path%s\n" %
-                                 (self.__sessionId,self.__filePath))            
+                                 (self.__sessionId, self.__filePath))
             self.deserialize()
             if (self.__verbose):
                 self.__lfh.write("+ChemCompEditStore.__setup - opening store with edit list length %d\n" % len(self.__editList))
                 self.printIt(self.__lfh)
 
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             self.__lfh.write("+ChemCompEditStore.__setup - Failed opening edit store for session id %s  edit store file path%s\n" %
-                             (self.__sessionObj.getId(),self.__filePath))                        
-
+                             (self.__sessionObj.getId(), self.__filePath))
 
     def length(self):
-        return (len(self.__editList))
-        
+        return len(self.__editList)
+
     def reset(self):
-        self.__editList=[]
+        self.__editList = []
         self.serialize()
-        
+
     def serialize(self):
         try:
-            fb=open(self.__filePath,'wb')
-            pickle.dump(self.__editList,fb,self.__pickleProtocol)
+            fb = open(self.__filePath, 'wb')
+            pickle.dump(self.__editList, fb, self.__pickleProtocol)
             fb.close()
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             self.__lfh.write("+ChemCompEditStore.__serialize - failed for session %s edit store file path%s\n" %
-                             (self.__sessionObj.getId(),self.__filePath))                                    
-            pass
-            
-    def deserialize(self):
-        try:
-            fb=open(self.__filePath,'rb')            
-            self.__editList=pickle.load(fb)
-            fb.close()
-        except:
+                             (self.__sessionObj.getId(), self.__filePath))
             pass
 
-    def storeEdit(self,ccEdObj):
+    def deserialize(self):
         try:
-            eTup=ccEdObj.pack()
+            fb = open(self.__filePath, 'rb')
+            self.__editList = pickle.load(fb)
+            fb.close()
+        except:  # noqa: E722 pylint: disable=bare-except
+            pass
+
+    def storeEdit(self, ccEdObj):
+        try:
+            eTup = ccEdObj.pack()
             self.__editList.append(eTup)
             self.serialize()
             return True
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             return False
 
-    def deleteEdit(self,ccEdObj):
+    def deleteEdit(self, ccEdObj):
         try:
-            eTup=ccEdObj.pack()
+            eTup = ccEdObj.pack()
             if eTup in self.__editList:
                 self.__editList.remove(eTup)
             self.serialize()
             return True
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             return False
 
-    def storeEditList(self,ccEdObjList):
+    def storeEditList(self, ccEdObjList):
         try:
             for ccEdObj in ccEdObjList:
-                eTup=ccEdObj.pack()
+                eTup = ccEdObj.pack()
                 self.__editList.append(eTup)
             self.serialize()
             return True
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             return False
 
-    def deleteEditList(self,ccEdObjList):
+    def deleteEditList(self, ccEdObjList):
         try:
             for ccEdObj in ccEdObjList:
-                eTup=ccEdObj.pack()
-                if (eTup in self.__editList):
+                eTup = ccEdObj.pack()
+                if eTup in self.__editList:
                     self.__editList.remove(eTup)
             self.serialize()
             return True
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             return False
 
-    def printIt(self,ofh):
+    def printIt(self, ofh):
         ofh.write("\nChemical Component Edit Store Contents\n")
         ofh.write("  Storage path:  %s\n" % self.__filePath)
-        ofh.write("  Edit count:    %d\n" % len(self.__editList))        
+        ofh.write("  Edit count:    %d\n" % len(self.__editList))
         for eTup in self.__editList:
-            sEd=ChemCompEdit()
-            sEd.unpack(eTup)                                 
+            sEd = ChemCompEdit()
+            sEd.unpack(eTup)
             sEd.printIt(ofh)
 
     def getLastOpNumber(self):
         try:
-            eTup=self.__editList[-1]
-            sEd=ChemCompEdit()
-            sEd.unpack(eTup)                     
+            eTup = self.__editList[-1]
+            sEd = ChemCompEdit()
+            sEd.unpack(eTup)
             return sEd.getEditOpNumber()
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             return 0
     #
-    def get(self,opNumber):
+
+    def get(self, opNumber):
         """  Return the list of edit objects corresponding to the edit operation opNumber.
         """
-        oL=[]
+        oL = []
         for eTup in self.__editList:
-            sEd=ChemCompEdit()
+            sEd = ChemCompEdit()
             sEd.unpack(eTup)
             if opNumber == sEd.getEditOpNumber():
                 oL.append(sEd)
@@ -328,24 +325,22 @@ class ChemCompEditStore(object):
     def getList(self):
         """  Return the list of edit objects.
         """
-        oL=[]
+        oL = []
         for eTup in self.__editList:
-            sEd=ChemCompEdit()
+            sEd = ChemCompEdit()
             sEd.unpack(eTup)
             oL.append(sEd)
         return oL
 
-
-    def remove(self,opNumber):
+    def remove(self, opNumber):
         """ Remove edit objects with the input edit operation Id from the current store
             and save the result.
         """
-        newList=[]
+        newList = []
         for eTup in self.__editList:
-            sEd=ChemCompEdit()
+            sEd = ChemCompEdit()
             sEd.unpack(eTup)
             if opNumber != sEd.getEditOpNumber():
                 newList.append(eTup)
         self.__editList = newList
         self.serialize()
-        

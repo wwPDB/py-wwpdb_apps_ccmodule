@@ -1,0 +1,15 @@
+mmcif
+mmcif.utils
+
+mysqlclient
+
+rcsb.utils.multiproc
+
+wwpdb.io
+wwpdb.utils.config
+wwpdb.utils.dp
+wwpdb.utils.session
+wwpdb.utils.wf
+
+# For testing
+wwpdb.utils.testing

@@ -7,10 +7,12 @@ class InvalidLigandIdError(Exception):
 
         super().__init__(self.message)
 
+
 class LigandStateError(Exception):
     def __init__(self, message=''):
         self.message = message
         super().__init__(self.message)
+
 
 class InvalidDepositionIdError(Exception):
     def __init__(self, message=''):
