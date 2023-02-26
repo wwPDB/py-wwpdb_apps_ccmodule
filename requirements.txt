@@ -13,3 +13,8 @@ wwpdb.utils.wf
 
 # For testing
 wwpdb.utils.testing
+
+# Needed for tests - we can deploy ligand lite without
+wwpdb.utils.oe_util
+--extra-index-url https://pypi.anaconda.org/OpenEye/simple
+OpenEye-toolkits<=2020.2.4
