@@ -7,6 +7,7 @@
 # 2011-01-17    RPS    Added getChemCompAssignDetailsFilePath()
 # 2013-06-11    RPS    Accommodating new 'deposit' filesource/storage type.
 # 2013-10-23    RPS    Updates in support of handling data propagation from LigandLite of DepUI to LigandModule of annotation.
+# 2022-11-13    ZF     Changed sketch file type from 'component-definition-deposit' to 'component-definition-upload'
 ##
 
 """
@@ -81,7 +82,15 @@ class ChemCompDataImport(object):
         return self.__getWfFilePath(contentType='chem-comp-assign', format='pdbx', fileSource=self.__fileSource, version='latest')
 
     def getChemCompAssignDetailsFilePath(self):
-        return self.__getWfFilePath(contentType='chem-comp-assign-details', format='pic', fileSource=self.__fileSource, version='latest')
+        return self.__getWfFilePath(contentType='chem-comp-assign-details',format='pic',fileSource=self.__fileSource,version='latest')
+    
+    
+    #####  BEGIN file handling for LigandLite types #####
+    def getChemCompDpstrInfoFilePath(self,fileSource):
+        return self.__getWfFilePath(contentType='chem-comp-depositor-info',format='pdbx',fileSource=fileSource,version='latest')
+    
+    def getChemCompSketchFilePath(self,format='sdf',fileSource="archive",partitionNum=None):
+        return self.__getWfFilePath(contentType='component-definition-upload',format=format,fileSource=fileSource,version='latest',partitionNum=partitionNum)
 
     # ####  BEGIN file handling for LigandLite types #####
 
