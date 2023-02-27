@@ -21,6 +21,7 @@ import unittest
 import traceback
 import os
 import os.path
+import inspect
 
 from wwpdb.apps.ccmodule.io.ChemCompEditStore import ChemCompEditStore, ChemCompEdit
 from wwpdb.utils.session.WebRequest import InputRequest
@@ -39,8 +40,8 @@ class ChemCompEditStoreTests(unittest.TestCase):
         self.__reqObj = InputRequest(paramDict={}, verbose=self.__verbose, log=self.__lfh)
         self.__reqObj.setValue("TopSessionPath", self.__topPath)
         self.__reqObj.setValue("TopPath", self.__topPath)
-        self.__sobj = self.__reqObj.newSessionObj()
-        self.__sessionPath = self.__sobj.getPath()
+        # Left in for potential side effect
+        self.__sobj = self.__reqObj.newSessionObj()  # pylint: disable=unused-private-member
         #
 
     def tearDown(self):
@@ -49,7 +50,7 @@ class ChemCompEditStoreTests(unittest.TestCase):
     def testStoreEdits1(self):
         """ """
         sys.stdout.write("\n------------------------ ")
-        sys.stdout.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        sys.stdout.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         sys.stdout.write(" -------------------------\n")
         try:
             ses = ChemCompEditStore(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)

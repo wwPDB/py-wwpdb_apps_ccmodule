@@ -21,6 +21,7 @@ import os.path
 import sys
 import unittest
 import traceback
+import inspect
 
 from wwpdb.utils.session.WebRequest import InputRequest
 from wwpdb.apps.ccmodule.search.ChemCompSearch import ChemCompSearch
@@ -49,7 +50,7 @@ class ChemCompSearchTests(unittest.TestCase):
     def testGraphSearchOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         self.__lfh.flush()
         try:
@@ -74,7 +75,7 @@ class ChemCompSearchTests(unittest.TestCase):
     def testIndexSearchOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         self.__lfh.flush()
         try:

@@ -66,8 +66,6 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("TopPath", self.__topPath)
         self.__reqObj.setValue("identifier", "D_800001")
 
-        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
-        self.__cI = ConfigInfo(self.__siteId)
         self.__depositPath = Path(PathInfo().getDepositPath("D_800001")).parent
 
     def testGetReportInstanceSvg(self):
@@ -82,11 +80,11 @@ class ReportFilesRequestTest(unittest.TestCase):
             f.write("<svg></svg>")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        self.assertEqual(rc._cD["datafileName"], "1_A_F6R_501_.svg")
-        self.assertEqual(rc._cD["datatype"], "image/svg+xml")
-        self.assertEqual(rc._cD["datacontent"], b"<svg></svg>")
+        self.assertEqual(rc._cD["datafileName"], "1_A_F6R_501_.svg")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["datatype"], "image/svg+xml")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["datacontent"], b"<svg></svg>")  # pylint: disable=protected-access
 
     def testGetReportReferenceGif(self):
         self.__reqObj.setValue("source", "ccd")
@@ -101,11 +99,11 @@ class ReportFilesRequestTest(unittest.TestCase):
             f.write("foo")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        self.assertEqual(rc._cD["datafileName"], "G6Q-noh.gif")
-        self.assertEqual(rc._cD["datatype"], "image/gif")
-        self.assertEqual(rc._cD["datacontent"], b"foo")
+        self.assertEqual(rc._cD["datafileName"], "G6Q-noh.gif")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["datatype"], "image/gif")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["datacontent"], b"foo")  # pylint: disable=protected-access
 
     def testGetReportCifFiles(self):
         self.__reqObj.setValue("source", "ccd")
@@ -120,9 +118,9 @@ class ReportFilesRequestTest(unittest.TestCase):
             f.write("data_2GC2")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        self.assertEqual(rc._cD["textcontent"], "data_2GC2")
+        self.assertEqual(rc._cD["textcontent"], "data_2GC2")  # pylint: disable=protected-access
 
         # now the cif for the instance
         self.__reqObj.setValue("source", "author")
@@ -137,9 +135,9 @@ class ReportFilesRequestTest(unittest.TestCase):
             f.write("data_2GC2")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        self.assertEqual(rc._cD["textcontent"], "data_2GC2")
+        self.assertEqual(rc._cD["textcontent"], "data_2GC2")  # pylint: disable=protected-access
 
     def testInvalidRequest(self):
         self.__reqObj.setValue("source", "ccd")
@@ -147,11 +145,11 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("file", "../../../../../../../etc/passwd")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        print(rc._cD["textcontent"])
-        self.assertEqual(rc._cD["errortext"], "File not found")
-        self.assertEqual(rc._cD["statuscode"], 404)
+        print(rc._cD["textcontent"])  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["errortext"], "File not found")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["statuscode"], 404)  # pylint: disable=protected-access
 
         # ---
 
@@ -159,10 +157,10 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("file", "F6R_model.cif")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        self.assertEqual(rc._cD["errortext"], "Source should be either 'ccd', 'author' or 'report'")
-        self.assertEqual(rc._cD["statuscode"], 400)
+        self.assertEqual(rc._cD["errortext"], "Source should be either 'ccd', 'author' or 'report'")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["statuscode"], 400)  # pylint: disable=protected-access
 
         # ---
 
@@ -170,10 +168,10 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("file", "F6R_model$.cif")
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        rc = stw._getReportFile()
+        rc = stw._getReportFile()  # pylint: disable=protected-access
 
-        self.assertEqual(rc._cD["errortext"], "File not found")
-        self.assertEqual(rc._cD["statuscode"], 404)
+        self.assertEqual(rc._cD["errortext"], "File not found")  # pylint: disable=protected-access
+        self.assertEqual(rc._cD["statuscode"], 404)  # pylint: disable=protected-access
 
 
 class LigandSummaryTest(unittest.TestCase):
@@ -204,8 +202,6 @@ class LigandSummaryTest(unittest.TestCase):
         self.__reqObj.setValue("TopPath", Path(PathInfo().getDepositPath("D_800001")).parent.parent)
         self.__reqObj.setValue("identifier", "D_800001")
 
-        self.__depositPath = Path(PathInfo().getDepositPath("D_800001")).parent
-
     def testLigSummaryDict(self):
         matching_ligand = {
             "AAA": {
@@ -222,7 +218,7 @@ class LigandSummaryTest(unittest.TestCase):
         }
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, self.ligIds)
+        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, self.ligIds)  # pylint: disable=protected-access
         self.assertEqual(return_dict, matching_ligand)
 
     def testLigSummaryDictMismatch(self):
@@ -243,13 +239,13 @@ class LigandSummaryTest(unittest.TestCase):
         self.mock_ccad.getBatchBestHitId.return_value = "AAB"
 
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, self.ligIds)
+        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, self.ligIds)  # pylint: disable=protected-access
         self.assertEqual(return_dict, matching_ligand)
 
     def testLigSummaryDictInvalidLig(self):
         """Test the case when the user provides an invalid lig id"""
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, ["CCC"])
+        return_dict = stw._generateLigGroupSummaryDict(self.mock_ccad, ["CCC"])  # pylint: disable=protected-access
         self.assertEqual(return_dict, {})
 
     @patch("wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.ChemCompAssignDataStore", autospec=True)
@@ -265,22 +261,22 @@ class LigandSummaryTest(unittest.TestCase):
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
 
         with self.assertRaises(InvalidLigandIdError):
-            stw._getLigandInstancesData()
+            stw._getLigandInstancesData()  # pylint: disable=protected-access
 
         # passing rubbish
         self.__reqObj.setValue("ligids", 'CLA,_"FFF`')
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        self.assertEqual(stw._getLigandInstancesData().get()["RETURN_STRING"], "{}")
+        self.assertEqual(stw._getLigandInstancesData().get()["RETURN_STRING"], "{}")  # pylint: disable=protected-access
 
         # more rubbish
         self.__reqObj.setValue("ligids", {})
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        self.assertEqual(stw._getLigandInstancesData().get()["RETURN_STRING"], "{}")
+        self.assertEqual(stw._getLigandInstancesData().get()["RETURN_STRING"], "{}")  # pylint: disable=protected-access
 
         # valid input
         self.__reqObj.setValue("ligids", "AAA")
         stw = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        json_summary = json.loads(stw._getLigandInstancesData().get()["RETURN_STRING"])
+        json_summary = json.loads(stw._getLigandInstancesData().get()["RETURN_STRING"])  # pylint: disable=protected-access
 
         self.assertEqual(json_summary["AAA"]["totlInstncsInGrp"], 1)
         self.assertEqual(json_summary["AAA"]["bGrpRequiresAttention"], False)
@@ -306,49 +302,48 @@ class RunAnalysisTest(unittest.TestCase):
         self.__reqObj.setValue("TopPath", Path(PathInfo().getDepositPath("D_800001")).parent.parent)
         self.__reqObj.setValue("identifier", "D_800001")
 
-        self.__depositPath = Path(PathInfo().getDepositPath("D_800001")).parent
         self.chemCompApp = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
 
     @patch("wwpdb.apps.ccmodule.utils.LigandAnalysisState.WfDbApi")
     @patch("wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.WfDbApi")
-    def testDepositionIds(self, mockWfDbApi, ligStateMockDb):
+    def testDepositionIds(self, mockWfDbApi, ligStateMockDb):  # pylint: disable=unused-argument
         mockWfDbApi.return_value.runUpdateSQL.return_value = 2
 
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = ""
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = ""  # pylint: disable=protected-access
         with self.assertRaises(InvalidDepositionIdError):
-            self.chemCompApp._runAnalysis()
+            self.chemCompApp._runAnalysis()  # pylint: disable=protected-access
 
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = None
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = None  # pylint: disable=protected-access
         with self.assertRaises(InvalidDepositionIdError):
-            self.chemCompApp._runAnalysis()
+            self.chemCompApp._runAnalysis()  # pylint: disable=protected-access
 
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_"001'
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = 'D_"001'  # pylint: disable=protected-access
         with self.assertRaises(InvalidDepositionIdError):
-            self.chemCompApp._runAnalysis()
+            self.chemCompApp._runAnalysis()  # pylint: disable=protected-access
 
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_80000W"
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_80000W"  # pylint: disable=protected-access
         with self.assertRaises(InvalidDepositionIdError):
-            self.chemCompApp._runAnalysis()
+            self.chemCompApp._runAnalysis()  # pylint: disable=protected-access
 
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_' drop status.communication;"
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_' drop status.communication;"  # pylint: disable=protected-access
         with self.assertRaises(InvalidDepositionIdError):
-            self.chemCompApp._runAnalysis()
+            self.chemCompApp._runAnalysis()  # pylint: disable=protected-access
 
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_800001"
-        response = json.loads(self.chemCompApp._runAnalysis().get()["RETURN_STRING"])
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_800001"  # pylint: disable=protected-access
+        response = json.loads(self.chemCompApp._runAnalysis().get()["RETURN_STRING"])  # pylint: disable=protected-access
         self.assertEqual(response["status"], "success")
 
     @patch("wwpdb.apps.ccmodule.utils.LigandAnalysisState.WfDbApi")
     @patch("wwpdb.apps.ccmodule.webapp.ChemCompWebAppLite.WfDbApi")
-    def testWfDb(self, mockWfDbApi, ligStateMockDb):
+    def testWfDb(self, mockWfDbApi, ligStateMockDb):  # pylint: disable=unused-argument
         mockWfDbApi.return_value.isConnected.return_value = True
         mockWfDbApi.return_value.runUpdateSQL.return_value = 0
-        self.chemCompApp._runAnalysis()
+        self.chemCompApp._runAnalysis()  # pylint: disable=protected-access
 
         mockWfDbApi.return_value.isConnected.return_value = True
         mockWfDbApi.return_value.runUpdateSQL.return_value = 1
-        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_800001"
-        response = json.loads(self.chemCompApp._runAnalysis().get()["RETURN_STRING"])
+        self.chemCompApp._ChemCompWebAppLiteWorker__depId = "D_800001"  # pylint: disable=protected-access
+        response = json.loads(self.chemCompApp._runAnalysis().get()["RETURN_STRING"])  # pylint: disable=protected-access
         self.assertEqual(response["status"], "success")
 
 

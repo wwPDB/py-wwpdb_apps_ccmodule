@@ -129,11 +129,10 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         if cls.__standalone:
             HERE = os.path.abspath(os.path.dirname(__file__))
             cls._depositPath = Path(os.path.join(HERE, "test-output", "deposit"))
-            pass
         else:
             cls._depositPath = Path(PathInfo().getDepositPath(cls._depId)).parent
-        cls._ccReportPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_REPORT_DIR)
-        cls._depositAssignPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_ASSIGN_DIR)
+        cls._ccReportPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_REPORT_DIR)  # pylint: disable=protected-access
+        cls._depositAssignPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_ASSIGN_DIR)  # pylint: disable=protected-access
 
         os.makedirs(cls._ccDictPath, exist_ok=True)
         os.makedirs(cls._depositPath, exist_ok=True)
@@ -143,15 +142,15 @@ class ChemCompDpUtilityTests(unittest.TestCase):
     def test_process_cc_assign(self):
         # missing cc assign file
         with self.assertRaises(RuntimeError):
-            self._ccDpUtility._processCcAssignFile()
+            self._ccDpUtility._processCcAssignFile()  # pylint: disable=protected-access
 
         self._ccDpUtility.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, "/tmp/foobar")
         with self.assertRaises(IOError):
-            self._ccDpUtility._processCcAssignFile()
+            self._ccDpUtility._processCcAssignFile()  # pylint: disable=protected-access
 
     def test_gen_report_data(self):
         # testing experimental instance reports
-        self._ccDpUtility._genLigandReportData(self._instId, self._testCcInstanceFilePath, "exp")
+        self._ccDpUtility._genLigandReportData(self._instId, self._testCcInstanceFilePath, "exp")  # pylint: disable=protected-access
 
         repPath = os.path.join(self._ccReportPath, self._instId, "report")
         self.assertTrue(os.path.exists(os.path.join(repPath, "{}.cif".format(self._instId))))
@@ -161,11 +160,11 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         if not self.__standalone:
             with self.assertRaises(Exception):
                 # just expect a generic exception
-                self._ccDpUtility._genLigandReportData(self._instId, "/fake/path", "exp")
+                self._ccDpUtility._genLigandReportData(self._instId, "/fake/path", "exp")  # pylint: disable=protected-access
 
         # testing reference reports
 
-        self._ccDpUtility._genLigandReportData(self._authAssignedId, None, "ref")
+        self._ccDpUtility._genLigandReportData(self._authAssignedId, None, "ref")  # pylint: disable=protected-access
 
         repPath = os.path.join(self._ccReportPath, "rfrnc_reports", self._authAssignedId)
         if not self.__standalone:
@@ -174,7 +173,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         if not self.__standalone:
             with self.assertRaises(Exception):
                 # just expect a generic exception
-                self._ccDpUtility._genLigandReportData("---", None, "ref")
+                self._ccDpUtility._genLigandReportData("---", None, "ref")  # pylint: disable=protected-access
 
     def test_A_imaging_setup(self):
         open(os.path.join(self._ccDictPath, "0G7.cif"), "w").close()
@@ -186,13 +185,13 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         )
 
         instanceChemCompFilePath = os.path.join(self._depositAssignPath, self._instId, self._instId + ".cif")
-        self._ccDpUtility._imagingSetupForLigandInstance(self._instId, self._authAssignedId, self._fitTupleDict, instanceChemCompFilePath)
+        self._ccDpUtility._imagingSetupForLigandInstance(self._instId, self._authAssignedId, self._fitTupleDict, instanceChemCompFilePath)  # pylint: disable=protected-access
         self.assertEqual(self._fitTupleDict[self._authAssignedId]["masterAlignRef"], outputTuple)
 
     def test_B_imaging_setup(self):
         outputTuple = ("0G7", os.path.join(self._ccConfig.getPath("chemCompCachePath"), "0", "0G7", "0G7.cif"), os.path.join(self._ccReportPath, "0G7.svg"))
 
-        self._ccDpUtility._imagingSetupForTopHit(self._authAssignedId, self._authAssignedId, self._fitTupleDict)
+        self._ccDpUtility._imagingSetupForTopHit(self._authAssignedId, self._authAssignedId, self._fitTupleDict)  # pylint: disable=protected-access
         self.assertEqual(self._fitTupleDict[self._authAssignedId]["alignList"][0], outputTuple)
 
     def test_write_align_file_list(self):
@@ -200,7 +199,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         generated = ""
         fileListPath = os.path.join(self._ccReportPath, "alignfilelist_{}.txt".format(self._authAssignedId))
 
-        self._ccDpUtility._createAlignFileList(self._authAssignedId, fileListPath, self._fitTupleDict)
+        self._ccDpUtility._createAlignFileList(self._authAssignedId, fileListPath, self._fitTupleDict)  # pylint: disable=protected-access
 
         with open(os.path.join(os.path.dirname(__file__), "fixtures", "alignfilelist_0G7.txt")) as f:
             original = f.read()
@@ -219,15 +218,15 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         open(os.path.join(self._ccDictPath, "test-sketch.sdf"), "w").close()
         dstPath = os.path.join(self._ccReportPath, "test-sketch.sdf")
 
-        self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, "test-sketch.sdf"), dstPath)
+        self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, "test-sketch.sdf"), dstPath)  # pylint: disable=protected-access
         self.assertTrue(os.path.exists(dstPath))
 
         with self.assertRaises(IOError):
-            self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, "test-sketch.sdf1"), dstPath)
+            self._ccDpUtility._copyFileToReportDir(os.path.join(self._ccDictPath, "test-sketch.sdf1"), dstPath)  # pylint: disable=protected-access
 
     @patch.object(Popen, "communicate", **communicate_config)
     def test_gen_images(self, mock_popen):
-        self._ccDpUtility._verbose = True
+        self._ccDpUtility._verbose = True  # pylint: disable=protected-access
         shutil.copyfile(os.path.join(os.path.dirname(__file__), "fixtures", "1_H_0G7_701_.svg"), os.path.join(self._ccReportPath, "1_H_0G7_701_.svg"))
 
         # tupleDict = {
@@ -239,7 +238,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         #     }
         # }
 
-        self._ccDpUtility._genAligned2dImages(self._fitTupleDict)
+        self._ccDpUtility._genAligned2dImages(self._fitTupleDict)  # pylint: disable=protected-access
 
         if not self.__standalone:
             # imgPath = os.path.join(self._ccReportPath, "{}.svg".format(self._instId))

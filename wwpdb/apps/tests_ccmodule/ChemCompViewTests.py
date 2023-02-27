@@ -20,6 +20,7 @@ import unittest
 import traceback
 import os
 import os.path
+import inspect
 
 from wwpdb.apps.ccmodule.view.ChemCompView import ChemCompView
 from wwpdb.apps.ccmodule.view.ChemCompViewDepict import ChemCompViewDepict
@@ -54,7 +55,7 @@ class ChemCompViewTests(unittest.TestCase):
     def testView1(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             self.__lfh.write("Session path is %s\n" % self.__sessionPath)
@@ -62,8 +63,7 @@ class ChemCompViewTests(unittest.TestCase):
             ccV.setIdList(self.__idList)
             ccInfoList = ccV.doView()
             cvD = ChemCompViewDepict(self.__verbose, self.__lfh)
-            oL = cvD.doRender(ccInfoList)
-            self.__lfh.write("%s" % "\n".join(oL))
+            cvD.doRender(ccInfoList, self.__reqObj)
 
             # for k,v in rD.items():
             #    self.__lfh.write("Key %30s value %s\n" % (k,v))

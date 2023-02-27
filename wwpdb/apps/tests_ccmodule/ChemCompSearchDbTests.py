@@ -21,6 +21,7 @@ import os.path
 import sys
 import unittest
 import traceback
+import inspect
 
 from wwpdb.utils.session.WebRequest import InputRequest
 from wwpdb.apps.ccmodule.search.ChemCompSearchDb import ChemCompSearchDb
@@ -46,13 +47,11 @@ class ChemCompSearchDbTests(unittest.TestCase):
         self.__sobj = self.__reqObj.newSessionObj()
         self.__sessionPath = self.__sobj.getPath()
         #
-        self.__idList = ["atp", "gtp"]
-        #
 
     def testSearchDbOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         self.__lfh.flush()
         try:

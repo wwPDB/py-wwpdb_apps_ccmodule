@@ -24,13 +24,14 @@ import os.path
 import sys
 import unittest
 import traceback
+import inspect
 
 from wwpdb.utils.testing.Features import Features
 from wwpdb.utils.session.WebRequest import InputRequest
 from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
 
 try:
-    from wwpdb.apps.ccmodule.chem.ChemCompAssignDepict import ChemCompAssignDepict  # noqa: F401
+    from wwpdb.apps.ccmodule.chem.ChemCompAssignDepict import ChemCompAssignDepict  # noqa: F401 pylint: disable=unused-import
 
     skiptest = False
 except ImportError as _e:  # noqa: F841
@@ -62,7 +63,7 @@ class ChemCompAssignTests(unittest.TestCase):
     def testBatchAssignAll(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         self.__lfh.flush()
         try:
@@ -85,7 +86,7 @@ class ChemCompAssignTests(unittest.TestCase):
     def testAssignInstance(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         self.__lfh.flush()
         try:

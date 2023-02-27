@@ -19,6 +19,7 @@ import unittest
 import traceback
 import os
 import os.path
+import inspect
 
 from wwpdb.apps.ccmodule.edit.ChemCompTableEditor import ChemCompTableEditor
 from wwpdb.apps.ccmodule.edit.ChemCompTableEditorDepict import ChemCompTableEditorDepict
@@ -49,7 +50,7 @@ class ChemCompTableEditorTests(unittest.TestCase):
     def testTableEditorFileOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             ccId = self.__fileList[0][1]

@@ -95,7 +95,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self._ligState.addProgress(step=0.13, current_ligand="AAA")
         self._ligState.addProgress(step=0.33, current_ligand="AAA")
 
-        self.assertEqual(self._ligState._progress, 0.46)
+        self.assertEqual(self._ligState._progress, 0.46)  # pylint: disable=protected-access
 
         with open(self._progressFile) as fp:
             state = json.load(fp)
@@ -106,7 +106,7 @@ class ReportFilesRequestTest(unittest.TestCase):
             self.assertIsNotNone(state.get("last_updated"))
 
         self._ligState.addProgress(step=1.3)
-        self.assertEqual(self._ligState._progress, 1.0)
+        self.assertEqual(self._ligState._progress, 1.0)  # pylint: disable=protected-access
 
         with open(self._progressFile) as fp:
             state = json.load(fp)
@@ -138,30 +138,3 @@ class ReportFilesRequestTest(unittest.TestCase):
         self._ligState.reset()
 
         self.assertFalse(os.path.exists(self._progressFile))
-
-    @unittest.skip
-    def testGetCurrentTask(self):
-        ct = self._ligState._getCurrentTask()
-        self.assertEqual(ct, None)
-
-        wfLogsDir = os.path.join(configInfo.get("TOP_WWPDB_SESSIONS_PATH"), "wf-logs", self._depId)
-
-        open(os.path.join(wfLogsDir, "{}_ligandAnalysis_TP31_W_011_TP31_linkFileExist.log".format(self._depId), "w")).close()
-        ct = self._ligState._getCurrentTask()
-        self.assertEqual(ct, "linkage")
-
-        open(os.path.join(wfLogsDir, "{}_ligandAnalysis_TP6_W_011_TP6_ChemCompReport.log".format(self._depId), "w")).close()
-        ct = self._ligState._getCurrentTask()
-        self.assertEqual(ct, "report")
-
-        open(os.path.join(wfLogsDir, "{}_ligandAnalysis_TP31_W_012_TP6_linkFileExist.log".format(self._depId), "w")).close()
-        ct = self._ligState._getCurrentTask()
-        self.assertEqual(ct, "report")
-
-        open(os.path.join(wfLogsDir, "{}_ligandAnalysis_TP3_W_012_TP6_ChemCompLinkCalc.log".format(self._depId), "w")).close()
-        ct = self._ligState._getCurrentTask()
-        self.assertEqual(ct, "linkage")
-
-        open(os.path.join(wfLogsDir, "{}_ligandAnalysis_TP4_W_012_TP4_bla.log".format(self._depId), "w")).close()
-        ct = self._ligState._getCurrentTask()
-        self.assertEqual(ct, "assignment")

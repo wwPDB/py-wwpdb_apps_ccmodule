@@ -20,6 +20,7 @@ import unittest
 import traceback
 import os
 import os.path
+import inspect
 
 from wwpdb.apps.ccmodule.reports.ChemCompReports import ChemCompReport, ChemCompCheckReport
 from wwpdb.utils.session.WebRequest import InputRequest
@@ -49,7 +50,7 @@ class ChemCompReportsTests(unittest.TestCase):
     def testReportIdOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             self.__lfh.write("Session path is %s\n" % self.__sessionPath)
@@ -71,7 +72,7 @@ class ChemCompReportsTests(unittest.TestCase):
     def testReportFileOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             self.__lfh.write("Session path is %s\n" % self.__sessionPath)
@@ -93,7 +94,7 @@ class ChemCompReportsTests(unittest.TestCase):
     def testCheckReport1(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             self.__lfh.write("Session path is %s\n" % self.__sessionPath)

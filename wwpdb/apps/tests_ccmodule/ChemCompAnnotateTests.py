@@ -20,6 +20,7 @@ import unittest
 import traceback
 import os
 import os.path
+import inspect
 
 from wwpdb.apps.ccmodule.chem.ChemCompAnnotate import ChemCompAnnotate
 from wwpdb.utils.session.WebRequest import InputRequest
@@ -49,7 +50,7 @@ class ChemCompAnnotateTests(unittest.TestCase):
     def testAnnotateIdOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             self.__lfh.write("Session path is %s\n" % self.__sessionPath)
@@ -66,7 +67,7 @@ class ChemCompAnnotateTests(unittest.TestCase):
     def testAnnotateFileOne(self):
         """ """
         self.__lfh.write("\n------------------------ ")
-        self.__lfh.write("Starting test function  %s" % sys._getframe().f_code.co_name)
+        self.__lfh.write("Starting test function  %s" % inspect.currentframe().f_code.co_name)
         self.__lfh.write(" -------------------------\n")
         try:
             self.__lfh.write("Session path is %s\n" % self.__sessionPath)
