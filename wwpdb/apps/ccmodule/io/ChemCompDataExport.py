@@ -85,8 +85,8 @@ class ChemCompDataExport(object):
     def getChemCompDpstrInfoFilePath(self):
         return self.__getWfFilePath(contentType='chem-comp-depositor-info', format='pdbx', fileSource=self.__fileSource, version='next')
 
-    def getChemCompSketchFilePath(self,format='sdf',partitionNum=None):  # pylint: disable=redefined-builtin,unused-argument
-        return self.__getWfFilePath(contentType='component-definition-upload',format='sdf',fileSource=self.__fileSource,version='next',partitionNum=partitionNum)
+    def getChemCompSketchFilePath(self, format='sdf', partitionNum=None):  # pylint: disable=redefined-builtin,unused-argument
+        return self.__getWfFilePath(contentType='component-definition-upload', format='sdf', fileSource=self.__fileSource, version='next', partitionNum=partitionNum)
 
     def getChemCompImageFilePath(self, format, partitionNum=None):  # pylint: disable=redefined-builtin
         return self.__getWfFilePath(contentType='component-image-upload', format=format, fileSource=self.__fileSource, version='next', partitionNum=partitionNum)

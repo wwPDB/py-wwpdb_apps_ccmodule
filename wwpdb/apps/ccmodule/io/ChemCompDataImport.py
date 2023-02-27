@@ -82,15 +82,7 @@ class ChemCompDataImport(object):
         return self.__getWfFilePath(contentType='chem-comp-assign', format='pdbx', fileSource=self.__fileSource, version='latest')
 
     def getChemCompAssignDetailsFilePath(self):
-        return self.__getWfFilePath(contentType='chem-comp-assign-details',format='pic',fileSource=self.__fileSource,version='latest')
-    
-    
-    #####  BEGIN file handling for LigandLite types #####
-    def getChemCompDpstrInfoFilePath(self,fileSource):
-        return self.__getWfFilePath(contentType='chem-comp-depositor-info',format='pdbx',fileSource=fileSource,version='latest')
-    
-    def getChemCompSketchFilePath(self,format='sdf',fileSource="archive",partitionNum=None):
-        return self.__getWfFilePath(contentType='component-definition-upload',format=format,fileSource=fileSource,version='latest',partitionNum=partitionNum)
+        return self.__getWfFilePath(contentType='chem-comp-assign-details', format='pic', fileSource=self.__fileSource, version='latest')
 
     # ####  BEGIN file handling for LigandLite types #####
 
