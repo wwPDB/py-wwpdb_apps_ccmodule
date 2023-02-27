@@ -33,9 +33,9 @@ class ChemCompTableEditorDepict(ChemCompDepict):
 
         """
         super(ChemCompTableEditorDepict, self).__init__(verbose, log)
-        self.__verbose = verbose
-        self.__lfh = log
-        self.__debug = True
+        # self.__verbose = verbose
+        # self.__lfh = log
+        # self.__debug = True
         #
         self.__cDict = PdbxChemCompCategoryDefinition._cDict
         #
@@ -111,7 +111,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
         iRow = 0
         insertCode = ''
         opNum = 0
-        for (itemName, itemFormat, itemType, itemDefault) in self.__cDict[catName]:
+        for (itemName, _itemFormat, _itemType, itemDefault) in self.__cDict[catName]:
             if itemName in self.__noEditList:
                 editClass = 'editNone'
             else:
@@ -140,7 +140,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
         # Column labels --
         oL.append('<tr>')
         oL.append('<th>%s</th>' % 'Row Op.')
-        for (itemName, itemFormat, itemType, itemDefault) in self.__cDict[catName]:
+        for (itemName, _itemFormat, _itemType, _itemDefault) in self.__cDict[catName]:
             oL.append('<th>%s</th>' % self.__attributePart(itemName))
         oL.append('</tr>')
         #
@@ -161,7 +161,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
         # First data element has row edit controls ---
         oL.append('<td class="%s" id="%s:%s:%d:%s:%d">%s</td>' % ('editrow', catName, 'rowop', iRow, insertCode, opNum, '+/-'))
         #
-        for (itemName, itemFormat, itemType, itemDefault) in self.__cDict[catName]:
+        for (itemName, _itemFormat, _itemType, itemDefault) in self.__cDict[catName]:
             if itemName in self.__noEditList:
                 editClass = 'editNone'
             else:
@@ -199,7 +199,7 @@ class ChemCompTableEditorDepict(ChemCompDepict):
         oL.append('</span>')
         oL.append('</div>')
 
-    def __jQueryButtonScripts(self, eD, oL):
+    def __jQueryButtonScripts(self, eD, oL):  # pylint: disable=unused-argument
         #
         # filePath = eD['filePath']
         # localPath = eD['localPath']
@@ -448,18 +448,18 @@ class ChemCompTableEditorDepict(ChemCompDepict):
 
         oL.append('</script>')
 
-    def __categoryPart(self, name):
-        tname = ""
-        if name.startswith("_"):
-            tname = name[1:]
-        else:
-            tname = name
+    # def __categoryPart(self, name):
+    #     tname = ""
+    #     if name.startswith("_"):
+    #         tname = name[1:]
+    #     else:
+    #         tname = name
 
-        i = tname.find(".")
-        if i == -1:
-            return tname
-        else:
-            return tname[:i]
+    #     i = tname.find(".")
+    #     if i == -1:
+    #         return tname
+    #     else:
+    #         return tname[:i]
 
     def __attributePart(self, name):
         i = name.find(".")
@@ -478,7 +478,6 @@ class ChemCompTableEditorDepict(ChemCompDepict):
             '_chem_comp.mon_nstd_parent_comp_id': 'parentCCList',
             '_chem_comp.type': 'ccTypeList',
             '_chem_comp.pdbx_type': 'ndbTypeList',
-            '_chem_comp_atom.pdbx_leaving_atom_flag': 'ynList',
             '_chem_comp_atom.pdbx_leaving_atom_flag': 'ynList',
             '_chem_comp_atom.pdbx_stereo_config': 'rsList',
             '_chem_comp_bond.pdbx_stereo_config': 'ezList',

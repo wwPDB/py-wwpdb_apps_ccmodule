@@ -39,7 +39,8 @@ class ChemCompReader(object):
         self.__dBlock = None
         self.__topCachePath = None
         self.__ccU = None
-        self.__fileName = None
+        self.__filePath = None
+        # self.__fileName = None
         #
         # self.__categoryInfo = [('chem_comp',             'key-value'),
         #                        ('chem_comp_atom',        'table'),
@@ -137,7 +138,7 @@ class ChemCompReader(object):
         try:
             if compId is not None:
                 self.__ccU = str(compId).upper()
-            self.__fileName = filePath
+            # self.__fileName = filePath
             if (not os.access(self.__filePath, os.R_OK)):
                 if (self.__verbose):
                     self.__lfh.write("+ERROR- PdbxChemCompReader.getCompId() Missing file %s\n" % filePath)
@@ -232,7 +233,7 @@ class ChemCompReader(object):
         #
         colDict = {}
         #
-        for ii, itTup in enumerate(itTupList):
+        for _ii, itTup in enumerate(itTupList):
             if itTup[0] in itDict:
                 colDict[itTup[0]] = itDict[itTup[0]]
         #
@@ -261,7 +262,7 @@ class ChemCompReader(object):
         #
         colTupList = []
         # (column index of data or -1, type name, [default value]  )
-        for ii, itTup in enumerate(itTupList):
+        for _ii, itTup in enumerate(itTupList):
             if itTup[0] in itDict:
                 colTupList.append((itDict[itTup[0]], itTup[2], itTup[3]))
             else:
@@ -282,7 +283,7 @@ class ChemCompReader(object):
 
         return dataList
 
-    def __applyType(self, type, default, val):
+    def __applyType(self, ctype, default, val):
         """Apply type conversion to the input value and assign default values to
            missing values.
         """
@@ -292,11 +293,11 @@ class ChemCompReader(object):
         if (isinstance(tval, str) and (len(tval) < 1 or tval == '.' or tval == '?')):
             tval = default
 
-        if type == "int":
+        if ctype == "int":
             return int(str(tval))
-        elif type == "float":
+        elif ctype == "float":
             return float(str(tval))
-        elif type == "str":
+        elif ctype == "str":
             return str(tval)
         else:
             return tval

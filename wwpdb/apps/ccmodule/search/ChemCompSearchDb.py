@@ -113,7 +113,7 @@ class ChemCompSearchDb(object):
         #
         self.__sObj = self.__reqObj.newSessionObj()
         self.__sessionPath = self.__sObj.getPath()
-        self.__sessionRelativePath = self.__sObj.getRelativePath()
+        # self.__sessionRelativePath = self.__sObj.getRelativePath()
         self.__sessionId = self.__sObj.getId()
 
         #

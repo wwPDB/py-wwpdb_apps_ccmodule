@@ -93,6 +93,7 @@ import os
 import sys
 import shutil
 import traceback
+import inspect
 
 #
 from rcsb.utils.multiproc.MultiProcUtil import MultiProcUtil
@@ -134,7 +135,7 @@ class ChemCompAssign(object):
         #
         self.__sObj = self.__reqObj.newSessionObj()
         self.__sessionPath = self.__sObj.getPath()
-        self.__sessionRelativePath = self.__sObj.getRelativePath()
+        # self.__sessionRelativePath = self.__sObj.getRelativePath()
         self.__sessionId = self.__sObj.getId()
         #
         #
@@ -260,8 +261,8 @@ class ChemCompAssign(object):
             filePath = self.__reqObj.getValue('filePath')
             fileType = self.__reqObj.getValue('fileType')
             fpModel = filePath
-            (pth, fileName) = os.path.split(filePath)
-            (fN, fileExt) = os.path.splitext(fileName)
+            (_pth, fileName) = os.path.split(filePath)
+            (fN, _fileExt) = os.path.splitext(fileName)
             if (fN.upper().startswith("D_")):
                 depDataSetId = fN.upper()
             elif (fN.lower().startswith("rcsb")):
@@ -411,7 +412,7 @@ class ChemCompAssign(object):
             # if this path has been supplied, indicates that annotator is done with LigModule
             bFinishedWithLigMod = True
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
         #
         bIsWorkflow = self.__isWorkflow()
         #
@@ -426,8 +427,8 @@ class ChemCompAssign(object):
                 depDataSetId = identifier
             else:
                 # fpModel = filePath
-                (pth, fileName) = os.path.split(filePath)
-                (fN, fileExt) = os.path.splitext(fileName)
+                (_pth, fileName) = os.path.split(filePath)
+                (fN, _fileExt) = os.path.splitext(fileName)
                 if (fN.upper().startswith("D_")):
                     depDataSetId = fN.upper()
                 elif (fN.lower().startswith("rcsb")):
@@ -468,20 +469,20 @@ class ChemCompAssign(object):
             # Need to query ChemCompAssignDataStore to obtain latest state info
             ccADS = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
 
-            '''
-            ################### BEGIN: RPS, 20120703: block being called just for TEST purposes ####################################
-            # normally, will only generate updated model file on absolute FINISH of the ligand module
-            if assignFileUpdtdPath is not None:
-                bUpdtdMdlFileOk = self.__ccInstanceUpdateOp(pdbxFilePath, assignFileUpdtdPath, pdbxOutFilePath)
+            # '''
+            # ################### BEGIN: RPS, 20120703: block being called just for TEST purposes ####################################
+            # # normally, will only generate updated model file on absolute FINISH of the ligand module
+            # if assignFileUpdtdPath is not None:
+            #     bUpdtdMdlFileOk = self.__ccInstanceUpdateOp(pdbxFilePath, assignFileUpdtdPath, pdbxOutFilePath)
 
-                if bUpdtdMdlFileOk and os.access(pdbxOutFilePath, os.R_OK):
-                    if self.__verbose:
-                        self.__lfh.write("+%s.%s() - updated model file created for TESTING ONLY: %s\n" % pdbxOutFilePath)
-                else:
-                    if self.__verbose:
-                        self.__lfh.write("+%s.%s() - problem creating updated model file for TESTING purposes at %s\n" % pdbxOutFilePath)
-            ################### END: block for TEST purposes ###########################################################
-            '''
+            #     if bUpdtdMdlFileOk and os.access(pdbxOutFilePath, os.R_OK):
+            #         if self.__verbose:
+            #             self.__lfh.write("+%s.%s() - updated model file created for TESTING ONLY: %s\n" % pdbxOutFilePath)
+            #     else:
+            #         if self.__verbose:
+            #             self.__lfh.write("+%s.%s() - problem creating updated model file for TESTING purposes at %s\n" % pdbxOutFilePath)
+            # ################### END: block for TEST purposes ###########################################################
+            # '''
 
             if context == "annot":
                 if ccADS.wasBorn():
@@ -640,7 +641,7 @@ class ChemCompAssign(object):
 
         return ccADS
 
-    def updateDataStoreForInstnc(self, p_instId, p_dataDict, preFlag=False, preCcidDict={}):
+    def updateDataStoreForInstnc(self, p_instId, p_dataDict, preFlag=False, preCcidDict=None):
         """ Method for updating datastore as required on rerunning of chem comp assignment searches
             Used in scenarios where the deposition dataset has a previously persisted datastore that will
             be updated for information pertaining to a given instance ID for which new information exists
@@ -658,6 +659,9 @@ class ChemCompAssign(object):
         if self.__verbose:
             self.__lfh.write("+ChemCompAssign.updateDataStoreForInstnc() starting\n")
         #
+        if preCcidDict is None:
+            preCcidDict = {}
+
         ccADS = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
         if ccADS.wasBorn():
             self.__synchronizeDataStore(p_dataDict, ccADS, p_instId, preFlag=preFlag, preCcidDict=preCcidDict)
@@ -797,7 +801,7 @@ class ChemCompAssign(object):
         """
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, sys._getframe().f_code.co_name))
+            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
         #
         rtrnCode = -1
         ccConfig = ChemCompConfig(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
@@ -807,12 +811,12 @@ class ChemCompAssign(object):
         if os.access(validationPth, os.R_OK):
             rtrnCode = 0
             if self.__verbose:
-                self.__lfh.write("+%s.%s() %s PASSES simple validation.\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, ccId))
+                self.__lfh.write("+%s.%s() %s PASSES simple validation.\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, ccId))
 
         else:
             rtrnCode = 1
             if self.__verbose:
-                self.__lfh.write("+%s.%s() %s FAILS simple validation.\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, ccId))
+                self.__lfh.write("+%s.%s() %s FAILS simple validation.\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, ccId))
 
         return rtrnCode
 
@@ -849,7 +853,7 @@ class ChemCompAssign(object):
         mpu = MultiProcUtil(verbose=self.__verbose)
         mpu.set(workerObj=self, workerMethod="runMultiAssignValidation")
         mpu.setWorkingDir(self.__sessionPath)
-        ok, failList, retLists, diagList = mpu.runMulti(dataList=self.__ccValidateInstIdList.split(','), numProc=numProc, numResults=1)
+        _ok, _failList, retLists, diagList = mpu.runMulti(dataList=self.__ccValidateInstIdList.split(','), numProc=numProc, numResults=1)
         if diagList:
             return '\n'.join(diagList)
         #
@@ -875,7 +879,7 @@ class ChemCompAssign(object):
 
         return ''
 
-    def runMultiAssignValidation(self, dataList, procName, optionsD, workingDir):
+    def runMultiAssignValidation(self, dataList, procName, optionsD, workingDir):  # pylint: disable=unused-argument
         """ Perform multiprocessing version of "full" validation of chem comp ID being assigned to experimental data.
         """
         authAssgnCcId = self.__reqObj.getValue("auth_assgn_grp")
@@ -1095,7 +1099,7 @@ class ChemCompAssign(object):
         """
 
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
         if self.__verbose:
             self.__lfh.write("+++%s.%s() STARTING\n" % (className, methodName))
             self.__lfh.flush()
@@ -1260,7 +1264,7 @@ class ChemCompAssign(object):
                 + ``p_dpstrFileSource``: "archive" vs. "deposit" storage source
         """
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
 
         try:
             upldFilePartnNum = (p_upldFileName.split("_P")[1]).split(".", 1)[0]
@@ -1361,7 +1365,7 @@ class ChemCompAssign(object):
         #
         return rtrnDict
 
-    def __synchronizeDataStore(self, p_dataDict, p_ccAssgnDataStore, p_instId=None, p_exactOption=False, preFlag=False, preCcidDict={}):
+    def __synchronizeDataStore(self, p_dataDict, p_ccAssgnDataStore, p_instId=None, p_exactOption=False, preFlag=False, preCcidDict=None):
         """ Method for synchronizing datastore object with information
             from the chem component assignment search results
 
@@ -1378,6 +1382,9 @@ class ChemCompAssign(object):
         if self.__verbose:
             self.__lfh.write("+ChemCompAssign.__synchronizeDataStore() -- starting\n")
         self.__lfh.flush()
+        #
+        if preCcidDict is None:
+            preCcidDict = {}
         # parameterize for name of cif category representing assignment results for chemical components
         instncAssignCtgryName = 'pdbx_instance_assignment'
         #
@@ -1450,7 +1457,7 @@ class ChemCompAssign(object):
                         singleAtomFlag = row['_pdbx_instance_assignment.single_atom_flag']
                         if self.__debug:
                             self.__lfh.write("+%s.%s() getting single_atom_flag for instid '%s' and it is: '%s'\n" %
-                                             (self.__class__.__name__, sys._getframe().f_code.co_name, instId, singleAtomFlag))
+                                             (self.__class__.__name__, inspect.currentframe().f_code.co_name, instId, singleAtomFlag))
                     #
                     if p_exactOption is False:
                         if '_pdbx_instance_assignment.warning_message' in row:
@@ -1468,15 +1475,15 @@ class ChemCompAssign(object):
 
                             glblAssignMtchList = p_dataDict['pdbx_match_list']
                             cnt = 0
-                            for dict in glblAssignMtchList:
+                            for dict in glblAssignMtchList:  # pylint: disable=redefined-builtin
                                 if dict['_pdbx_match_list.inst_id'] == instId:
-                                    ''' creating composite score A/B/C/D/E derived from
-                                        A = heavy atom match (%)
-                                        B = match of chiral centers present, independent of handness (%)
-                                        C = match of the handness of the chiral centers (%)
-                                        D = match of aromatic flags
-                                        E = match of bond order
-                                    '''
+                                    # ''' creating composite score A/B/C/D/E derived from
+                                    #     A = heavy atom match (%)
+                                    #     B = match of chiral centers present, independent of handness (%)
+                                    #     C = match of the handness of the chiral centers (%)
+                                    #     D = match of aromatic flags
+                                    #     E = match of bond order
+                                    # '''
                                     cmpstScore = dict['_pdbx_match_list.heavy_atom_match_percent'] + ' / ' + dict['_pdbx_match_list.chiral_center_match_percent'] + \
                                         ' / ' + dict['_pdbx_match_list.chiral_center_match_with_handness_percent'] + ' / ' + dict['_pdbx_match_list.aromatic_match_flag'] + \
                                         ' / ' + dict['_pdbx_match_list.bond_order_match_percent']
@@ -1533,7 +1540,7 @@ class ChemCompAssign(object):
                             p_ccAssgnDataStore.addGrpToAttnReqdLst(authAssgndId)
                             if self.__debug:
                                 self.__lfh.write("+%s.%s() top hit differs from auth assigned ID, '%s', for %s and it is: %s\n" %
-                                                 (self.__class__.__name__, sys._getframe().f_code.co_name, authAssgndId, instId, topHitCcId))
+                                                 (self.__class__.__name__, inspect.currentframe().f_code.co_name, authAssgndId, instId, topHitCcId))
                             self.__lfh.flush()
                         rnkdMtchL.append((topHitCcId.upper(), 'n.a.', 'n.a.'))
 
@@ -1575,7 +1582,7 @@ class ChemCompAssign(object):
 
         """
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
         #
         # assignDirPath = os.path.join(self.__sessionPath, 'assign')
         #
@@ -1650,7 +1657,7 @@ class ChemCompAssign(object):
                 + ``p_ligId``: ligandID
         """
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
         #
         fileHndlingCatalog = {'component-sketch': ('getChemCompSketchFilePath', 'setDpstrSketchFileWfPath'),
                               'component-image': ('getChemCompImageFilePath', 'setDpstrUploadFileWfPath'),
@@ -1658,7 +1665,7 @@ class ChemCompAssign(object):
         #
         ccE = ChemCompDataExport(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         #
-        '''methods to be dynamically determined'''
+        # methods to be dynamically determined
         getExportPth = None
         recordWfPath = None
         #
@@ -1694,11 +1701,11 @@ class ChemCompAssign(object):
         '''Called by annotation LigandModule
         '''
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
 
         if (self.__verbose):
             self.__lfh.write("\n+++++%s.%s() -- STARTING\n" % (self.__class__.__name__,
-                                                               sys._getframe().f_code.co_name))
+                                                               inspect.currentframe().f_code.co_name))
             self.__lfh.flush()
 
         rtrnDict = {}
@@ -1720,7 +1727,7 @@ class ChemCompAssign(object):
                 #
                 if (self.__verbose):
                     self.__lfh.write("\n%s.%s() -- about to parse 'pdbx_chem_comp_depositor_info' category from file: %s\n" % (self.__class__.__name__,
-                                                                                                                               sys._getframe().f_code.co_name,
+                                                                                                                               inspect.currentframe().f_code.co_name,
                                                                                                                                pathToDpstrInfoFile))
                     self.__lfh.flush()
 
@@ -1728,13 +1735,13 @@ class ChemCompAssign(object):
                 if not len(dpstrInfoLst) > 0:
                     if (self.__verbose):
                         self.__lfh.write("\n%s.%s() -- Unable to find 'pdbx_chem_comp_depositor_info' category in file: %s\n" % (self.__class__.__name__,
-                                                                                                                                 sys._getframe().f_code.co_name,
+                                                                                                                                 inspect.currentframe().f_code.co_name,
                                                                                                                                  pathToDpstrInfoFile))
                 self.__lfh.flush()
 
                 if (self.__verbose):
                     self.__lfh.write("\n%s.%s() -- about to parse 'pdbx_chem_comp_upload_depositor_info' category from file: %s\n" % (self.__class__.__name__,
-                                                                                                                                      sys._getframe().f_code.co_name,
+                                                                                                                                      inspect.currentframe().f_code.co_name,
                                                                                                                                       pathToDpstrInfoFile))
                     self.__lfh.flush()
 
@@ -1742,7 +1749,7 @@ class ChemCompAssign(object):
                 if not len(dpstrUploadLst) > 0:
                     if (self.__verbose):
                         self.__lfh.write("\n%s.%s() -- Unable to find 'pdbx_chem_comp_upload_depositor_info' category in file: %s\n" % (self.__class__.__name__,
-                                                                                                                                        sys._getframe().f_code.co_name,
+                                                                                                                                        inspect.currentframe().f_code.co_name,
                                                                                                                                         pathToDpstrInfoFile))
                 self.__lfh.flush()
 
@@ -1750,14 +1757,14 @@ class ChemCompAssign(object):
                 if not len(dpstrRsrchLst) > 0:
                     if (self.__verbose):
                         self.__lfh.write("\n%s.%s() -- Unable to find 'pdbx_entity_instance_feature' category in file: %s\n" % (self.__class__.__name__,
-                                                                                                                                sys._getframe().f_code.co_name,
+                                                                                                                                inspect.currentframe().f_code.co_name,
                                                                                                                                 pathToDpstrInfoFile))
                 self.__lfh.flush()
 
             else:
                 if (self.__verbose):
                     self.__lfh.write("\n%s.%s() -- Unable to access file at: %s\n" % (self.__class__.__name__,
-                                                                                      sys._getframe().f_code.co_name,
+                                                                                      inspect.currentframe().f_code.co_name,
                                                                                       pathToDpstrInfoFile))
         except:  # noqa: E722 pylint: disable=bare-except
             if (self.__verbose):
@@ -1778,7 +1785,7 @@ class ChemCompAssign(object):
         catObj = container.getObj(categoryNm)
         if catObj is not None:
             if (self.__verbose):
-                self.__lfh.write("\n%s.%s() -- '%s' cat obj found in dpstrInfo cif file.\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, categoryNm))
+                self.__lfh.write("\n%s.%s() -- '%s' cat obj found in dpstrInfo cif file.\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, categoryNm))
 
             #
             # Get column name index.
@@ -1791,7 +1798,7 @@ class ChemCompAssign(object):
             #
             for row in catObj.getRowList():
                 if (self.__verbose):
-                    self.__lfh.write("\n%s.%s() -- '%s' cat obj has row.\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, categoryNm))
+                    self.__lfh.write("\n%s.%s() -- '%s' cat obj has row.\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, categoryNm))
                 entryDict = {}
                 try:
                     for k, v in itDict.items():
@@ -1801,7 +1808,7 @@ class ChemCompAssign(object):
                     pass
         else:
             if (self.__verbose):
-                self.__lfh.write("\n%s.%s() -- Unable to find '%s' category in file: %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, categoryNm, filename))
+                self.__lfh.write("\n%s.%s() -- Unable to find '%s' category in file: %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, categoryNm, filename))
 
         return rtrnLst
 

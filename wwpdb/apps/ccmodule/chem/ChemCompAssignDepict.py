@@ -95,9 +95,10 @@ import os
 import sys
 import traceback
 from operator import itemgetter
+import inspect
 
 from wwpdb.apps.ccmodule.depict.ChemCompDepict import ChemCompDepict
-from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
+# from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.oe_util.oedepict.OeDepict import OeDepict
@@ -123,9 +124,9 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         self.__cI = ConfigInfo()
         #
-        self.__cDict = PdbxCategoryDefinition._cDict
+        # self.__cDict = PdbxCategoryDefinition._cDict
         #
-        self.__noDisplayList = ['']
+        # self.__noDisplayList = ['']
         #
         self.__pathGlblVwTmplts = "templates/workflow_ui/global_view"
         self.__pathInstncsVwTmplts = "templates/workflow_ui/instances_view"
@@ -186,7 +187,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         tmpltPath = p_reqObj.getValue("TemplatePath")
         #
         # This is wrong - but not correcting depid vs depId
-        depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)  # noqa: F841
+        depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)  # noqa: F841 pylint: disable=unused-variable
         #
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")
@@ -216,8 +217,8 @@ class ChemCompAssignDepict(ChemCompDepict):
         if p_bIsWorkflow:
             myD['identifier'] = depId
         else:
-            (pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
-            (fN, fileExt) = os.path.splitext(fileName)
+            (_pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
+            (fN, _fileExt) = os.path.splitext(fileName)
             if (fN.upper().startswith("D_")):
                 depDataSetId = fN.upper()
             elif (fN.lower().startswith("rcsb")):
@@ -646,7 +647,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         p_hlprDict['fmlcharge'] = p_ccAssgnDataStr.getCcFormalChrg(instId)
         #
         if self.__debug:
-            self.__lfh.write("+%s.%s() ----- single atomflag for instId '%s' is: '%s'.\n" % (self.__class__.__name__, sys._getframe().f_code.co_name,
+            self.__lfh.write("+%s.%s() ----- single atomflag for instId '%s' is: '%s'.\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name,
                                                                                              instId, p_ccAssgnDataStr.getCcSingleAtomFlag(instId)))
         p_hlprDict['dsplyvizopt'] = "" if (str(p_ccAssgnDataStr.getCcSingleAtomFlag(instId)).lower() == 'n') else "displaynone"
         #
@@ -923,14 +924,14 @@ class ChemCompAssignDepict(ChemCompDepict):
                 strReplDict['2dpath_labld_no_hy_ref'] = os.path.join('/', strReplDict['assgn_sess_path_rel'], p_instId, 'image', p_ccId + '_Big.svg')
                 # strReplDict['2dpath_labld_no_hy_ref'] = os.path.join('/',strReplDict['assgn_sess_path_rel'],'rfrnc_reports',p_ccId,p_ccId+'_D3L1.gif')
                 strReplDict['jmol_code_base'] = self.jmolCodeBase
-                '''
-                ##########################################################################################################
-                # populate template used for displaying instance match results for this instance and append contents to oL
-                #    this template contains placeholders for "instanceid", "ccid", "score", and "checked"
-                ##########################################################################################################
-                oL.append( self.processTemplate(tmpltPth=p_tmpltPth, fn="cc_instnc_match_rslts_tbl_tmplt.html", parameterDict=strReplDict))
-                #
-                '''
+                # '''
+                # ##########################################################################################################
+                # # populate template used for displaying instance match results for this instance and append contents to oL
+                # #    this template contains placeholders for "instanceid", "ccid", "score", and "checked"
+                # ##########################################################################################################
+                # oL.append( self.processTemplate(tmpltPth=p_tmpltPth, fn="cc_instnc_match_rslts_tbl_tmplt.html", parameterDict=strReplDict))
+                # #
+                # '''
                 #################################################################################################
                 # also populate templates used for displaying chem comp references in viz compare grid
                 #################################################################################################
@@ -954,13 +955,13 @@ class ChemCompAssignDepict(ChemCompDepict):
                                                      fn="cc_viz_cmp_li_tmplt_newcandidt.html", parameterDict=strReplDict))
                 fp.close()
                 #
-                '''
-                #################################################################################################
-                # call method to populate "cc_ref_atm_mp_li_tmplt.html"
-                #    which contains placeholders for "instanceid", "ccid"
-                #################################################################################################
-                self.doRender_AtmMpList(instId, p_ccAssgnDataStr, p_topSessionPth, p_tmpltPth, atmMpFilePathAbs, ccid)
-                '''
+                # '''
+                # #################################################################################################
+                # # call method to populate "cc_ref_atm_mp_li_tmplt.html"
+                # #    which contains placeholders for "instanceid", "ccid"
+                # #################################################################################################
+                # self.doRender_AtmMpList(instId, p_ccAssgnDataStr, p_topSessionPth, p_tmpltPth, atmMpFilePathAbs, ccid)
+                # '''
                 #################################################################################################
                 #
                 #################################################################################################
@@ -1030,7 +1031,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         fp = open(p_atmMpHtmlPathAbs, 'w')
         fp.write("%s" % ('\n'.join(oL)))
-        fp.close
+        fp.close()
 
     def doRender_InstanceAssgnDrpDwn(self, p_entityId, p_instncIdLst, p_ccAssgnDataStr, p_tmpltPth):
         ''' Generates HTML markup comprising the dropdown list that controls display of content in
@@ -1334,7 +1335,7 @@ class ChemCompAssignDepict(ChemCompDepict):
     #
     def __packDpstrViewDict(self, p_grpId, p_dataStore, p_strReplDict):
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
         self.__lfh.write("+%s.%s() ------ STARTING ------\n" % (className, methodName))
 
         # ## dpstr info handling ###
@@ -1675,7 +1676,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         return rtrnD
 
-    def __formatDepositionDataId(self, p_depid, p_bIsWorkflow):
+    def __formatDepositionDataId(self, p_depid, p_bIsWorkflow):  # pylint: disable=unused-argument
         #       if( p_bIsWorkflow or ( p_depid.upper() == 'TMP_ID' ) ):
         #           depId = p_depid.upper()
         #       else:
@@ -1686,22 +1687,22 @@ class ChemCompAssignDepict(ChemCompDepict):
     def __rowClass(self, iRow):
         return (iRow % 2 and "odd" or 'even')
 
-    def __categoryPart(self, name):
-        tname = ""
-        if name.startswith("_"):
-            tname = name[1:]
-        else:
-            tname = name
+    # def __categoryPart(self, name):
+    #     tname = ""
+    #     if name.startswith("_"):
+    #         tname = name[1:]
+    #     else:
+    #         tname = name
 
-        i = tname.find(".")
-        if i == -1:
-            return tname
-        else:
-            return tname[:i]
+    #     i = tname.find(".")
+    #     if i == -1:
+    #         return tname
+    #     else:
+    #         return tname[:i]
 
-    def __attributePart(self, name):
-        i = name.find(".")
-        if i == -1:
-            return None
-        else:
-            return name[i + 1:]
+    # def __attributePart(self, name):
+    #     i = name.find(".")
+    #     if i == -1:
+    #         return None
+    #     else:
+    #         return name[i + 1:]

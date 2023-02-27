@@ -53,7 +53,7 @@ class ChemCompDataExport(object):
 
         try:
             self.__sessionObj = self.__reqObj.getSessionObj()
-            self.__sessionPath = self.__sessionObj.getPath()
+            # self.__sessionPath = self.__sessionObj.getPath()
             self.__fileSource = str(self.__reqObj.getValue("filesource")).lower()
             self.__identifier = str(self.__reqObj.getValue("identifier")).upper()
             self.__instance = str(self.__reqObj.getValue("instance")).upper()
@@ -84,17 +84,17 @@ class ChemCompDataExport(object):
     def getChemCompDpstrInfoFilePath(self):
         return self.__getWfFilePath(contentType='chem-comp-depositor-info', format='pdbx', fileSource=self.__fileSource, version='next')
 
-    def getChemCompSketchFilePath(self, format='sdf', partitionNum=None):
+    def getChemCompSketchFilePath(self, format='sdf', partitionNum=None):  # pylint: disable=redefined-builtin,unused-argument
         return self.__getWfFilePath(contentType='component-definition-deposit', format='sdf', fileSource=self.__fileSource, version='next', partitionNum=partitionNum)
 
-    def getChemCompImageFilePath(self, format, partitionNum=None):
+    def getChemCompImageFilePath(self, format, partitionNum=None):  # pylint: disable=redefined-builtin
         return self.__getWfFilePath(contentType='component-image-upload', format=format, fileSource=self.__fileSource, version='next', partitionNum=partitionNum)
 
-    def getChemCompDefntnFilePath(self, format, partitionNum=None):
+    def getChemCompDefntnFilePath(self, format, partitionNum=None):  # pylint: disable=redefined-builtin
         return self.__getWfFilePath(contentType='component-definition-upload', format=format, fileSource=self.__fileSource, version='next', partitionNum=partitionNum)
     # ####  END file handling for LigandLite types #####
 
-    def __getWfFilePath(self, contentType='model', format='pdbx', fileSource='archive', version='next', partitionNum=None):
+    def __getWfFilePath(self, contentType='model', format='pdbx', fileSource='archive', version='next', partitionNum=None):  # pylint: disable=redefined-builtin
         try:
             fPath = self.__getWfFilePathRef(contentType=contentType, format=format, fileSource=fileSource, version=version, partitionNum=partitionNum)
             if self.__verbose:
@@ -109,7 +109,7 @@ class ChemCompDataExport(object):
                 self.__lfh.flush()
             return None
 
-    def __getWfFilePathRef(self, contentType='model', format='pdbx', fileSource='archive', version='next', partitionNum=None):
+    def __getWfFilePathRef(self, contentType='model', format='pdbx', fileSource='archive', version='next', partitionNum=None):  # pylint: disable=redefined-builtin
         """ Return the path to the next version of the file of interest
         """
         #

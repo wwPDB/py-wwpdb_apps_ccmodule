@@ -138,6 +138,7 @@ import traceback
 import ntpath
 import shutil
 from time import localtime, strftime
+import inspect
 
 from wwpdb.utils.session.WebRequest import InputRequest, ResponseContent
 #
@@ -181,7 +182,7 @@ class ChemCompWebApp(object):
     """Handle request and response object processing for the chemical component editor tool application.
 
     """
-    def __init__(self, parameterDict={}, verbose=False, log=sys.stderr, siteId="WWPDB_DEV"):
+    def __init__(self, parameterDict=None, verbose=False, log=sys.stderr, siteId="WWPDB_DEV"):
         """
         Create an instance of `ChemCompWebApp` to manage a ligand editor web request.
 
@@ -191,6 +192,8 @@ class ChemCompWebApp(object):
          :param `log`:      stream for logging.
 
         """
+        if parameterDict is None:
+            parameterDict = {}
         self.__verbose = verbose
         self.__lfh = log
         self.__debug = False
@@ -350,7 +353,7 @@ class ChemCompWebAppWorker(object):
         """
         return self.__doOpException()
 
-    def __doOpNoException(self):
+    def __doOpNoException(self):  # pylint: disable=unused-private-member
         """Map operation to path and invoke operation.  No exception handling is performed.
 
             :Returns:
@@ -748,8 +751,8 @@ class ChemCompWebAppWorker(object):
         # # Added by ZF
         if self.__modelFilePath and os.access(self.__modelFilePath, os.R_OK):
             cifObj = mmCIFUtil(filePath=self.__modelFilePath)
-            list = cifObj.GetValue('database_2')
-            for dir in list:
+            dlist = cifObj.GetValue('database_2')
+            for dir in dlist:  # pylint: disable=redefined-builtin
                 if ('database_id' not in dir) or ('database_code' not in dir):
                     continue
                 #
@@ -760,8 +763,8 @@ class ChemCompWebAppWorker(object):
                     break
                 #
             #
-            list = cifObj.GetValue('struct')
-            for dir in list:
+            slist = cifObj.GetValue('struct')
+            for dir in slist:
                 if 'title' not in dir:
                     continue
                 #
@@ -796,24 +799,24 @@ class ChemCompWebAppWorker(object):
         #
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, sys._getframe().f_code.co_name))
-            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId))
-            self.__lfh.write("+%s.%s() workflow instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj.getValue("instance")))
-            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj.getValue("filesource")))
-            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__sessionId))
+            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, depId))
+            self.__lfh.write("+%s.%s() workflow instance     %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__reqObj.getValue("instance")))
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__reqObj.getValue("filesource")))
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__sessionId))
             self.__lfh.flush()
         #
         sph = self.__setSemaphore()
         if (self.__verbose):
             self.__lfh.write("+%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n" %
-                             (self.__class__.__name__, sys._getframe().f_code.co_name))
+                             (self.__class__.__name__, inspect.currentframe().f_code.co_name))
         pid = os.fork()
         if pid == 0:
             os.setsid()
             sub_pid = os.fork()
             if sub_pid:
                 # Parent of second fork
-                os._exit(0)
+                os._exit(0)  # pylint: disable=protected-access
 
             # determine if currently operating in Workflow Managed environment
             bIsWorkflow = self.__isWorkflow()
@@ -834,7 +837,7 @@ class ChemCompWebAppWorker(object):
             sys.stderr = self.__lfh
             #
             if (self.__verbose):
-                self.__lfh.write("+%s.%s() Child Process: PID# %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, os.getpid()))
+                self.__lfh.write("+%s.%s() Child Process: PID# %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, os.getpid()))
             #
             try:
                 foundWfSearchResult = False
@@ -926,16 +929,16 @@ class ChemCompWebAppWorker(object):
                 #
             except:  # noqa: E722 pylint: disable=bare-except
                 traceback.print_exc(file=self.__lfh)
-                self.__lfh.write("+%s.%s() Failing for child Process: PID# %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, os.getpid()))
+                self.__lfh.write("+%s.%s() Failing for child Process: PID# %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, os.getpid()))
                 self.__postSemaphore(sph, "FAIL")
                 self.__lfh.flush()
                 self.__verbose = False
 
             self.__verbose = False
-            os._exit(0)
+            os._exit(0)  # pylint: disable=protected-access
         else:
             # we are in parent process and we will return status code to client to indicate that data processing is "running"
-            self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, os.getpid()))
+            self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, os.getpid()))
 
             # Wait for first fork
             os.waitpid(pid, 0)
@@ -943,7 +946,7 @@ class ChemCompWebAppWorker(object):
             self.__reqObj.setReturnFormat(return_format="json")
             rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
             rC.setStatusCode('running')
-            self.__lfh.write("+%s.%s() Parent process completed\n" % (self.__class__.__name__, sys._getframe().f_code.co_name))
+            self.__lfh.write("+%s.%s() Parent process completed\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
             self.__lfh.flush()
             return rC
 
@@ -967,17 +970,17 @@ class ChemCompWebAppWorker(object):
     #     #
     #     if (self.__verbose):
     #         self.__lfh.write("--------------------------------------------\n")
-    #         self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
-    #         self.__lfh.write("+%s.%s() identifier   %s\n"%(self.__class__.__name__, sys._getframe().f_code.co_name, depId) )
-    #         self.__lfh.write("+%s.%s() workflow instance     %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj.getValue("instance")) )
-    #         self.__lfh.write("+%s.%s() file source  %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, self.__reqObj.getValue("filesource")) )
-    #         self.__lfh.write("+%s.%s() sessionId  %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, self.__sessionId ) )
+    #         self.__lfh.write("+%s.%s() starting\n"%(self.__class__.__name__, inspect.currentframe().f_code.co_name) )
+    #         self.__lfh.write("+%s.%s() identifier   %s\n"%(self.__class__.__name__, inspect.currentframe().f_code.co_name, depId) )
+    #         self.__lfh.write("+%s.%s() workflow instance     %s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__reqObj.getValue("instance")) )
+    #         self.__lfh.write("+%s.%s() file source  %s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__reqObj.getValue("filesource")) )
+    #         self.__lfh.write("+%s.%s() sessionId  %s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__sessionId ) )
     #         self.__lfh.flush()
     #     #
     #     sph=self.__setSemaphore()
     #     if (self.__verbose):
     #             self.__lfh.write("+%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n"%
-    #                              (self.__class__.__name__, sys._getframe().f_code.co_name) )
+    #                              (self.__class__.__name__, inspect.currentframe().f_code.co_name) )
     #     pid = os.fork()
     #     if pid == 0:
     #         # if here, means we are in the child process
@@ -1001,7 +1004,7 @@ class ChemCompWebAppWorker(object):
     #         sys.stderr = self.__lfh
     #         #
     #         if (self.__verbose):
-    #             self.__lfh.write("+%s.%s() Child Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, os.getpid()) )
+    #             self.__lfh.write("+%s.%s() Child Process: PID# %s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name, os.getpid()) )
     #         #
     #         try:
     #             # 2013-12-11, RPS: Unfortunately found that currently need to run cc-assign search everytime in order
@@ -1049,7 +1052,7 @@ class ChemCompWebAppWorker(object):
 
     #                 if (self.__verbose):
     #                     for k,v in assignRsltsDict.items():
-    #                         self.__lfh.write("+%s.%s() key %30s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name, k) )
+    #                         self.__lfh.write("+%s.%s() key %30s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name, k) )
     #                         self.__lfh.flush()
 
     #                 # generate a datastore to serve as representation of chem component assignment results data required/updated by annotator during current session.
@@ -1070,7 +1073,7 @@ class ChemCompWebAppWorker(object):
 
     #         except:  # noqa: E722 pylint: disable=bare-except
     #             traceback.print_exc(file=self.__lfh)
-    #             self.__lfh.write("+%s.%s() Failing for child Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
+    #             self.__lfh.write("+%s.%s() Failing for child Process: PID# %s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name,os.getpid()) )
     #             self.__postSemaphore(sph,"FAIL")
     #             self.__lfh.flush()
     #             self.__verbose = False
@@ -1080,11 +1083,11 @@ class ChemCompWebAppWorker(object):
 
     #     else:
     #         # we are in parent process and we will return status code to client to indicate that data processing is "running"
-    #         self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, sys._getframe().f_code.co_name,os.getpid()) )
+    #         self.__lfh.write("+%s.%s() Parent Process: PID# %s\n" %(self.__class__.__name__, inspect.currentframe().f_code.co_name,os.getpid()) )
     #         self.__reqObj.setReturnFormat(return_format="json")
     #         rC=ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose,log=self.__lfh)
     #         rC.setStatusCode('running')
-    #         self.__lfh.write("+%s.%s() Parent process completed\n"%(self.__class__.__name__, sys._getframe().f_code.co_name) )
+    #         self.__lfh.write("+%s.%s() Parent process completed\n"%(self.__class__.__name__, inspect.currentframe().f_code.co_name) )
     #         self.__lfh.flush()
     #         return rC
     # """
@@ -1438,8 +1441,8 @@ class ChemCompWebAppWorker(object):
                 ok = False
                 hitList = ccADS.getTopHitsList(instId)
                 if hitList:
-                    for tuple in hitList:
-                        if tuple[0] == assgnCcId:
+                    for tup in hitList:
+                        if tup[0] == assgnCcId:
                             ok = True
                             break
                         #
@@ -1456,9 +1459,9 @@ class ChemCompWebAppWorker(object):
         #
         for instId in instIdL:
             self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- instId %s\n" % instId)
-            list = ccADS.getTopHitsList(instId)
-            if list:
-                self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- tuple %s for %s\n" % (list, instId))
+            hlist = ccADS.getTopHitsList(instId)
+            if hlist:
+                self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- tuple %s for %s\n" % (hlist, instId))
             else:
                 self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- no tuple for %s\n" % instId)
             ccADS.setAnnotAssignment(instId, assgnCcId)
@@ -1609,10 +1612,10 @@ class ChemCompWebAppWorker(object):
                 return rC
             #
         #
-        '''    'full' mode includes verification that the given chem comp ID:
-               = is not obsolete
-               = would be returned as result of cc-assign match query for the given ligand instance.
-        '''
+        # '''    'full' mode includes verification that the given chem comp ID:
+        #        = is not obsolete
+        #        = would be returned as result of cc-assign match query for the given ligand instance.
+        # '''
         ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         ccA.setInstanceIdListForValidation(instIdList)
         ccA.setValidationCcRefFilePath(validationPth)
@@ -1891,7 +1894,7 @@ class ChemCompWebAppWorker(object):
         # create a DataStore for chem comp assignments
         if (self.__verbose):
             self.__lfh.write("++++%s.%s() ---- creating new datastore because no prior cc-assign-details.pic file existed.\n" % (self.__class__.__name__,
-                                                                                                                                 sys._getframe().f_code.co_name))
+                                                                                                                                 inspect.currentframe().f_code.co_name))
         self.__lfh.flush()
         ccAssignDataStore = p_ccAssignObj.createDataStore(p_ccAssignRsltsDict)
 
@@ -1934,131 +1937,131 @@ class ChemCompWebAppWorker(object):
 
         return ccADS
 
-    def __generateInstanceLevelData(self, p_ccAssignDataStore, p_bReusingPriorDataStore):
-        """ Generate report material that will support 2D,3D renderings.
-            Also, populate ChemCompAssignDataStore with datapoints required for
-            instance-level browsing.
+    # def __generateInstanceLevelData(self, p_ccAssignDataStore, p_bReusingPriorDataStore):
+    #     """ Generate report material that will support 2D,3D renderings.
+    #         Also, populate ChemCompAssignDataStore with datapoints required for
+    #         instance-level browsing.
 
-            Delegates processing to a child process
+    #         Delegates processing to a child process
 
-            :Params:
-                ``p_ccAssignDataStore``: ChemCompAssignDataStore object
-                ``p_bReusingPriorDataStore``: boolean flag indicating whether there was
-                                                a pre-existing datastore for us to reuse.
+    #         :Params:
+    #             ``p_ccAssignDataStore``: ChemCompAssignDataStore object
+    #             ``p_bReusingPriorDataStore``: boolean flag indicating whether there was
+    #                                             a pre-existing datastore for us to reuse.
 
-            :Helpers:
+    #         :Helpers:
 
-                + wwpdb.apps.ccmodule.reports.ChemCompReports.ChemCompReport
-                + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
-        """
-        instIdLst = []
-        depId = str(self.__reqObj.getValue("identifier")).upper()
-        # wfInstId = str(self.__reqObj.getValue("instance")).upper()
-        # sessionId = self.__reqObj.getSessionId()
-        # fileSource = str(self.__reqObj.getValue("filesource")).lower()
-        #
-        className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
-        #
-        if (self.__verbose):
-            self.__lfh.write("++%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n" % (className, methodName))
-        pid = os.fork()
-        if pid == 0:
-            #
-            sys.stdout = RedirectDevice()
-            sys.stderr = RedirectDevice()
-            os.setpgrp()
-            os.umask(0)
-            #
-            # redirect the logfile
-            self.__openChildProcessLog("RPRT_CHLD_PROC")
-            sys.stdout = self.__lfh
-            sys.stderr = self.__lfh
-            #
-            if (self.__verbose):
-                self.__lfh.write("+++%s.%s() Child Process: PID# %s\n" % (className, methodName, os.getpid()))
-            #
-            try:
-                ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+    #             + wwpdb.apps.ccmodule.reports.ChemCompReports.ChemCompReport
+    #             + wwpdb.apps.ccmodule.io.ChemCompAssignDataStore.ChemCompAssignDataStore
+    #     """
+    #     instIdLst = []
+    #     depId = str(self.__reqObj.getValue("identifier")).upper()
+    #     # wfInstId = str(self.__reqObj.getValue("instance")).upper()
+    #     # sessionId = self.__reqObj.getSessionId()
+    #     # fileSource = str(self.__reqObj.getValue("filesource")).lower()
+    #     #
+    #     className = self.__class__.__name__
+    #     methodName = inspect.currentframe().f_code.co_name
+    #     #
+    #     if (self.__verbose):
+    #         self.__lfh.write("++%s.%s() Just before fork to create child process w/ separate log generated in session directory.\n" % (className, methodName))
+    #     pid = os.fork()
+    #     if pid == 0:
+    #         #
+    #         sys.stdout = RedirectDevice()
+    #         sys.stderr = RedirectDevice()
+    #         os.setpgrp()
+    #         os.umask(0)
+    #         #
+    #         # redirect the logfile
+    #         self.__openChildProcessLog("RPRT_CHLD_PROC")
+    #         sys.stdout = self.__lfh
+    #         sys.stderr = self.__lfh
+    #         #
+    #         if (self.__verbose):
+    #             self.__lfh.write("+++%s.%s() Child Process: PID# %s\n" % (className, methodName, os.getpid()))
+    #         #
+    #         try:
+    #             ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
 
-                instIdLst = p_ccAssignDataStore.getAuthAssignmentKeys()
-                if self.__verbose:
-                    for i in instIdLst:
-                        if self.__verbose:
-                            self.__lfh.write("+++%s.%s() -- instIdLst item %30s\n" % (className, methodName, i))
+    #             instIdLst = p_ccAssignDataStore.getAuthAssignmentKeys()
+    #             if self.__verbose:
+    #                 for i in instIdLst:
+    #                     if self.__verbose:
+    #                         self.__lfh.write("+++%s.%s() -- instIdLst item %30s\n" % (className, methodName, i))
 
-                if len(instIdLst) > 0:
-                    ccIdAlrdySeenLst = []
+    #             if len(instIdLst) > 0:
+    #                 ccIdAlrdySeenLst = []
 
-                    for instId in instIdLst:
+    #                 for instId in instIdLst:
 
-                        #############################################################################################################
-                        #        First generate report material for top hit dictionary reference(s) to which this lig instance is mapped
-                        #############################################################################################################
-                        ccReferncRprt = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-                        mtchL = p_ccAssignDataStore.getTopHitsList(instId)
-                        HitList = []
-                        for tupL in mtchL:
-                            ccId = tupL[0]
-                            HitList.append(ccId)
-                            if ccId not in ccIdAlrdySeenLst:
-                                ccIdAlrdySeenLst.append(ccId)
-                                ccReferncRprt.setDefinitionId(definitionId=ccId.lower())
-                                ccReferncRprt.doReport(type='ref', ccAssignPthMdfier=ccId)
-                                rD = ccReferncRprt.getReportFilePaths()
-                                for k, v in rD.items():
-                                    if self.__verbose:
-                                        self.__lfh.write("+++%s.%s() -- Reference file reporting -- Key %30s value %s\n" % (className, methodName, k, v))
+    #                     #############################################################################################################
+    #                     #        First generate report material for top hit dictionary reference(s) to which this lig instance is mapped
+    #                     #############################################################################################################
+    #                     ccReferncRprt = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+    #                     mtchL = p_ccAssignDataStore.getTopHitsList(instId)
+    #                     HitList = []
+    #                     for tupL in mtchL:
+    #                         ccId = tupL[0]
+    #                         HitList.append(ccId)
+    #                         if ccId not in ccIdAlrdySeenLst:
+    #                             ccIdAlrdySeenLst.append(ccId)
+    #                             ccReferncRprt.setDefinitionId(definitionId=ccId.lower())
+    #                             ccReferncRprt.doReport(type='ref', ccAssignPthMdfier=ccId)
+    #                             rD = ccReferncRprt.getReportFilePaths()
+    #                             for k, v in rD.items():
+    #                                 if self.__verbose:
+    #                                     self.__lfh.write("+++%s.%s() -- Reference file reporting -- Key %30s value %s\n" % (className, methodName, k, v))
 
-                        #
-                        #############################################################################################################
-                        #        Then generate report material for experimental chem comp data of this lig instance
-                        #############################################################################################################
+    #                     #
+    #                     #############################################################################################################
+    #                     #        Then generate report material for experimental chem comp data of this lig instance
+    #                     #############################################################################################################
 
-                        chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_ARCHIVE_STORAGE_PATH'), 'workflow', depId, 'assign', instId, instId + ".cif")
-                        if not os.access(chemCompFilePathAbs, os.R_OK):
-                            # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
-                            # and therefore produced cc-assign results file in local session area
-                            chemCompFilePathAbs = os.path.join(self.__sessionPath, 'assign', instId, instId + ".cif")
+    #                     chemCompFilePathAbs = os.path.join(self.__cI.get('SITE_ARCHIVE_STORAGE_PATH'), 'workflow', depId, 'assign', instId, instId + ".cif")
+    #                     if not os.access(chemCompFilePathAbs, os.R_OK):
+    #                         # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
+    #                         # and therefore produced cc-assign results file in local session area
+    #                         chemCompFilePathAbs = os.path.join(self.__sessionPath, 'assign', instId, instId + ".cif")
 
-                        #
-                        instChemCompRprt = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-                        instChemCompRprt.setFilePath(chemCompFilePathAbs, instId)
-                        if self.__verbose:
-                            self.__lfh.write("+++%s.%s() -- before call to doReport and instId is: %s\n" % (className, methodName, instId))
-                        instChemCompRprt.doReport(type='exp', ccAssignPthMdfier=instId)
-                        rDict = instChemCompRprt.getReportFilePaths()
-                        for k, v in rDict.items():
-                            if self.__verbose:
-                                self.__lfh.write("+++%s.%s() -- Checm Comp file reporting -- Key %30s value %s\n" %
-                                                 (className, methodName, k, v))
-                        #
-                        # 2014-10-31, ZF -- add aligned image
-                        ccaig = ChemCompAlignImageGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-                        ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList)
+    #                     #
+    #                     instChemCompRprt = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+    #                     instChemCompRprt.setFilePath(chemCompFilePathAbs, instId)
+    #                     if self.__verbose:
+    #                         self.__lfh.write("+++%s.%s() -- before call to doReport and instId is: %s\n" % (className, methodName, instId))
+    #                     instChemCompRprt.doReport(type='exp', ccAssignPthMdfier=instId)
+    #                     rDict = instChemCompRprt.getReportFilePaths()
+    #                     for k, v in rDict.items():
+    #                         if self.__verbose:
+    #                             self.__lfh.write("+++%s.%s() -- Checm Comp file reporting -- Key %30s value %s\n" %
+    #                                              (className, methodName, k, v))
+    #                     #
+    #                     # 2014-10-31, ZF -- add aligned image
+    #                     ccaig = ChemCompAlignImageGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+    #                     ccaig.generateImages(instId=instId, instFile=chemCompFilePathAbs, hitList=HitList)
 
-                    # 2013-06-26, RPS -- trying this here to see if it introduces improvement in response time
-                    if p_bReusingPriorDataStore is not True:
-                        # i.e. if we are spawning a brand new datastore from scratch let's go ahead and
-                        # parse the instance-level chem-comp cif files and top hit reference chem comp cif files
-                        # for data needed in instance browser
-                        ccA.getDataForInstncSrch(instIdLst, p_ccAssignDataStore)
-                        p_ccAssignDataStore.dumpData(self.__lfh)
-                        p_ccAssignDataStore.serialize()
+    #                 # 2013-06-26, RPS -- trying this here to see if it introduces improvement in response time
+    #                 if p_bReusingPriorDataStore is not True:
+    #                     # i.e. if we are spawning a brand new datastore from scratch let's go ahead and
+    #                     # parse the instance-level chem-comp cif files and top hit reference chem comp cif files
+    #                     # for data needed in instance browser
+    #                     ccA.getDataForInstncSrch(instIdLst, p_ccAssignDataStore)
+    #                     p_ccAssignDataStore.dumpData(self.__lfh)
+    #                     p_ccAssignDataStore.serialize()
 
-            except:  # noqa: E722 pylint: disable=bare-except
-                traceback.print_exc(file=self.__lfh)
-                self.__lfh.write("+++%s.%s() -- Failing for child Process: PID# %s\n" % (className, methodName, os.getpid()))
-                self.__lfh.flush()
-                self.__verbose = False
+    #         except:  # noqa: E722 pylint: disable=bare-except
+    #             traceback.print_exc(file=self.__lfh)
+    #             self.__lfh.write("+++%s.%s() -- Failing for child Process: PID# %s\n" % (className, methodName, os.getpid()))
+    #             self.__lfh.flush()
+    #             self.__verbose = False
 
-            self.__verbose = False
-            os._exit(0)
+    #         self.__verbose = False
+    #         os._exit(0)
 
-        else:
-            # we are in parent process and we will return status code to client to indicate that data processing is "running"
-            self.__lfh.write("+++%s.%s() Parent Process Completed: PID# %s\n" % (className, methodName, os.getpid()))
-        #
+    #     else:
+    #         # we are in parent process and we will return status code to client to indicate that data processing is "running"
+    #         self.__lfh.write("+++%s.%s() Parent Process Completed: PID# %s\n" % (className, methodName, os.getpid()))
+    #     #
 
     def __importDepositorFiles(self, p_ccAssignDataStore):
         """ Import any files that were previously uploaded/generated by the depositor
@@ -2077,7 +2080,7 @@ class ChemCompWebAppWorker(object):
         # fileSource = str(self.__reqObj.getValue("filesource")).lower()
         #
         className = self.__class__.__name__
-        methodName = sys._getframe().f_code.co_name
+        methodName = inspect.currentframe().f_code.co_name
         #
         if self.__verbose:
             self.__lfh.write("+%s.%s() ------------------------------ STARTING ------------------------------\n" % (className, methodName))
@@ -2493,9 +2496,9 @@ class ChemCompWebAppWorker(object):
         fPathAbs = os.path.join(self.__sessionPath, semaphore + '.log')
         self.__lfh = open(fPathAbs, 'w')
 
-    def __closeSemaphoreLog(self, semaphore="TMP_"):
-        self.__lfh.flush()
-        self.__lfh.close()
+    # def __closeSemaphoreLog(self, semaphore="TMP_"):
+    #     self.__lfh.flush()
+    #     self.__lfh.close()
 
     def __postSemaphore(self, semaphore='TMP_', value="OK"):
         # sessionId = self.__reqObj.getSessionId()
@@ -2527,12 +2530,12 @@ class ChemCompWebAppWorker(object):
             sval = "FAIL"
         return sval
 
-    def __openChildProcessLog(self, label="TMP_"):
-        # sessionId = self.__reqObj.getSessionId()
-        fPathAbs = os.path.join(self.__sessionPath, label + '.log')
-        self.__lfh = open(fPathAbs, 'w')
+    # def __openChildProcessLog(self, label="TMP_"):
+    #     # sessionId = self.__reqObj.getSessionId()
+    #     fPathAbs = os.path.join(self.__sessionPath, label + '.log')
+    #     self.__lfh = open(fPathAbs, 'w')
 
-    def __processTemplate(self, fn, parameterDict={}):
+    def __processTemplate(self, fn, parameterDict=None):
         """ Read the input HTML template data file and perform the key/value substitutions in the
             input parameter dictionary.
 
@@ -2544,6 +2547,8 @@ class ChemCompWebAppWorker(object):
             :Returns:
                 string representing entirety of content with subsitution placeholders now replaced with data
         """
+        if parameterDict is None:
+            parameterDict = {}
         tPath = self.__reqObj.getValue("TemplatePath")
         fPath = os.path.join(tPath, fn)
         ifh = open(fPath, 'r')
@@ -2607,8 +2612,12 @@ class RedirectDevice:
         pass
 
 
-if __name__ == '__main__':
+def testmain():
     sTool = ChemCompWebApp()
     d = sTool.doOp()
     for k, v in d.items():
         sys.stdout.write("Key - %s  value - %r\n" % (k, v))
+
+
+if __name__ == '__main__':
+    testmain()

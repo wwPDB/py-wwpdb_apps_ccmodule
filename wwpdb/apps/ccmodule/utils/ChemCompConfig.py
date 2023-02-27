@@ -80,7 +80,7 @@ class ChemCompConfig(object):
     def setWorkingPathRel(self, path):
         self.__workingRelativePath = path
 
-    def getPath(self, type):
+    def getPath(self, type):  # pylint: disable=redefined-builtin
         #
         # Application paths from the input request
         if (type == "root"):

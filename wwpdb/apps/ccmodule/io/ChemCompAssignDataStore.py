@@ -84,6 +84,7 @@ try:
     import cPickle as pickle
 except ImportError as _e:  # noqa: F841
     import pickle
+import inspect
 
 from mmcif.io.PdbxWriter import PdbxWriter
 from mmcif.api.PdbxContainers import DataContainer
@@ -104,7 +105,7 @@ class ChemCompAssignDataStore(object):
         self.__debug = True
         self.__lfh = log
         self.__reqOb = reqOb
-        self.__fileName = None
+        # self.__fileName = None
         self.__fileNameSuffix = "-cc-assign-details.pic"
         # following are set of dictionaries that for each instance ID contain :
         self.__authAssignment = {}            # author-assigned 3-letter code
@@ -523,26 +524,26 @@ class ChemCompAssignDataStore(object):
                 self.__lfh.write("+ChemCompAssignStore.doExportDepositorProgress() - export to %s failed \n" % p_dpstrPrgrssFilePath)
             traceback.print_exc(file=self.__lfh)
 
-    def __generateUserSelectionFile(self, exprtFilePath):
-        outputFile = open(exprtFilePath, "w")
-        assignedId = ""
-        for instId in self.getAuthAssignmentKeys():
-            if self.getBatchBestHitStatus(instId) == 'passed':
-                # if the assignment search yielded a hit with "passed" status
-                # we will use the chem comp ID assigned by the batch search
-                # unless the annotator has for some reason manually assigned
-                # a chem comp ID to supersede the batch search assignment
+    # def __generateUserSelectionFile(self, exprtFilePath):
+    #     outputFile = open(exprtFilePath, "w")
+    #     assignedId = ""
+    #     for instId in self.getAuthAssignmentKeys():
+    #         if self.getBatchBestHitStatus(instId) == 'passed':
+    #             # if the assignment search yielded a hit with "passed" status
+    #             # we will use the chem comp ID assigned by the batch search
+    #             # unless the annotator has for some reason manually assigned
+    #             # a chem comp ID to supersede the batch search assignment
 
-                if self.__annotAssignment[instId] == 'Not Assigned':
-                    assignedId = self.getBatchBestHitId(instId)
-                else:
-                    assignedId = self.__annotAssignment[instId]
-            else:
-                assignedId = self.__annotAssignment[instId]
-            #
-            outputFile.write("%s\t%s\n" % (instId, assignedId))
+    #             if self.__annotAssignment[instId] == 'Not Assigned':
+    #                 assignedId = self.getBatchBestHitId(instId)
+    #             else:
+    #                 assignedId = self.__annotAssignment[instId]
+    #         else:
+    #             assignedId = self.__annotAssignment[instId]
+    #         #
+    #         outputFile.write("%s\t%s\n" % (instId, assignedId))
 
-        outputFile.close()
+    #     outputFile.close()
 
     def __generateUpdatedCcAssignFile(self, updtedCcAssignFilePath, depDataSetId):
         '''NOTE: this function is currently being called on save(unfinished) to provide helpful
@@ -997,13 +998,13 @@ class ChemCompAssignDataStore(object):
 
     def setCcName(self, instId, name):
         try:
-            self.__ccName[instId] = name
+            self.__ccName[instId] = name  # pylint: disable=no-member
         except:  # noqa: E722 pylint: disable=bare-except
             return False
 
     def getCcName(self, instId):
         try:
-            return self.__ccName[instId]
+            return self.__ccName[instId]  # pylint: disable=no-member
         except:  # noqa: E722 pylint: disable=bare-except
             return None
 
@@ -1141,7 +1142,7 @@ class ChemCompAssignDataStore(object):
                 self.__GlbllyAssgndGrpLst.append(grp)
             self.__GlbllyAssgndDict[grp] = assgnId
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def removeGrpFrmGlbllyAssgndLst(self, grp):
         try:
@@ -1149,7 +1150,7 @@ class ChemCompAssignDataStore(object):
                 self.__GlbllyAssgndGrpLst.remove(grp)
             self.__GlbllyAssgndDict[grp] = None
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getGlbllyAssgndGrpList(self):
         try:
@@ -1168,7 +1169,7 @@ class ChemCompAssignDataStore(object):
             if not (instId in self.__instncRerunSrchLst):
                 self.__instncRerunSrchLst.append(instId)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getInstIdRerunSrchLst(self):
         try:
@@ -1183,7 +1184,7 @@ class ChemCompAssignDataStore(object):
             self.__GlblRerunSrchDict_lnkRadii[grp] = lnkRadii
             self.__GlblRerunSrchDict_bndRadii[grp] = bndRadii
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def removeGrpFrmGlblRerunSrchLst(self, grp):
         try:
@@ -1192,7 +1193,7 @@ class ChemCompAssignDataStore(object):
             self.__GlblRerunSrchDict_lnkRadii[grp] = None
             self.__GlblRerunSrchDict_bndRadii[grp] = None
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getGlblRerunSrchLst(self):
         try:
@@ -1236,7 +1237,7 @@ class ChemCompAssignDataStore(object):
                 self.__rsrchAcqurdGrpLst.append(grp)
 
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def removeGrpFrmRsrchDataAcqurdLst(self, grp):
         try:
@@ -1244,7 +1245,7 @@ class ChemCompAssignDataStore(object):
                 self.__rsrchAcqurdGrpLst.remove(grp)
                 self.initializeGrpRsrchInfo(grp)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getRsrchDataAcqurdLst(self):
         try:
@@ -1258,7 +1259,7 @@ class ChemCompAssignDataStore(object):
                 self.__rsrchSlctdGrpLst.append(grp)
 
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def removeGrpFrmRsrchSelectedLst(self, grp):
         try:
@@ -1266,7 +1267,7 @@ class ChemCompAssignDataStore(object):
                 self.__rsrchSlctdGrpLst.remove(grp)
                 self.initializeGrpRsrchInfo(grp)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getRsrchSelectedLst(self):
         try:
@@ -1283,7 +1284,7 @@ class ChemCompAssignDataStore(object):
                     self.__rslvdPrtnDict[grp] = self._getNextPartitionNumber()
 
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def removeGrpFrmGlbllyRslvdLst(self, grp):
         try:
@@ -1291,7 +1292,7 @@ class ChemCompAssignDataStore(object):
                 self.__GlbllyRslvdGrpLst.remove(grp)
                 self.initializeGrpInfo(grp)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getGlbllyRslvdGrpList(self):
         try:
@@ -1304,14 +1305,14 @@ class ChemCompAssignDataStore(object):
             if not (grp in self.__dpstrAttnRqdGrpLst):
                 self.__dpstrAttnRqdGrpLst.append(grp)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def removeGrpFromAttnReqdLst(self, grp):
         try:
             if grp in self.__dpstrAttnRqdGrpLst:
                 self.__dpstrAttnRqdGrpLst.remove(grp)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getAttnReqdLst(self):
         try:
@@ -1335,9 +1336,9 @@ class ChemCompAssignDataStore(object):
         try:
             self.__dpstrCcRsrchInfo[grp] = {}
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
-    def setResearchData(self, grp, dict):
+    def setResearchData(self, grp, dict):  # pylint: disable=redefined-builtin
         try:
             self.__dpstrCcRsrchInfo[grp] = dict.copy()
 
@@ -1345,16 +1346,16 @@ class ChemCompAssignDataStore(object):
                 for index in self.__dpstrCcRsrchInfo[grp]:
                     for attr in self.__dpstrCcRsrchInfo[grp][index]:
                         self.__lfh.write("+%s.%s() self.__dpstrCcRsrchInfo[%s][%s][%s] is: %s\n" %
-                                         (self.__class__.__name__, sys._getframe().f_code.co_name, grp, index, attr, self.__dpstrCcRsrchInfo[grp][index][attr]))
+                                         (self.__class__.__name__, inspect.currentframe().f_code.co_name, grp, index, attr, self.__dpstrCcRsrchInfo[grp][index][attr]))
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getResearchData(self, grp):
         try:
             if grp in self.__dpstrCcRsrchInfo:
                 return self.__dpstrCcRsrchInfo[grp].copy()
             else:
-                self.__lfh.write("+%s.%s() -- key '%s' NOT FOUND IN self.__dpstrCcRsrchInfo[]\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, grp))
+                self.__lfh.write("+%s.%s() -- key '%s' NOT FOUND IN self.__dpstrCcRsrchInfo[]\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, grp))
                 return None
         except:  # noqa: E722 pylint: disable=bare-except
             return None
@@ -1364,7 +1365,7 @@ class ChemCompAssignDataStore(object):
             if not (grp in self.__dpstrInvalidGrpIdLst):
                 self.__dpstrInvalidGrpIdLst.append(grp)
         except:  # noqa: E722 pylint: disable=bare-except
-            False
+            pass
 
     def getDpstrInvalidLigIdLst(self):
         try:
@@ -1422,7 +1423,7 @@ class ChemCompAssignDataStore(object):
         except:  # noqa: E722 pylint: disable=bare-except
             return None
 
-    def setDpstrCcType(self, grpId, type):
+    def setDpstrCcType(self, grpId, type):  # pylint: disable=redefined-builtin
         try:
             self.__dpstrCcType[grpId] = type
         except:  # noqa: E722 pylint: disable=bare-except
@@ -1503,18 +1504,18 @@ class ChemCompAssignDataStore(object):
                 self.__dpstrUploadFiles[grpId] = {}
                 if (self.__verbose):
                     self.__lfh.write("+%s.%s() ----- key created in self.__dpstrUploadFiles dict for %s\n" %
-                                     (self.__class__.__name__, sys._getframe().f_code.co_name, grpId))
+                                     (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId))
             if grpId not in self.__dpstrUpldFlsOrder:
                 self.__dpstrUpldFlsOrder[grpId] = []
                 if self.__verbose:
                     self.__lfh.write("+%s.%s() ----- key created in self.__dpstrUpldFlsOrder dict for %s\n" %
-                                     (self.__class__.__name__, sys._getframe().f_code.co_name, grpId))
+                                     (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId))
 
             if fileType not in self.__dpstrUploadFiles[grpId]:
                 self.__dpstrUploadFiles[grpId][fileType] = {}
                 if self.__verbose:
                     self.__lfh.write("+%s.%s() ----- key created in self.__dpstrUploadFiles[%s] for %s\n" %
-                                     (self.__class__.__name__, sys._getframe().f_code.co_name, grpId, fileType))
+                                     (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId, fileType))
             if fileName not in self.__dpstrUploadFiles[grpId][fileType]:
                 self.__dpstrUploadFiles[grpId][fileType][fileName] = None
 
@@ -1524,9 +1525,9 @@ class ChemCompAssignDataStore(object):
 
             if (self.__verbose):
                 self.__lfh.write("+%s.%s() ----- filename(s) returned for grpId, %s, and fileType, %s, is: %r\n" %
-                                 (self.__class__.__name__, sys._getframe().f_code.co_name, grpId, fileType, self.__dpstrUploadFiles[grpId][fileType].keys()))
+                                 (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId, fileType, self.__dpstrUploadFiles[grpId][fileType].keys()))
                 self.__lfh.write("+%s.%s() ----- filename(s) in order of upload for grpId, %s, are: %r\n" %
-                                 (self.__class__.__name__, sys._getframe().f_code.co_name, grpId, self.__dpstrUpldFlsOrder[grpId]))
+                                 (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId, self.__dpstrUpldFlsOrder[grpId]))
 
             return True
         except:  # noqa: E722 pylint: disable=bare-except
@@ -1576,17 +1577,17 @@ class ChemCompAssignDataStore(object):
             if grpId not in self.__dpstrSketchFiles:
                 self.__dpstrSketchFiles[grpId] = {}
                 if (self.__verbose):
-                    self.__lfh.write("+%s.%s() ----- key created in self.__dpstrSketchFiles dict for %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, grpId))
+                    self.__lfh.write("+%s.%s() ----- key created in self.__dpstrSketchFiles dict for %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId))
             if fileType not in self.__dpstrSketchFiles[grpId]:
                 self.__dpstrSketchFiles[grpId][fileType] = {}
                 if (self.__verbose):
                     self.__lfh.write("+%s.%s() ----- key created in self.__dpstrSketchFiles[%s] for %s\n" %
-                                     (self.__class__.__name__, sys._getframe().f_code.co_name, grpId, fileType))
+                                     (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId, fileType))
             if fileName not in self.__dpstrSketchFiles[grpId][fileType]:
                 self.__dpstrSketchFiles[grpId][fileType][fileName] = None
             if self.__verbose:
                 self.__lfh.write("+%s.%s() ----- filename(s) returned for grpId, %s, and fileType, %s, is: %r\n" %
-                                 (self.__class__.__name__, sys._getframe().f_code.co_name, grpId, fileType, self.__dpstrSketchFiles[grpId][fileType].keys()))
+                                 (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId, fileType, self.__dpstrSketchFiles[grpId][fileType].keys()))
 
             return True
         except:  # noqa: E722 pylint: disable=bare-except
@@ -1650,7 +1651,7 @@ class ChemCompAssignDataStore(object):
 
         except:  # noqa: E722 pylint: disable=bare-except
             if self.__verbose:
-                self.__lfh.write("+%s.%s() ----- WARNING ----- processing failed id:  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, grpId))
+                self.__lfh.write("+%s.%s() ----- WARNING ----- processing failed id:  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, grpId))
                 traceback.print_exc(file=self.__lfh)
                 self.__lfh.flush()
             return []
@@ -1859,8 +1860,8 @@ class ChemCompAssignDataStore(object):
         for ligId in self.__dpstrAttnRqdGrpLst:
             ofh.write("Ligand ID requiring attention: %s\n" % ligId)
 
-        for id in self.__rslvdPrtnDict:
-            ofh.write("Globally resolved Lig Id to Partition Number mapping. ID: '%s' to P#: '%s' \n" % (id, self.__rslvdPrtnDict[id]))
+        for rid in self.__rslvdPrtnDict:
+            ofh.write("Globally resolved Lig Id to Partition Number mapping. ID: '%s' to P#: '%s' \n" % (rid, self.__rslvdPrtnDict[rid]))
 
         ofh.write("Current next available resolved Lig ID partition number is: %s\n" % self.__rslvdPrtnCntr)
 

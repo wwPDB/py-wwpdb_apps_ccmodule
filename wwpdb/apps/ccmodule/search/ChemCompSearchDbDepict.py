@@ -32,16 +32,17 @@ class ChemCompSearchDbDepict(ChemCompDepict):
 
         """
         super(ChemCompSearchDbDepict, self).__init__(verbose, log)
-        self.__verbose = verbose
-        self.__lfh = log
-        self.__debug = True
+        # self.__verbose = verbose
+        # self.__lfh = log
+        # self.__debug = True
         #
         #
 
-    def doRender(self, d={}):
+    def doRender(self, d=None):
         ''' Render in HTML
         '''
-
+        if d is None:
+            d = {}
         oL = []
         oL.append(self._pragma)
         oL.append('<html>')
@@ -51,13 +52,13 @@ class ChemCompSearchDbDepict(ChemCompDepict):
         #
         oL.append('<h1>Database Search Result Summary</h1>')
         oL.append('<p>')
-        '''
-        oL.append('<table>')
-        oL.append('<tr><td><b>Target ID:</b></td><td>%s</td></tr>' % d['targetid'])
-        oL.append('<tr><td><b>Count in released entries:</b></td><td>%r</td></tr>' % d['count'])
-        oL.append('<tr><td><b>Count in other entries:</b></td><td>%r</td></tr>' %   d['countother'])
-        oL.append('</table>')
-        '''
+        # '''
+        # oL.append('<table>')
+        # oL.append('<tr><td><b>Target ID:</b></td><td>%s</td></tr>' % d['targetid'])
+        # oL.append('<tr><td><b>Count in released entries:</b></td><td>%r</td></tr>' % d['count'])
+        # oL.append('<tr><td><b>Count in other entries:</b></td><td>%r</td></tr>' %   d['countother'])
+        # oL.append('</table>')
+        # '''
         oL.append('<div>')
         oL.append('<table style="width: 25%">')
         oL.append('<tr><th>Target ID:</th><td>%s</td></tr>' % d['targetid'])

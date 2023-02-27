@@ -43,24 +43,24 @@ class ChemCompEdit(object):
               Inserted row identifier - (for inserts)
 
         """
-    def __init__(self, verbose=False, log=sys.stderr):
-        self.__verbose = verbose
+    def __init__(self, verbose=False, log=sys.stderr):  # pylint: disable=unused-argument
+        # self.__verbose = verbose
         self.__lfh = log
         self.__reset()
 
     def __reset(self):
-        self.__editOpNumber = 0
-        self.__targetId = None
-        self.__editType = None
-        self.__blockId = None
-        self.__targetItemName = None
-        self.__valueNew = None
-        self.__valuePrevious = None
-        self.__targetRowId = None
-        self.__insertedRowId = None
+        self.__editOpNumber = 0  # pylint: disable=attribute-defined-outside-init
+        self.__targetId = None  # pylint: disable=attribute-defined-outside-init
+        self.__editType = None  # pylint: disable=attribute-defined-outside-init
+        self.__blockId = None  # pylint: disable=attribute-defined-outside-init
+        self.__targetItemName = None  # pylint: disable=attribute-defined-outside-init
+        self.__valueNew = None  # pylint: disable=attribute-defined-outside-init
+        self.__valuePrevious = None  # pylint: disable=attribute-defined-outside-init
+        self.__targetRowId = None  # pylint: disable=attribute-defined-outside-init
+        self.__insertedRowId = None  # pylint: disable=attribute-defined-outside-init
 
-    def setTargetId(self, id):
-        self.__targetId = id
+    def setTargetId(self, id):  # pylint: disable=redefined-builtin
+        self.__targetId = id  # pylint: disable=attribute-defined-outside-init
         return True
 
     def getTargetId(self):
@@ -68,7 +68,7 @@ class ChemCompEdit(object):
 
     def setBlockId(self, blockId):
         if (blockId is not None):
-            self.__blockId = blockId
+            self.__blockId = blockId  # pylint: disable=attribute-defined-outside-init
         else:
             return False
         return True
@@ -77,34 +77,34 @@ class ChemCompEdit(object):
         return self.__blockId
 
     def setTargetRowId(self, rowId):
-        self.__targetRowId = rowId
+        self.__targetRowId = rowId  # pylint: disable=attribute-defined-outside-init
         return True
 
     def getTargetRowId(self):
         return self.__targetRowId
 
     def setInsertedRowId(self, rowId):
-        self.__insertedRowId = rowId
+        self.__insertedRowId = rowId  # pylint: disable=attribute-defined-outside-init
         return True
 
     def getInsertedRowId(self):
         return self.__insertedRowId
 
     def setValueNew(self, value):
-        self.__valueNew = value
+        self.__valueNew = value  # pylint: disable=attribute-defined-outside-init
 
     def getValueNew(self):
         return self.__valueNew
 
     def setValuePrevious(self, value):
-        self.__valuePrevious = value
+        self.__valuePrevious = value  # pylint: disable=attribute-defined-outside-init
 
     def getValuePrevious(self):
         return self.__valuePrevious
 
     def setEditType(self, eType):
         if eType in ['replace-value', 'row-insert-after', 'row-insert-before', 'row-delete']:
-            self.__editType = eType
+            self.__editType = eType  # pylint: disable=attribute-defined-outside-init
         else:
             return False
         return True
@@ -113,7 +113,7 @@ class ChemCompEdit(object):
         return self.__editType
 
     def setTargetItemName(self, targetItemName):
-        self.__targetItemName = targetItemName
+        self.__targetItemName = targetItemName  # pylint: disable=attribute-defined-outside-init
         return True
 
     def getTargetItemName(self):
@@ -121,7 +121,7 @@ class ChemCompEdit(object):
 
     def setEditOpNumber(self, opNumber):
         try:
-            self.__editOpNumber = int(opNumber)
+            self.__editOpNumber = int(opNumber)  # pylint: disable=attribute-defined-outside-init
             if (self.__editOpNumber < 0):
                 return False
         except:  # noqa: E722 pylint: disable=bare-except
@@ -139,15 +139,15 @@ class ChemCompEdit(object):
     def unpack(self, editTuple):
         # self.__reset()
         try:
-            self.__editOpNumber = int(editTuple[0])
-            self.__editType = editTuple[1]
-            self.__targetId = editTuple[2]
-            self.__blockId = editTuple[3]
-            self.__targetItemName = editTuple[4]
-            self.__valueNew = editTuple[5]
-            self.__valuePrevious = editTuple[6]
-            self.__targetRowId = editTuple[7]
-            self.__insertedRowId = editTuple[8]
+            self.__editOpNumber = int(editTuple[0])  # pylint: disable=attribute-defined-outside-init
+            self.__editType = editTuple[1]  # pylint: disable=attribute-defined-outside-init
+            self.__targetId = editTuple[2]  # pylint: disable=attribute-defined-outside-init
+            self.__blockId = editTuple[3]  # pylint: disable=attribute-defined-outside-init
+            self.__targetItemName = editTuple[4]  # pylint: disable=attribute-defined-outside-init
+            self.__valueNew = editTuple[5]  # pylint: disable=attribute-defined-outside-init
+            self.__valuePrevious = editTuple[6]  # pylint: disable=attribute-defined-outside-init
+            self.__targetRowId = editTuple[7]  # pylint: disable=attribute-defined-outside-init
+            self.__insertedRowId = editTuple[8]  # pylint: disable=attribute-defined-outside-init
         except:  # noqa: E722 pylint: disable=bare-except
             traceback.print_exc(file=self.__lfh)
             return False
@@ -186,13 +186,13 @@ class ChemCompEditStore(object):
         self.__fileName = fileName
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         self.__sessionObj = self.__reqObj.getSessionObj()
         self.__sessionPath = self.__sessionObj.getPath()
         self.__sessionId = self.__sessionObj.getId()
-        self.__sessionRelativePath = self.__sessionObj.getRelativePath()
+        # self.__sessionRelativePath = self.__sessionObj.getRelativePath()
         #
         # self.__ccConfig=ChemCompConfig(reqObj, verbose=self.__verbose,log=self.__lfh)
         #
@@ -242,7 +242,6 @@ class ChemCompEditStore(object):
         except:  # noqa: E722 pylint: disable=bare-except
             self.__lfh.write("+ChemCompEditStore.__serialize - failed for session %s edit store file path%s\n" %
                              (self.__sessionObj.getId(), self.__filePath))
-            pass
 
     def deserialize(self):
         try:

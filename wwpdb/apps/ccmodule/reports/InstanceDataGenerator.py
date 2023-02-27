@@ -39,8 +39,9 @@ class InstanceDataGenerator(object):
         self.__verbose = verbose
         self.__lfh = log
         #
-        self.__sObj = self.__reqObj.getSessionObj()
-        self.__sessionPath = self.__sObj.getPath()
+        # Leave the following call due to potential side effects.
+        self.__sObj = self.__reqObj.getSessionObj()  # pylint: disable=unused-private-member
+        # self.__sessionPath = self.__sObj.getPath()
         #
 
     def run(self):
@@ -109,14 +110,14 @@ class InstanceDataGenerator(object):
 class MultiProcWorker(multiprocessing.Process):
     """
     """
-    def __init__(self, processLabel='', taskQueue=None, resultQueue=None, workerFunc=None, log=sys.stderr, verbose=False):
+    def __init__(self, processLabel='', taskQueue=None, resultQueue=None, workerFunc=None, log=sys.stderr, verbose=False):  # pylint: disable=unused-argument
         multiprocessing.Process.__init__(self)
         self.__processLabel = processLabel
         self.__taskQueue = taskQueue
         self.__resultQueue = resultQueue
         self.__workerFunc = workerFunc
-        self.__lfh = log
-        self.__verbose = verbose
+        # self.__lfh = log
+        # self.__verbose = verbose
 
     def run(self):
         while True:
@@ -138,7 +139,7 @@ class RefReportGenerator(object):
         self.__lfh = log
         #
 
-    def runReportGenerator(self, dataList=None, processLabel=None):
+    def runReportGenerator(self, dataList=None, processLabel=None):  # pylint: disable=unused-argument
         ccReport = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         for ccId in dataList:
             ccReport.setDefinitionId(definitionId=ccId.lower())
@@ -159,7 +160,7 @@ class InstReportGenerator(object):
         self.__sessionPath = self.__sObj.getPath()
         #
 
-    def runReportGenerator(self, dataList=None, processLabel=None):
+    def runReportGenerator(self, dataList=None, processLabel=None):  # pylint: disable=unused-argument
         for instId in dataList:
             chemCompFilePathAbs = os.path.join(self.__sessionPath, 'assign', instId, instId + '.cif')
             instChemCompRprt = ChemCompReport(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)

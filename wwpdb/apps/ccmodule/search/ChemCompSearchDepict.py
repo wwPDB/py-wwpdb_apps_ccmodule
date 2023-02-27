@@ -31,15 +31,17 @@ class ChemCompSearchDepict(ChemCompDepict):
 
         """
         super(ChemCompSearchDepict, self).__init__(verbose, log)
-        self.__verbose = verbose
-        self.__lfh = log
-        self.__debug = True
+        # self.__verbose = verbose
+        # self.__lfh = log
+        # self.__debug = True
         #
         #
 
-    def doRenderIndex(self, d={}):
+    def doRenderIndex(self, d=None):
         ''' Render in HTML
         '''
+        if d is None:
+            d = {}
         oL = []
         oL.append(self._pragma)
         oL.append('<html>')
@@ -50,13 +52,13 @@ class ChemCompSearchDepict(ChemCompDepict):
         oL.append('<h1>Index Search Result Summary</h1>')
         oL.append('<p>')
         oL.append('<p>')
-        '''
-        oL.append('<table>')
-        oL.append('<tr><td><b>Query:</b>    </td><td>%s</td></tr>' % d['query'])
-        oL.append('<tr><td><b>Query type:</b>    </td><td>%s </td></tr>' % d['querytype'])
-        oL.append('<tr><td><b>Result count:</b>  </td><td>%r</td></tr>' % d['count'])
-        oL.append('</table>')
-        '''
+        # '''
+        # oL.append('<table>')
+        # oL.append('<tr><td><b>Query:</b>    </td><td>%s</td></tr>' % d['query'])
+        # oL.append('<tr><td><b>Query type:</b>    </td><td>%s </td></tr>' % d['querytype'])
+        # oL.append('<tr><td><b>Result count:</b>  </td><td>%r</td></tr>' % d['count'])
+        # oL.append('</table>')
+        # '''
         oL.append('<div>')
         oL.append('<table style="width: 25%">')
         oL.append('<tr><th>Query:</th><td>%s</td></tr>' % d['query'])
@@ -91,16 +93,16 @@ class ChemCompSearchDepict(ChemCompDepict):
             oL.append('          <td class="rs1">%s</td>' % result['ccid'])
             oL.append('')
             oL.append('	  <td class="rs1">')
-            '''
-            oL.append('		<form method="post" action="/service/cc/report" target="_blank" >')
-            oL.append('	        	<input id="formid"      name="formid"    type="hidden" value="ccidops">')
-            oL.append('	        	<input id="operation"   name="operation" type="hidden" value="report">')
-            oL.append('	        	<input id="ccid"        name="ccid"      type="hidden" value="%s">' % result['ccid'])
-            oL.append('			<input id="sessionid"   name="sessionid" type="hidden" value="%s">' % d['sessionid'])
-            oL.append('			<input type="submit" name="submit" class="%s"  value="Report &raquo;">' % subcls)
-            oL.append('		</form>')
-            oL.append('')
-            '''
+            # '''
+            # oL.append('		<form method="post" action="/service/cc/report" target="_blank" >')
+            # oL.append('	        	<input id="formid"      name="formid"    type="hidden" value="ccidops">')
+            # oL.append('	        	<input id="operation"   name="operation" type="hidden" value="report">')
+            # oL.append('	        	<input id="ccid"        name="ccid"      type="hidden" value="%s">' % result['ccid'])
+            # oL.append('			<input id="sessionid"   name="sessionid" type="hidden" value="%s">' % d['sessionid'])
+            # oL.append('			<input type="submit" name="submit" class="%s"  value="Report &raquo;">' % subcls)
+            # oL.append('		</form>')
+            # oL.append('')
+            # '''
             oL.append('<a href="/ccmodule/cc-view.html?ccid=%s" target="_blank">Profile in Viewer</a>' % result['ccid'])
             oL.append('  	  </td>')
             oL.append('          <td class="rs1">%s</td>' % result['creator'])
@@ -117,10 +119,11 @@ class ChemCompSearchDepict(ChemCompDepict):
         oL.append('</html>')
         return oL
 
-    def doRenderGraph(self, d={}):
+    def doRenderGraph(self, d=None):
         ''' Render graph search results in HTML
         '''
-
+        if d is None:
+            d = {}
         oL = []
         oL.append(self._pragma)
         oL.append('<html>')
@@ -130,15 +133,15 @@ class ChemCompSearchDepict(ChemCompDepict):
 
         oL.append('<h1>Graph Search Result Summary</h1>')
         oL.append('<p>')
-        '''
-        oL.append('<table>')
-        oL.append('<tr><td><b>Query file:</b>    </td><td> %s </td></tr>' % d['queryfile'])
-        oL.append('<tr><td><b>Query type:</b>    </td><td> %s </td></tr>' % d['querytype'])
-        oL.append('<tr><td><b>Result count:</b>  </td><td> %r </td></tr>' % d['count'])
-        oL.append('<tr><td><b>Target name:</b>   </td><td> %s </td></tr>' % d['nametarget'])
-        oL.append('<tr><td><b>Target formula:</b></td><td> %s </td></tr>' % d['formulatarget'])
-        oL.append('</table>')
-        '''
+        # '''
+        # oL.append('<table>')
+        # oL.append('<tr><td><b>Query file:</b>    </td><td> %s </td></tr>' % d['queryfile'])
+        # oL.append('<tr><td><b>Query type:</b>    </td><td> %s </td></tr>' % d['querytype'])
+        # oL.append('<tr><td><b>Result count:</b>  </td><td> %r </td></tr>' % d['count'])
+        # oL.append('<tr><td><b>Target name:</b>   </td><td> %s </td></tr>' % d['nametarget'])
+        # oL.append('<tr><td><b>Target formula:</b></td><td> %s </td></tr>' % d['formulatarget'])
+        # oL.append('</table>')
+        # '''
         #
         oL.append('<div>')
         oL.append('<table style="width: 25%">')
@@ -178,15 +181,15 @@ class ChemCompSearchDepict(ChemCompDepict):
                 oL.append('<td class="rs1"><a href="%s" target=_blank>Atom mapping &raquo;</a></td>' % result['mappingFile'])
                 oL.append('<td class="rs1">')
                 # ccidops is this a report ??
-                '''
-                oL.append('<form method="post" action="/service/cc/report" target="_blank" >')
-                oL.append('     <input id="formid"      name="formid"    type="hidden" value="id-report">')
-                oL.append('     <input id="operation"   name="operation" type="hidden" value="id-report">')
-                oL.append('     <input id="ccid"        name="ccid"      type="hidden" value="%s">' % result['ccidReference'])
-                oL.append('     <input id="sessionid"   name="sessionid" type="hidden" value="%s">' % d['sessionid'])
-                oL.append('     <input type="submit" name="submit"   class="<%=subcls%>" value="Report &raquo;">')
-                oL.append('</form>')
-                '''
+                # '''
+                # oL.append('<form method="post" action="/service/cc/report" target="_blank" >')
+                # oL.append('     <input id="formid"      name="formid"    type="hidden" value="id-report">')
+                # oL.append('     <input id="operation"   name="operation" type="hidden" value="id-report">')
+                # oL.append('     <input id="ccid"        name="ccid"      type="hidden" value="%s">' % result['ccidReference'])
+                # oL.append('     <input id="sessionid"   name="sessionid" type="hidden" value="%s">' % d['sessionid'])
+                # oL.append('     <input type="submit" name="submit"   class="<%=subcls%>" value="Report &raquo;">')
+                # oL.append('</form>')
+                # '''
                 oL.append('<a href="/ccmodule/cc-view.html?ccid=%s" target="_blank">Profile in Viewer</a>' % result['ccidReference'])
                 oL.append('</td>')
                 oL.append('<td class="rs1">%s</td>' % result['formulaReference'])

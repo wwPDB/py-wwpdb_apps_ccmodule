@@ -54,7 +54,7 @@ class ChemCompDataImport(object):
 
         try:
             self.__sessionObj = self.__reqObj.getSessionObj()
-            self.__sessionPath = self.__sessionObj.getPath()
+            # self.__sessionPath = self.__sessionObj.getPath()
             self.__fileSource = str(self.__reqObj.getValue("filesource")).lower()
             self.__identifier = str(self.__reqObj.getValue("identifier")).upper()
             self.__instance = str(self.__reqObj.getValue("instance")).upper()
@@ -88,18 +88,18 @@ class ChemCompDataImport(object):
     def getChemCompDpstrInfoFilePath(self, fileSource):
         return self.__getWfFilePath(contentType='chem-comp-depositor-info', format='pdbx', fileSource=fileSource, version='latest')
 
-    def getChemCompSketchFilePath(self, format='sdf', fileSource="archive", partitionNum=None):
+    def getChemCompSketchFilePath(self, format='sdf', fileSource="archive", partitionNum=None):  # pylint: disable=redefined-builtin
         return self.__getWfFilePath(contentType='component-definition-deposit', format=format, fileSource=fileSource, version='latest', partitionNum=partitionNum)
 
-    def getChemCompImageFilePath(self, format, fileSource="archive", partitionNum=None):
+    def getChemCompImageFilePath(self, format, fileSource="archive", partitionNum=None):  # pylint: disable=redefined-builtin
         return self.__getWfFilePath(contentType='component-image-upload', format=format, fileSource=fileSource, version='latest', partitionNum=partitionNum)
 
-    def getChemCompDefntnFilePath(self, format, fileSource="archive", partitionNum=None):
+    def getChemCompDefntnFilePath(self, format, fileSource="archive", partitionNum=None):  # pylint: disable=redefined-builtin
         return self.__getWfFilePath(contentType='component-definition-upload', format=format, fileSource=fileSource, version='latest', partitionNum=partitionNum)
 
     # ####  END file handling for LigandLite types #####
 
-    def __getWfFilePath(self, contentType='model', format='pdbx', fileSource='archive', version='latest', partitionNum=None):
+    def __getWfFilePath(self, contentType='model', format='pdbx', fileSource='archive', version='latest', partitionNum=None):  # pylint: disable=redefined-builtin
         try:
             fPath = self.__getWfFilePathRef(contentType=contentType, format=format, fileSource=fileSource, version=version, partitionNum=partitionNum)
             if self.__verbose:
@@ -114,7 +114,7 @@ class ChemCompDataImport(object):
                 self.__lfh.flush()
             return None
 
-    def __getWfFilePathRef(self, contentType='model', format='pdbx', fileSource='archive', version='latest', partitionNum=None):
+    def __getWfFilePathRef(self, contentType='model', format='pdbx', fileSource='archive', version='latest', partitionNum=None):  # pylint: disable=redefined-builtin
         """ Return the path to the latest version of the
         """
         #

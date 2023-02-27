@@ -54,10 +54,12 @@ __version__ = "V0.01"
 
 import os
 import sys
+import inspect
+
 from logging import getLogger, StreamHandler, Formatter, DEBUG, INFO
 from wwpdb.apps.ccmodule.depict.ChemCompDepict import ChemCompDepict
 from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
-from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
+# from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from pathlib import Path
@@ -87,19 +89,19 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         self.__reqObj = p_reqObj
         self.__depId = "D_0" if self.__reqObj.getValue("identifier") in [None, 'TMP_ID'] else str(self.__reqObj.getValue("identifier")).upper()
         #
-        self.__cDict = PdbxCategoryDefinition._cDict
+        # self.__cDict = PdbxCategoryDefinition._cDict
         #
-        self.__noDisplayList = ['']
+        # self.__noDisplayList = ['']
         #
-        self.__pathGlblVwTmplts = "templates/workflow_ui/global_view"
-        self.__pathInstncsVwTmplts = " templates/workflow_ui/instances_view"
-        self.__pathSnglInstcTmplts = self.__pathInstncsVwTmplts + "/single_instance"
-        self.__pathSnglInstcCmprTmplts = self.__pathSnglInstcTmplts + "/comparison_view"
-        self.__pathSnglInstcJmolTmplts = self.__pathSnglInstcCmprTmplts + "/jmol"
+        # self.__pathGlblVwTmplts = "templates/workflow_ui/global_view"
+        # self.__pathInstncsVwTmplts = " templates/workflow_ui/instances_view"
+        # self.__pathSnglInstcTmplts = self.__pathInstncsVwTmplts + "/single_instance"
+        # self.__pathSnglInstcCmprTmplts = self.__pathSnglInstcTmplts + "/comparison_view"
+        # self.__pathSnglInstcJmolTmplts = self.__pathSnglInstcCmprTmplts + "/jmol"
         #
-        self.__pathAllInstcs = "templates/workflow_ui/instances_view/all_instances"
-        self.__pathAllInstncsCmprTmplts = self.__pathAllInstcs + "/comparison_view"
-        self.__pathAllInstncsJmolTmplts = self.__pathAllInstncsCmprTmplts + "/jmol"
+        # self.__pathAllInstcs = "templates/workflow_ui/instances_view/all_instances"
+        # self.__pathAllInstncsCmprTmplts = self.__pathAllInstcs + "/comparison_view"
+        # self.__pathAllInstncsJmolTmplts = self.__pathAllInstncsCmprTmplts + "/jmol"
         # paths to templates used for the ccmodule_lite UI
         self.__pathCCliteGlblVwTmplts = "templates/workflow_ui/global_view"
         self.__pathCCliteInstncsVwTmplts = "templates/workflow_ui/instances_view"
@@ -113,7 +115,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
-        self.__deployPath = self.__cI.get('SITE_DEPLOY_PATH')
+        # self.__deployPath = self.__cI.get('SITE_DEPLOY_PATH')
         self.__siteSrvcUrlPathPrefix = self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__workingRltvAssgnSessionPath = ''
 
@@ -121,7 +123,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
         self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
-        self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
+        # self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
         self.__logger = self._setupLog(log)
 
     ################################################################################################################
@@ -155,19 +157,19 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         tmpltPath = p_reqObj.getValue("TemplatePath")
         #
         # This is wrong - but not correcting depid vs depId
-        depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)  # noqa: F841
+        depid = self.__formatDepositionDataId(depId, p_bIsWorkflow)  # noqa: F841 pylint: disable=unused-variable
         #
         self.__workingRltvAssgnSessionPath = self.__siteSrvcUrlPathPrefix + self.rltvAssgnSessionPath
         #
         if self.__verbose:
             self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, sys._getframe().f_code.co_name))
-            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId))
-            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId))
-            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource))
-            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId))
-            self.__lfh.write("+%s.%s() self.__siteSrvcUrlPathPrefix  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__siteSrvcUrlPathPrefix))
-            self.__lfh.write("+%s.%s() self.__workingRltvAssgnSessionPath  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, self.__workingRltvAssgnSessionPath))
+            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, depId))
+            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, wfInstId))
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, fileSource))
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, sessionId))
+            self.__lfh.write("+%s.%s() self.__siteSrvcUrlPathPrefix  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__siteSrvcUrlPathPrefix))
+            self.__lfh.write("+%s.%s() self.__workingRltvAssgnSessionPath  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, self.__workingRltvAssgnSessionPath))
             self.__lfh.flush()
         #
         ############################################################################
@@ -189,8 +191,8 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             myD['identifier'] = depId
 
         else:
-            (pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
-            (fN, fileExt) = os.path.splitext(fileName)
+            (_pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
+            (fN, _fileExt) = os.path.splitext(fileName)
             if (fN.upper().startswith("D_")):
                 depDataSetId = fN.upper()
             elif (fN.lower().startswith("rcsb")):
@@ -352,11 +354,11 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, sys._getframe().f_code.co_name))
-            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId))
-            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId))
-            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource))
-            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId))
+            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, depId))
+            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, wfInstId))
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, fileSource))
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, sessionId))
             self.__lfh.flush()
         #
         ############################################################################
@@ -373,8 +375,8 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             myD['identifier'] = depId
 
         else:
-            (pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
-            (fN, fileExt) = os.path.splitext(fileName)
+            (_pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
+            (fN, _fileExt) = os.path.splitext(fileName)
             if fN.upper().startswith("D_"):
                 depDataSetId = fN.upper()
             elif fN.lower().startswith("rcsb"):
@@ -429,11 +431,11 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         if (self.__verbose):
             self.__lfh.write("--------------------------------------------\n")
-            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, sys._getframe().f_code.co_name))
-            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, depId))
-            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, wfInstId))
-            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, fileSource))
-            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sessionId))
+            self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
+            self.__lfh.write("+%s.%s() identifier   %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, depId))
+            self.__lfh.write("+%s.%s() instance     %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, wfInstId))
+            self.__lfh.write("+%s.%s() file source  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, fileSource))
+            self.__lfh.write("+%s.%s() sessionId  %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, sessionId))
             self.__lfh.flush()
         #
         ############################################################################
@@ -455,8 +457,8 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             myD['identifier'] = depId
 
         else:
-            (pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
-            (fN, fileExt) = os.path.splitext(fileName)
+            (_pth, fileName) = os.path.split(p_reqObj.getValue('filePath'))
+            (fN, _fileExt) = os.path.splitext(fileName)
             if fN.upper().startswith("D_"):
                 depDataSetId = fN.upper()
             elif fN.lower().startswith("rcsb"):
@@ -519,7 +521,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
             oL = []
             strSubstDict = myD.copy()
             for key in rsrchDataDict:
-                self.__lfh.write("+%s.%s() rsrchDataDict[%s] is: %r\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, key, rsrchDataDict[key]))
+                self.__lfh.write("+%s.%s() rsrchDataDict[%s] is: %r\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, key, rsrchDataDict[key]))
 
             for index in range(1, 10):
                 if index in rsrchDataDict:
@@ -735,7 +737,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
     def doRender_MarvinSketch(self, p_authAssignedGrp, p_htmlTmpltPth):
         if self.__verbose:
-            self.__lfh.write("+%s.%s() ----- STARTING FOR : %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, p_authAssignedGrp))
+            self.__lfh.write("+%s.%s() ----- STARTING FOR : %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, p_authAssignedGrp))
         oL = []
         rD = {}
         rD['ccid'] = p_authAssignedGrp
@@ -785,7 +787,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         ligGrpDict = self.__generateLigGroupSummaryDict(ccAssignDataStore)
 
-        for grpIndx, ligId in enumerate(ligList, start=1):
+        for _grpIndx, ligId in enumerate(ligList, start=1):
             if ligId is None:
                 continue
 
@@ -912,7 +914,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         if hasTopHit:
             # if the assign search yielded top hit(s) we need to generate tabular display of match results
-            helperDict['2dpath_top_hit'] = '/service/cc_lite/report/file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId, topHitCcId, topHitCcId)
+            helperDict['2dpath_top_hit'] = '/service/cc_lite/report/file?identifier={}&source=ccd&ligid={}&file={}.svg'.format(depId, topHitCcId, topHitCcId)  # noqa: E501 pylint: disable=duplicate-string-formatting-argument
             helperDict['assgn_sess_path_rel'] = self.__workingRltvAssgnSessionPath  # this key/value is used in private renderInstanceMatchResults function for cc_viz_cmp_li_tmplt.html
             helperDict['cc_instnc_match_rslts_tbl'] = ''.join(self._generateMatchResultsTable(ccAssignDataStore, helperDict))
 
@@ -1144,7 +1146,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
             sbmttdStrctrData = ccADS.getDpstrSubmitChoice(ligId)
             if self.__verbose:
-                self.__lfh.write("+%s.%s() sbmttdStrctrData is: %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, sbmttdStrctrData))
+                self.__lfh.write("+%s.%s() sbmttdStrctrData is: %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, sbmttdStrctrData))
             if sbmttdStrctrData is not None and sbmttdStrctrData == 'sketch':
                 replDict['filename'] = ligId + '-sketch.sdf'
                 fileListing = ('<li><a href="/sessions/%(sessionid)s/assign/%(filename)s">%(filename)s structure sketch data submitted for %(ligid)s</a></li>' % replDict)
@@ -1160,10 +1162,10 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         if os.access(resultFilePathaAbs, os.R_OK):
             if self.__verbose:
-                self.__lfh.write("+%s.%s() - results.html file created at: %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, resultFilePathaAbs))
+                self.__lfh.write("+%s.%s() - results.html file created at: %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, resultFilePathaAbs))
         else:
             if self.__verbose:
-                self.__lfh.write("+%s.%s() - NO results.html file created at: %s\n" % (self.__class__.__name__, sys._getframe().f_code.co_name, resultFilePathaAbs))
+                self.__lfh.write("+%s.%s() - NO results.html file created at: %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, resultFilePathaAbs))
 
     ################################################################################################################
     # ------------------------------------------------------------------------------------------------------------
@@ -1186,7 +1188,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         instncIdLst = p_ccAssgnDataStr.getAuthAssignmentKeys()
         ccA = ChemCompAssign(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
 
-        for indx, instnc in enumerate(instncIdLst):
+        for _indx, instnc in enumerate(instncIdLst):
             authAssgndLigID = p_ccAssgnDataStr.getAuthAssignment(instnc)
             if authAssgndLigID not in rtrnDict:
                 rtrnDict[authAssgndLigID] = {}
@@ -1204,13 +1206,13 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
             rtrnDict[authAssgndLigID]['totlInstncsInGrp'] += 1
             rtrnDict[authAssgndLigID]['instIdLst'].append(instnc)
-            rtrnDict[authAssgndLigID]['instIdLst'].sort
+            rtrnDict[authAssgndLigID]['instIdLst'].sort  # pylint: disable=pointless-statement
             curTopHitId = p_ccAssgnDataStr.getBatchBestHitId(instnc)
             if curTopHitId.upper() != authAssgndLigID.upper():  # i.e. mismatch detected
                 rtrnDict[authAssgndLigID]['bGrpRequiresAttention'] = True
                 rtrnDict[authAssgndLigID]['grpMismatchCnt'] += 1
                 rtrnDict[authAssgndLigID]['mismatchLst'].append(instnc)
-                rtrnDict[authAssgndLigID]['mismatchLst'].sort
+                rtrnDict[authAssgndLigID]['mismatchLst'].sort  # pylint: disable=pointless-statement
             if authAssgndLigID in p_ccAssgnDataStr.getGlbllyRslvdGrpList():
                 rtrnDict[authAssgndLigID]['bGrpMismatchAddressed'] = True
 
@@ -1320,25 +1322,25 @@ class ChemCompAssignDepictLite(ChemCompDepict):
     def __rowClass(self, iRow):
         return (iRow % 2 and "odd" or 'even')
 
-    def __categoryPart(self, name):
-        tname = ""
-        if name.startswith("_"):
-            tname = name[1:]
-        else:
-            tname = name
+    # def __categoryPart(self, name):
+    #     tname = ""
+    #     if name.startswith("_"):
+    #         tname = name[1:]
+    #     else:
+    #         tname = name
 
-        i = tname.find(".")
-        if i == -1:
-            return tname
-        else:
-            return tname[:i]
+    #     i = tname.find(".")
+    #     if i == -1:
+    #         return tname
+    #     else:
+    #         return tname[:i]
 
-    def __attributePart(self, name):
-        i = name.find(".")
-        if i == -1:
-            return None
-        else:
-            return name[i + 1:]
+    # def __attributePart(self, name):
+    #     i = name.find(".")
+    #     if i == -1:
+    #         return None
+    #     else:
+    #         return name[i + 1:]
 
     def _setupLog(self, log_file):
         """Setup a Logger instance to use the same file as provided

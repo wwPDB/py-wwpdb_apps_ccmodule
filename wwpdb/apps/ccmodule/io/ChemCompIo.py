@@ -40,14 +40,14 @@ class ChemCompReader(object):
         self.__ccU = None
         self.__filePath = None
         #
-        self.__categoryInfo = [('chem_comp',             'key-value'),  # noqa: E241
-                               ('chem_comp_atom',        'table'),  # noqa: E241
-                               ('chem_comp_bond',        'table'),  # noqa: E241
-                               ('chem_comp_identifier',  'table'),  # noqa: E241
-                               ('chem_comp_descriptor',  'table'),  # noqa: E241
-                               ('pdbx_chem_comp_audit',  'table'),  # noqa: E241
-                               ('pdbx_chem_comp_import', 'table')  # noqa: E241
-                               ]
+        # self.__categoryInfo = [('chem_comp',             'key-value'),  # noqa: E241
+        #                        ('chem_comp_atom',        'table'),  # noqa: E241
+        #                        ('chem_comp_bond',        'table'),  # noqa: E241
+        #                        ('chem_comp_identifier',  'table'),  # noqa: E241
+        #                        ('chem_comp_descriptor',  'table'),  # noqa: E241
+        #                        ('pdbx_chem_comp_audit',  'table'),  # noqa: E241
+        #                        ('pdbx_chem_comp_import', 'table')  # noqa: E241
+        #                        ]
         self.__cDict = {
             'chem_comp': [
                 ('_chem_comp.id', '%s', 'str', ''),
@@ -241,7 +241,7 @@ class ChemCompReader(object):
         #
         colDict = {}
         #
-        for ii, itTup in enumerate(itTupList):
+        for _ii, itTup in enumerate(itTupList):
             if itTup[0] in itDict:
                 colDict[itTup[0]] = itDict[itTup[0]]
             else:
@@ -277,7 +277,7 @@ class ChemCompReader(object):
             #
             colTupList = []
             # (column index of data or -1, type name, [default value]  )
-            for ii, itTup in enumerate(itTupList):
+            for _ii, itTup in enumerate(itTupList):
                 if itTup[0] in itDict:
                     colTupList.append((itDict[itTup[0]], itTup[2], itTup[3]))
                 else:
@@ -298,7 +298,7 @@ class ChemCompReader(object):
 
         return dataList
 
-    def __applyType(self, type, default, val):
+    def __applyType(self, ctype, default, val):
         """Apply type conversion to the input value and assign default values to
            missing values.
         """
@@ -308,11 +308,11 @@ class ChemCompReader(object):
         if (isinstance(tval, str) and (len(tval) < 1 or tval == '.' or tval == '?')):
             tval = default
 
-        if type == "int":
+        if ctype == "int":
             return int(str(tval))
-        elif type == "float":
+        elif ctype == "float":
             return float(str(tval))
-        elif type == "str":
+        elif ctype == "str":
             return str(tval)
         else:
             return tval

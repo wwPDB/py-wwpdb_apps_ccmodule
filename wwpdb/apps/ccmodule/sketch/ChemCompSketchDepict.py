@@ -30,9 +30,9 @@ class ChemCompSketchDepict(ChemCompDepict):
 
         """
         super(ChemCompSketchDepict, self).__init__(verbose, log)
-        self.__verbose = verbose
-        self.__lfh = log
-        self.__debug = True
+        # self.__verbose = verbose
+        # self.__lfh = log
+        # self.__debug = True
         #
         #
 

@@ -22,7 +22,6 @@ __version__ = "V0.01"
 import os
 import sys
 
-from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 from wwpdb.apps.ccmodule.reports.ChemCompReports import ChemCompReport
 from wwpdb.apps.ccmodule.view.ChemCompViewDepict import ChemCompViewDepict
 from mmcif_utils.chemcomp.PdbxChemCompIo import PdbxChemCompIo
@@ -47,18 +46,16 @@ class ChemCompView(object):
         #
         # self.__sobj=self.__reqObj.newSessionObj()
         #
-        self.__sObj = self.__reqObj.getSessionObj()
-        self.__sessionPath = self.__sObj.getPath()
-        self.__sessionRelativePath = self.__sObj.getRelativePath()
+        # self.__sObj = self.__reqObj.getSessionObj()
+        # self.__sessionPath = self.__sObj.getPath()
+        # self.__sessionRelativePath = self.__sObj.getRelativePath()
 
         #
-        self.__ccConfig = ChemCompConfig(reqObj, verbose=self.__verbose, log=self.__lfh)
-        #
-        self.__idList = []
+        self.__idList = []  # pylint: disable=unused-private-member
         #
 
     def setIdList(self, idList):
-        self.__idList = idList
+        self.__idList = idList  # pylint: disable=unused-private-member
 
     def doView(self):
         """ Call to display data for given chem component in comparison grid of standalone version of chem comp module.
@@ -164,12 +161,12 @@ class ChemCompView(object):
 
         return ccDict
 
-    def __addWordBreakAtHyphen(self, iString):
-        oString = ""
-        for i in iString:
-            if i == '-':
-                oString += i
-                oString += "<wbr />"
-            else:
-                oString += i
-        return oString
+    # def __addWordBreakAtHyphen(self, iString):
+    #     oString = ""
+    #     for i in iString:
+    #         if i == '-':
+    #             oString += i
+    #             oString += "<wbr />"
+    #         else:
+    #             oString += i
+    #     return oString

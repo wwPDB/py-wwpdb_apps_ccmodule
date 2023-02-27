@@ -28,7 +28,7 @@ import os
 import traceback
 from mmcif.io.PdbxReader import PdbxReader
 # ??? unused?
-from mmcif.api.PdbxContainers import *  # noqa: F401, F402, F403
+# from mmcif.api.PdbxContainers import *  # noqa: F401, F402, F403
 
 
 class PdbxCategoryDefinition:
@@ -111,7 +111,7 @@ class PdbxChemCompAssignReader(object):
             if self.__dBlock is not None:
                 return self.__dBlock.getName()
             else:
-                False
+                return False
         except:  # noqa: E722 pylint: disable=bare-except
             return False
 
@@ -205,7 +205,7 @@ class PdbxChemCompAssignReader(object):
         #
         # Get category object - from current data block
         #
-        itTupList = PdbxCategoryDefinition._cDict[catName]
+        itTupList = PdbxCategoryDefinition._cDict[catName]  # pylint: disable=protected-access
         catObj = self.__dBlock.getObj(catName)
         # nRows = catObj.getRowCount()
         #
@@ -220,7 +220,7 @@ class PdbxChemCompAssignReader(object):
         #
         colDict = {}
         #
-        for ii, itTup in enumerate(itTupList):
+        for _ii, itTup in enumerate(itTupList):
             if itTup[0] in itDict:
                 colDict[itTup[0]] = itDict[itTup[0]]
         #
@@ -234,60 +234,60 @@ class PdbxChemCompAssignReader(object):
 
         return dList
 
-    def __getDataList(self, catName='chem_comp_bond'):
-        """Return  a list of data from the input category including
-           data types and default value replacement.
+    # def __getDataList(self, catName='chem_comp_bond'):
+    #     """Return  a list of data from the input category including
+    #        data types and default value replacement.
 
-           For list representing each row is column ordered according to the internal
-           data structure PdbxCategoryDefinition._cDict[catName]
+    #        For list representing each row is column ordered according to the internal
+    #        data structure PdbxCategoryDefinition._cDict[catName]
 
-        """
-        itTupList = PdbxCategoryDefinition._cDict[catName]
-        catObj = self.__dBlock.getObj(catName)
-        # nRows = catObj.getRowCount()
+    #     """
+    #     itTupList = PdbxCategoryDefinition._cDict[catName]
+    #     catObj = self.__dBlock.getObj(catName)
+    #     # nRows = catObj.getRowCount()
 
-        itDict = {}
-        itNameList = catObj.getItemNameList()
-        for idxIt, itName in enumerate(itNameList):
-            itDict[itName] = idxIt
-        #
-        colTupList = []
-        # (column index of data or -1, type name, [default value]  )
-        for ii, itTup in enumerate(itTupList):
-            if itTup[0] in itDict:
-                colTupList.append((itDict[itTup[0]], itTup[2], itTup[3]))
-            else:
-                colTupList.append((-1, itTup[2], itTup[3]))
-        #
-        rowList = catObj.getRowList()
-        dataList = []
-        for row in rowList:
-            uR = []
-            for cTup in colTupList:
+    #     itDict = {}
+    #     itNameList = catObj.getItemNameList()
+    #     for idxIt, itName in enumerate(itNameList):
+    #         itDict[itName] = idxIt
+    #     #
+    #     colTupList = []
+    #     # (column index of data or -1, type name, [default value]  )
+    #     for _ii, itTup in enumerate(itTupList):
+    #         if itTup[0] in itDict:
+    #             colTupList.append((itDict[itTup[0]], itTup[2], itTup[3]))
+    #         else:
+    #             colTupList.append((-1, itTup[2], itTup[3]))
+    #     #
+    #     rowList = catObj.getRowList()
+    #     dataList = []
+    #     for row in rowList:
+    #         uR = []
+    #         for cTup in colTupList:
 
-                if cTup[0] < 0:
-                    uR.append(self.__applyType(cTup[1], cTup[2], cTup[2]))
-                else:
-                    uR.append(self.__applyType(cTup[1], cTup[2], row[cTup[0]]))
+    #             if cTup[0] < 0:
+    #                 uR.append(self.__applyType(cTup[1], cTup[2], cTup[2]))
+    #             else:
+    #                 uR.append(self.__applyType(cTup[1], cTup[2], row[cTup[0]]))
 
-            dataList.append(uR)
+    #         dataList.append(uR)
 
-        return dataList
+    #     return dataList
 
-    def __applyType(self, type, default, val):
-        """Apply type conversion to the input value and assign default values to
-           missing values.
-        """
-        tval = val
-        if val is None:
-            tval = default
-        if isinstance(tval, str) and (len(tval) < 1 or tval == '.' or tval == '?'):
-            tval = default
-        if type == "int":
-            return int(str(tval))
-        elif type == "float":
-            return float(str(tval))
-        elif type == "str":
-            return str(tval)
-        else:
-            return tval
+    # def __applyType(self, type, default, val):
+    #     """Apply type conversion to the input value and assign default values to
+    #        missing values.
+    #     """
+    #     tval = val
+    #     if val is None:
+    #         tval = default
+    #     if isinstance(tval, str) and (len(tval) < 1 or tval == '.' or tval == '?'):
+    #         tval = default
+    #     if type == "int":
+    #         return int(str(tval))
+    #     elif type == "float":
+    #         return float(str(tval))
+    #     elif type == "str":
+    #         return str(tval)
+    #     else:
+    #         return tval

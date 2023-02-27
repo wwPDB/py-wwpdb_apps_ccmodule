@@ -36,7 +36,7 @@ class ChemCompAnnotate(object):
         """
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         #
@@ -114,7 +114,7 @@ class ChemCompAnnotate(object):
         #
         # make a local copy of the file (if required)
         #
-        (pth, fileName) = os.path.split(self.__definitionFilePath)
+        (_pth, fileName) = os.path.split(self.__definitionFilePath)
         lclPath = os.path.join(dirPath, fileName)
         if (self.__definitionFilePath != lclPath):
             shutil.copyfile(self.__definitionFilePath, lclPath)

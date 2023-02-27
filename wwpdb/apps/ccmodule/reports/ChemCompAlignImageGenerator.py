@@ -40,6 +40,8 @@ class ChemCompAlignImageGenerator(object):
         self.__sObj = self.__reqObj.getSessionObj()
         self.__sessionPath = self.__sObj.getPath()
         #
+        self.__imagePath = None
+
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
         self.__cICommon = ConfigInfoAppCommon(self.__siteId)
@@ -47,9 +49,11 @@ class ChemCompAlignImageGenerator(object):
         self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
                                                verbose=self.__verbose, log=self.__lfh)
 
-    def generateImages(self, instId=None, instFile=None, hitList=[]):
+    def generateImages(self, instId=None, instFile=None, hitList=None):
         if (not instId) or (not instFile):
             return
+        if hitList is None:
+            hitList = []
         #
         self.__imagePath = os.path.join(self.__sessionPath, 'assign', instId, 'image')
         if not os.access(self.__imagePath, os.F_OK):
@@ -63,17 +67,17 @@ class ChemCompAlignImageGenerator(object):
         imageFile = os.path.join(self.__imagePath, 'image.txt')
         ofh = open(imageFile, 'w')
         ofh.write(instId + ' ' + instFile + '\n')
-        for id in hitList:
+        for id in hitList:  # pylint: disable=redefined-builtin
             refFile = self.__ccRefPathInfo.getFilePath(str(id).upper())
             if not os.access(refFile, os.F_OK):
                 continue
             #
             ofh.write(id + ' ' + refFile + '\n')
             #
-            list = []
-            list.append(id)
-            list.append(refFile)
-            foundList.append(list)
+            alist = []
+            alist.append(id)
+            alist.append(refFile)
+            foundList.append(alist)
         #
         ofh.close()
         #
@@ -108,9 +112,9 @@ class ChemCompAlignImageGenerator(object):
         self.__generateSingleImage(Id=instId, FileName=instFile)
         self.__generateSingleImage(Id=instId, FileName=instFile, size=1000, labelAtomName=True, suffix='_Big')
         if foundList:
-            for list in foundList:
-                self.__generateSingleImage(Id=list[0], FileName=list[1])
-                self.__generateSingleImage(Id=list[0], FileName=list[1], size=1000, labelAtomName=True, suffix='_Big')
+            for flist in foundList:
+                self.__generateSingleImage(Id=flist[0], FileName=flist[1])
+                self.__generateSingleImage(Id=flist[0], FileName=flist[1], size=1000, labelAtomName=True, suffix='_Big')
                 #
             #
         #

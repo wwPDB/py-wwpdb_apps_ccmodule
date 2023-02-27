@@ -24,7 +24,7 @@ import sys
 import shutil
 
 from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
-from wwpdb.utils.config.ConfigInfo import ConfigInfo
+# from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
 
@@ -46,21 +46,22 @@ class ChemCompReport(object):
         """
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         #
         self.__sObj = self.__reqObj.getSessionObj()
         self.__sessionPath = self.__sObj.getPath()
-        self.__sessionRelativePath = self.__sObj.getRelativePath()
+        # self.__sessionRelativePath = self.__sObj.getRelativePath()
         #
         self.__ccConfig = ChemCompConfig(reqObj, verbose=self.__verbose, log=self.__lfh)
         #
         self.__reportFilePath = None
+        self.__reportFileRelativePath = None
         self.__definitionId = None
         self.__definitionFilePath = None
-        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
-        self.__cI = ConfigInfo(self.__siteId)
+        # self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        # self.__cI = ConfigInfo(self.__siteId)
 
         context = self.__getContext()
         if context == 'standalone':
@@ -119,7 +120,7 @@ class ChemCompReport(object):
             return False
         return True
 
-    def doReport(self, type=None, ccAssignPthMdfier=None):
+    def doReport(self, type=None, ccAssignPthMdfier=None):  # pylint: disable=redefined-builtin
         """ Generate report data -
         """
         # Make a local copy of the source definition file -
@@ -263,7 +264,7 @@ class ChemCompCheckReport(object):
         """
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         #
@@ -275,6 +276,7 @@ class ChemCompCheckReport(object):
 
         #
         self.__reportFilePath = None
+        self.__reportFileRelativePath = None
         self.__definitionId = None
         self.__definitionFilePath = None
 

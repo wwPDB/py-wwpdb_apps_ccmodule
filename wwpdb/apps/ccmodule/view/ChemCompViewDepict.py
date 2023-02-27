@@ -38,7 +38,7 @@ class ChemCompViewDepict(ChemCompDepict):
         super(ChemCompViewDepict, self).__init__(verbose, log)
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__pathDictViewTmplts = "templates/dictionary_ui"
 

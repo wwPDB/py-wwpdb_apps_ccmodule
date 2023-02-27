@@ -444,7 +444,7 @@ class ChemCompDpUtility(object):
                     reportDefinitionFilePath = os.path.join(self._ccReportPath, definitionFileName)
                     wfFilePath = ccAssignDataStore.getDpstrSketchFileWfPath(ligId, definitionFileName, 'sdf')
 
-                    self._copyFileToReportDir(self, wfFilePath, reportDefinitionFilePath)
+                    self._copyFileToReportDir(wfFilePath, reportDefinitionFilePath)
                 # then check if any files were uploaded
                 dpstrUploadFilesDict = ccAssignDataStore.getDpstrUploadFilesDict()
                 if ligId in dpstrUploadFilesDict:
@@ -454,13 +454,13 @@ class ChemCompDpUtility(object):
                                 reportImageFilePath = os.path.join(self._ccReportPath, fileName)
                                 wfImageFilePath = ccAssignDataStore.getDpstrUploadFileWfPath(ligId, fileType, fileName)
 
-                                self._copyFileToReportDir(self, wfImageFilePath, reportImageFilePath)
+                                self._copyFileToReportDir(wfImageFilePath, reportImageFilePath)
                         elif fileType in contentTypeDict['component-definition'][0]:
                             for fileName in dpstrUploadFilesDict[ligId][fileType].keys():
                                 reportDefinitionFilePath = os.path.join(self._ccReportPath, fileName)
                                 wfDefinitionFilePath = ccAssignDataStore.getDpstrUploadFileWfPath(ligId, fileType, fileName)
 
-                                self._copyFileToReportDir(self, wfDefinitionFilePath, reportDefinitionFilePath)
+                                self._copyFileToReportDir(wfDefinitionFilePath, reportDefinitionFilePath)
             except:  # noqa: E722 pylint: disable=bare-except
                 if self._verbose:
                     self._logger.error('----- WARNING ----- processing failed id: %s', self._depId, exc_info=True)
@@ -563,11 +563,11 @@ class ChemCompDpUtility(object):
 
         # call on ChemCompAssign to save current state of ligand assignments
         cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
-        bSuccess, msg = cca.saveState(pathDict, context='deposit', mode=mode)
+        bSuccess, _msg = cca.saveState(pathDict, context='deposit', mode=mode)
 
         return bSuccess
 
-    def addInput(self, name=None, value=None, type='file'):
+    def addInput(self, name=None, value=None, type='file'):  # pylint: disable=redefined-builtin
         """Add a named input and value to the dictionary of input parameters.
 
         Args:
@@ -592,14 +592,14 @@ class ChemCompDpUtility(object):
             else:
                 raise ValueError('Error - Unknown input type {}'.format(type))
 
-                return False
+                return False  # pylint: disable=unreachable
 
             return True
 
         except Exception as e:
-            raise ValueError('Error - %s', str(e))
+            raise ValueError('Error - %s', str(e))  # pylint: disable=raise-missing-from,raising-format-tuple
 
-            return False
+        return False
 
     def _setupSession(self, depId):
         """Setup the session object (even though we don't rely on sessions here)

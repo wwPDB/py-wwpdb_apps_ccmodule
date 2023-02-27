@@ -45,7 +45,7 @@ def main(argv):
     ccid = filePth = outputPth = ""
 
     try:
-        opts, args = getopt.getopt(argv, "hi:f:o:v", ["help", "id=", "filepath=", "outputpath=", "verbose", "label=", "size="])
+        opts, _args = getopt.getopt(argv, "hi:f:o:v", ["help", "id=", "filepath=", "outputpath=", "verbose", "label=", "size="])
 
     except getopt.GetoptError:
         usage()

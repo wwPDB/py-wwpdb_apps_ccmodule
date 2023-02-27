@@ -38,16 +38,16 @@ class ChemCompDepict(object):
     """Base class for HTML depictions contain definitions of common constructs.
 
     """
-    def __init__(self, verbose=False, log=sys.stderr):
+    def __init__(self, verbose=False, log=sys.stderr):  # pylint: disable=unused-argument
         """
 
          :param `verbose`:  boolean flag to activate verbose logging.
          :param `log`:      stream for logging.
 
         """
-        self.__verbose = verbose
-        self.__lfh = log
-        self.__debug = True
+        # self.__verbose = verbose
+        # self.__lfh = log
+        # self.__debug = True
         #
         self.absltSessionPath = None
         self.absltAssgnSessionPath = None
@@ -239,10 +239,12 @@ class ChemCompDepict(object):
             # else we are in the standalone dev environment
             return False
 
-    def processTemplate(self, tmpltPth, fn, parameterDict={}):
+    def processTemplate(self, tmpltPth, fn, parameterDict=None):
         """ Read the input HTML template data file and perform the key/value substitutions in the
             input parameter dictionary.
         """
+        if parameterDict is None:
+            parameterDict = {}
         fPath = os.path.join(tmpltPth, fn)
         ifh = open(fPath, 'r')
         sIn = ifh.read()

@@ -42,7 +42,7 @@ class ChemCompTableEditor(object):
         """
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         #
@@ -125,7 +125,6 @@ class ChemCompTableEditor(object):
                 priorValue = ed.getValuePrevious()
                 undoList.append({'id' : targetId, 'value' : priorValue})
             else:
-                pass
                 ed.printIt(self.__lfh)
 
         es.remove(edNo)
@@ -150,7 +149,7 @@ class ChemCompTableEditor(object):
         """
         rD = {}
         #
-        id = self.__reqObj.getValue('id')
+        id = self.__reqObj.getValue('id')  # pylint: disable=redefined-builtin
         blockId = self.__reqObj.getValue('blockId')
         value = self.__reqObj.getValue('value')
         priorValue = self.__reqObj.getValue('priorValue')
@@ -172,7 +171,7 @@ class ChemCompTableEditor(object):
             self.__lfh.write("+ChemCompEdit.doItemValueUpdate() - editNumber    %r\n" % editNumberReported)
             self.__lfh.flush()
 
-        (catName, attributeName, sRow, insertCode, opNum) = id.split(':')
+        (catName, attributeName, _sRow, _insertCode, _opNum) = id.split(':')
         # iRow = int(sRow)
         itemName = '_' + catName + '.' + attributeName
         #
@@ -208,17 +207,17 @@ class ChemCompTableEditor(object):
         #
         return rD
 
-    def __getRowDefault(self, catName):
-        """ Provide a
-        """
-        # rD = {}
-        pass
+    # def __getRowDefault(self, catName):
+    #     """ Provide a
+    #     """
+    #     # rD = {}
+    #     pass
 
     def doRowUpdate(self):
         """  Process a row edit update request -
         """
         rD = {}
-        id = self.__reqObj.getValue('id')
+        id = self.__reqObj.getValue('id')  # pylint: disable=redefined-builtin
         value = self.__reqObj.getValue('value')
         blockId = self.__reqObj.getValue('blockId')
         priorValue = self.__reqObj.getValue('priorValue')
@@ -239,7 +238,7 @@ class ChemCompTableEditor(object):
             self.__lfh.flush()
 
         try:
-            rD['editOpNumber'] = int(editOpNumber) + 1  # noqa: F821  XXXX This might be editOpeNumberReported - what are implications?
+            rD['editOpNumber'] = int(editOpNumber) + 1  # noqa: F821  XXXX This might be editOpeNumberReported - what are implications?  pylint: disable=undefined-variable
         except:  # noqa: E722 pylint: disable=bare-except
             rD['editOpNumber'] = 1
 
@@ -252,7 +251,7 @@ class ChemCompTableEditor(object):
 
         rD['id'] = '#%s:%s:%d:%s:%d' % (catName, opName, iRow, insertCode, opNum)
 
-        if True:
+        if True:  # pylint: disable=using-constant-test
             return rD
 
         ccU = PdbxChemCompUpdater(verbose=self.__verbose, log=self.__lfh)
@@ -261,7 +260,7 @@ class ChemCompTableEditor(object):
             rD['errortext'] = 'update file not found'
             rD['errorflag'] = True
 
-        ok = ccU.updateItem(itemName, value, iRow)  # noqa: F821  XXXX This code clearly not used as cannot work
+        ok = ccU.updateItem(itemName, value, iRow)  # noqa: F821  XXXX This code clearly not used as cannot work pylint: disable=undefined-variable
         if not ok:
             rD['errortext'] = 'item update failed'
             rD['errorflag'] = True
@@ -295,7 +294,7 @@ class ChemCompTableEditor(object):
         #
         # make a local copy of the file (if required)
         #
-        (pth, fileName) = os.path.split(filePath)
+        (_pth, fileName) = os.path.split(filePath)
         dirPath = os.path.join(self.__sessionPath, 'edit')
         localPath = os.path.join(dirPath, fileName)
         localRelativePath = os.path.join(self.__sessionRelativePath, 'edit', fileName)
@@ -337,7 +336,7 @@ class ChemCompTableEditor(object):
         """  Process an edit update request.
         """
         rD = {}
-        id = self.__reqObj.getValue('id')
+        id = self.__reqObj.getValue('id')  # pylint: disable=redefined-builtin
         value = self.__reqObj.getValue('value')
         priorValue = self.__reqObj.getValue('priorValue')
         localPath = self.__reqObj.getValue('localPath')
@@ -357,7 +356,7 @@ class ChemCompTableEditor(object):
 
         rD['value'] = value
         rD['valuelist'] = [{'id': id, 'value': value}, {'id': id, 'value': value}]
-        (catName, attributeName, sRow, insertCode, opNum) = id.split(':')
+        (catName, attributeName, sRow, _insertCode, _opNum) = id.split(':')
         iRow = int(sRow)
         itemName = '_' + catName + '.' + attributeName
 

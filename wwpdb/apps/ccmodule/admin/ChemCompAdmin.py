@@ -35,13 +35,13 @@ class ChemCompAdmin(object):
         """
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         #
         self.__sObj = self.__reqObj.getSessionObj()
         self.__sessionPath = self.__sObj.getPath()
-        self.__sessionRelativePath = self.__sObj.getRelativePath()
+        # self.__sessionRelativePath = self.__sObj.getRelativePath()
         #
         self.__ccConfig = ChemCompConfig(reqObj, verbose=self.__verbose, log=self.__lfh)
         #
@@ -95,7 +95,7 @@ class ChemCompAdmin(object):
         #
         # make a local copy of the file (if required)
         #
-        (pth, fileName) = os.path.split(self.__definitionFilePath)
+        (_pth, fileName) = os.path.split(self.__definitionFilePath)
         lclPath = os.path.join(dirPath, fileName)
         if (self.__definitionFilePath != lclPath):
             shutil.copyfile(self.__definitionFilePath, lclPath)

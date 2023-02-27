@@ -50,8 +50,8 @@ class ChemCompBigAlignImages(object):
         data = f.read()
         f.close()
         #
-        list = data.split('\n')
-        for line in list:
+        slist = data.split('\n')
+        for line in slist:
             if not line:
                 continue
             #
@@ -68,8 +68,8 @@ class ChemCompBigAlignImages(object):
                                   labelAtomIndex=False, labelBondIndex=False, highlightStyleFit='ballAndStickInverse',
                                   bondDisplayWidth=1.0)
             oed.setRefPath(self.__inputList[0][0], self.__inputList[0][1], title='', imagePath=self.__inputList[0][0] + suffix + '.svg')
-            for list in self.__inputList[1:]:
-                oed.addFitPath(list[0], list[1], title='', imagePath=list[0] + suffix + '.svg')
+            for slist in self.__inputList[1:]:
+                oed.addFitPath(slist[0], slist[1], title='', imagePath=slist[0] + suffix + '.svg')
             #
             oed.alignOneWithList()
         except:  # noqa: E722 pylint: disable=bare-except

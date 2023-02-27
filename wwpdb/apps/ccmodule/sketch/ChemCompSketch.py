@@ -37,7 +37,7 @@ class ChemCompSketch(object):
         """
         self.__verbose = verbose
         self.__lfh = log
-        self.__debug = True
+        # self.__debug = True
         #
         self.__reqObj = reqObj
         #
@@ -105,7 +105,7 @@ class ChemCompSketch(object):
         #
         # make a local copy of the file (if required)
         #
-        (pth, fileName) = os.path.split(self.__ccFilePath)
+        (_pth, fileName) = os.path.split(self.__ccFilePath)
         lclPath = os.path.join(dirPath, fileName)
         if (self.__ccFilePath != lclPath):
             shutil.copyfile(self.__ccFilePath, lclPath)
