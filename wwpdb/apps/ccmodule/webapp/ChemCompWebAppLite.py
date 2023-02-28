@@ -703,7 +703,7 @@ class ChemCompWebAppLiteWorker(object):
                 returnDict[authorAssignedId]['bGrpRequiresAttention'] = True
                 returnDict[authorAssignedId]['grpMismatchCnt'] += 1
                 returnDict[authorAssignedId]['mismatchLst'].append(inst)
-                returnDict[authorAssignedId]['mismatchLst'].sotr  # pylint: disable=pointless-statement
+                returnDict[authorAssignedId]['mismatchLst'].sort  # pylint: disable=pointless-statement
 
             isResolved = authorAssignedId in ccAssignDataStore.getGlbllyRslvdGrpList()
             returnDict[authorAssignedId]['bGrpMismatchAddressed'] = isResolved
