@@ -105,3 +105,6 @@ venv.bak/
 
 # Test output
 wwpdb/apps/tests_ccmodule/test-output/
+
+# emacs
+*~

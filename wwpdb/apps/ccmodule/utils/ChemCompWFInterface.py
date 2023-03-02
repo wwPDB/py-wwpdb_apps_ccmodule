@@ -1,5 +1,7 @@
-import  os, sys, traceback
+import sys
+import traceback
 from wwpdb.apps.ccmodule.utils.ChemCompDpUtility import ChemCompDpUtility, ChemCompDpInputs
+
 
 class ChemCompWFInterface:
     """This class has the only purpose of serving as an
@@ -20,13 +22,12 @@ class ChemCompWFInterface:
             inpObjD = kwargs['inputObjectD']
             ccAssignFilePath = inpObjD['src'].getFilePathReference()
             depId = inpObjD["src"].getDepositionDataSetId().upper()
-            
+
             dp = ChemCompDpUtility(depId, self._verbose, self._lfh)
             dp.addInput(ChemCompDpInputs.FILE_CC_ASSIGN, ccAssignFilePath)
             dp.doAnalysis()
 
             return True
-        except:
+        except:  # noqa: E722 pylint: disable=bare-except
             traceback.print_exc(file=self._lfh)
             return False
-    

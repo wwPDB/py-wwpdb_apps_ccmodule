@@ -15,31 +15,33 @@ License described at http://creativecommons.org/licenses/by/3.0/.
 
 """
 __docformat__ = "restructuredtext en"
-__author__    = "Zukang Feng"
-__email__     = "zfeng@rcsb.rutgers.edu"
-__license__   = "Creative Commons Attribution 3.0 Unported"
-__version__   = "V0.01"
+__author__ = "Zukang Feng"
+__email__ = "zfeng@rcsb.rutgers.edu"
+__license__ = "Creative Commons Attribution 3.0 Unported"
+__version__ = "V0.01"
 
-import os, sys
+import os
+import sys
 
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
-from wwpdb.utils.dp.RcsbDpUtility                       import RcsbDpUtility
-from wwpdb.io.locator.ChemRefPathInfo     import ChemRefPathInfo
+from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
-#
 
 class ChemCompAlignImageGenerator(object):
     """Utility Class for generating aligned ligand images
     """
     def __init__(self, reqObj=None, verbose=False, log=sys.stderr):
-        self.__reqObj=reqObj
-        self.__verbose=verbose
-        self.__lfh=log
+        self.__reqObj = reqObj
+        self.__verbose = verbose
+        self.__lfh = log
         #
-        self.__sObj=self.__reqObj.getSessionObj()
-        self.__sessionPath=self.__sObj.getPath()
+        self.__sObj = self.__reqObj.getSessionObj()
+        self.__sessionPath = self.__sObj.getPath()
         #
+        self.__imagePath = None
+
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
         self.__cICommon = ConfigInfoAppCommon(self.__siteId)
@@ -47,15 +49,17 @@ class ChemCompAlignImageGenerator(object):
         self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
                                                verbose=self.__verbose, log=self.__lfh)
 
-    def generateImages(self, instId=None, instFile=None, hitList=[]):
+    def generateImages(self, instId=None, instFile=None, hitList=None):
         if (not instId) or (not instFile):
             return
+        if hitList is None:
+            hitList = []
         #
         self.__imagePath = os.path.join(self.__sessionPath, 'assign', instId, 'image')
         if not os.access(self.__imagePath, os.F_OK):
             try:
                 os.makedirs(self.__imagePath)
-            except:
+            except:  # noqa: E722 pylint: disable=bare-except
                 return
             #
         #
@@ -63,17 +67,17 @@ class ChemCompAlignImageGenerator(object):
         imageFile = os.path.join(self.__imagePath, 'image.txt')
         ofh = open(imageFile, 'w')
         ofh.write(instId + ' ' + instFile + '\n')
-        for id in hitList:
+        for id in hitList:  # pylint: disable=redefined-builtin
             refFile = self.__ccRefPathInfo.getFilePath(str(id).upper())
             if not os.access(refFile, os.F_OK):
                 continue
             #
             ofh.write(id + ' ' + refFile + '\n')
             #
-            list = []
-            list.append(id)
-            list.append(refFile)
-            foundList.append(list)
+            alist = []
+            alist.append(id)
+            alist.append(refFile)
+            foundList.append(alist)
         #
         ofh.close()
         #
@@ -94,7 +98,7 @@ class ChemCompAlignImageGenerator(object):
                     FounImage = False
                 #
                 for id in hitList:
-                    imageFile = os.path.join(self.__imagePath, id  + '.svg')
+                    imageFile = os.path.join(self.__imagePath, id + '.svg')
                     if not os.access(imageFile, os.F_OK):
                         FounImage = False
                     #
@@ -108,9 +112,9 @@ class ChemCompAlignImageGenerator(object):
         self.__generateSingleImage(Id=instId, FileName=instFile)
         self.__generateSingleImage(Id=instId, FileName=instFile, size=1000, labelAtomName=True, suffix='_Big')
         if foundList:
-            for list in foundList:
-                self.__generateSingleImage(Id=list[0], FileName=list[1])
-                self.__generateSingleImage(Id=list[0], FileName=list[1], size=1000, labelAtomName=True, suffix='_Big')
+            for flist in foundList:
+                self.__generateSingleImage(Id=flist[0], FileName=flist[1])
+                self.__generateSingleImage(Id=flist[0], FileName=flist[1], size=1000, labelAtomName=True, suffix='_Big')
                 #
             #
         #
@@ -124,6 +128,6 @@ class ChemCompAlignImageGenerator(object):
         dp.addInput(name="image_path", value=imgPth)
         dp.addInput(name="size", value=size)
         dp.addInput(name="label", value=labelAtomName)
-        
+
         return dp.op("chem-comp-gen-images")
         #
