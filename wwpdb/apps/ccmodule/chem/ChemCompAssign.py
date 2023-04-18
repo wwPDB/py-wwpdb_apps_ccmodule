@@ -108,6 +108,7 @@ from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 from mmcif.io.PdbxReader import PdbxReader
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 from mmcif.io.IoAdapterCore import IoAdapterCore
 
 
@@ -805,8 +806,9 @@ class ChemCompAssign(object):
         #
         rtrnCode = -1
         ccConfig = ChemCompConfig(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-        pathPrefix = ccConfig.getPath('chemCompCachePath')
-        validationPth = os.path.join(pathPrefix, ccId[:1], ccId, ccId + '.cif')
+        crpi = ChemRefPathInfo(self.__cI.get("SITE_PREFIX"), verbose=self.__verbose, log=self.__lfh)
+        validationPth = crpi.getFilePath(ccId, "CC")
+
         #
         if os.access(validationPth, os.R_OK):
             rtrnCode = 0

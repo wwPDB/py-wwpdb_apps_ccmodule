@@ -119,6 +119,7 @@ from wwpdb.io.file.mmCIFUtil import mmCIFUtil
 from wwpdb.utils.wf.dbapi.WfDbApi import WfDbApi
 from wwpdb.utils.wf.dbapi.WFEtime import getTimeNow
 from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
 class ChemCompWebAppLite(object):
@@ -1134,8 +1135,9 @@ class ChemCompWebAppLiteWorker(object):
         self.__reqObj.setReturnFormat(return_format="json")
         rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         #
-        pathPrefix = self.__ccConfig.getPath('chemCompCachePath')
-        validationPth = os.path.join(pathPrefix, ccId[:1], ccId, ccId + '.cif')
+
+        crpi = ChemRefPathInfo(self.__siteId, verbose=self.__verbose, log=self.__lfh)
+        validationPth = crpi.getFilePath(ccId, "CC")
         if (self.__verbose):
             self.__lfh.write("+%s.%s() ---- validating CC ID %s against path: %s\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name, ccId, validationPth))
         if not os.access(validationPth, os.R_OK):

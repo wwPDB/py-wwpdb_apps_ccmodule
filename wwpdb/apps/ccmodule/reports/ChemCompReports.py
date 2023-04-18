@@ -24,9 +24,10 @@ import sys
 import shutil
 
 from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
-# from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCc
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
 class ChemCompReport(object):
@@ -60,8 +61,9 @@ class ChemCompReport(object):
         self.__reportFileRelativePath = None
         self.__definitionId = None
         self.__definitionFilePath = None
-        # self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         # self.__cI = ConfigInfo(self.__siteId)
+        self.__crpi = ChemRefPathInfo(self.__siteId, verbose=verbose, log=log)
 
         context = self.__getContext()
         if context == 'standalone':
@@ -113,8 +115,7 @@ class ChemCompReport(object):
         """
         """
         idUc = str(ccId).upper()
-        fileName = idUc + ".cif"
-        self.__definitionFilePath = os.path.join(self.__ccConfig.getPath('chemCompCachePath'), idUc[0:1], idUc[0:3], fileName)
+        self.__definitionFilePath = self.__crpi.getFilePath(idUc, "CC")
         #
         if (not os.access(self.__definitionFilePath, os.R_OK)):
             return False
@@ -299,8 +300,7 @@ class ChemCompCheckReport(object):
         """
         """
         idUc = str(ccId).upper()
-        fileName = idUc + ".cif"
-        self.__definitionFilePath = os.path.join(self.__ccConfig.getPath('chemCompCachePath'), idUc[0:1], idUc[0:3], fileName)
+        self.__definitionFilePath = self.__crpi.getFilePath(idUc, "CC")
         #
         if (not os.access(self.__definitionFilePath, os.R_OK)):
             return False

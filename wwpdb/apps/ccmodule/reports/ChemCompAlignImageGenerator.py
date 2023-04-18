@@ -46,8 +46,7 @@ class ChemCompAlignImageGenerator(object):
         self.__cI = ConfigInfo(self.__siteId)
         self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         #
-        self.__ccRefPathInfo = ChemRefPathInfo(configObj=self.__cI, configCommonObj=self.__cICommon,
-                                               verbose=self.__verbose, log=self.__lfh)
+        self.__ccRefPathInfo = ChemRefPathInfo(self.__siteId, verbose=self.__verbose, log=self.__lfh)
 
     def generateImages(self, instId=None, instFile=None, hitList=None):
         if (not instId) or (not instFile):

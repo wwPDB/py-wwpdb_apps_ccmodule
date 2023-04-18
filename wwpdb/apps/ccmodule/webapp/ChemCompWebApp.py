@@ -175,6 +175,7 @@ from wwpdb.utils.oe_util.oedepict.OeDepict import OeDepict
 from wwpdb.utils.oe_util.build.OeBuildMol import OeBuildMol
 #
 from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 
 
@@ -1582,8 +1583,8 @@ class ChemCompWebAppWorker(object):
         self.__reqObj.setReturnFormat(return_format="json")
         rC = ResponseContent(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         #
-        pathPrefix = self.__ccConfig.getPath('chemCompCachePath')
-        validationPth = os.path.join(pathPrefix, ccId[:1], ccId, ccId + '.cif')
+        crpi = ChemRefPathInfo(siteId=self.__siteId, verbose=self.__verbose, log=self.__lfh)
+        validationPth = crpi.getFilePath(ccId, "CC")
         if (self.__verbose):
             self.__lfh.write("+ChemCompWebAppWorker._ccAssign_validateCcId() ---- validating CC ID %s against path: %s\n" % (ccId, validationPth))
         if not os.access(validationPth, os.R_OK):

@@ -53,8 +53,10 @@ class ChemCompDpUtility(object):
 
         # setting up chem comp config
         self._ccConfig = ChemCompConfig(self._reqObj, self._verbose, self._lfh)
-        self._ccRefPathInfo = ChemRefPathInfo(configObj=self._cI, configCommonObj=self._cICommon,
-                                              verbose=self._verbose, log=self._lfh)
+
+        siteId = str(self._reqObj.getValue("WWPDB_SITE_ID"))
+
+        self._ccRefPathInfo = ChemRefPathInfo(siteId, verbose=self._verbose, log=self._lfh)
         self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
         self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
@@ -254,8 +256,7 @@ class ChemCompDpUtility(object):
             IOError: if we were not able to read the ligand ".cif" file from
                 the ligand dict
         """
-        ccDictPrefix = self._ccConfig.getPath('chemCompCachePath')
-        chemCompCifPath = os.path.join(ccDictPrefix, topHitCcId[:1], topHitCcId, topHitCcId + '.cif')
+        chemCompCifPath = self._ccRefPathInfo.getFilePath(topHitCcId)
         refImageOutputPath = os.path.join(self._ccReportPath, topHitCcId + '.svg')
 
         if os.access(chemCompCifPath, os.R_OK):
@@ -275,8 +276,7 @@ class ChemCompDpUtility(object):
         Returns:
             bool: True if the ligand has an entry in the dictionary, False otherwise
         """
-        ccDictPrefix = self._ccConfig.getPath('chemCompCachePath')
-        ligandEntryPath = os.path.join(ccDictPrefix, ccid[:1], ccid, ccid + '.cif')
+        ligandEntryPath = self._ccRefPathInfo.getFilePath(ccid)
 
         if not os.access(ligandEntryPath, os.R_OK):
             self._logger.warning('Ligand ID %s has no corresponding dict ref file at %s', ccid, ligandEntryPath)

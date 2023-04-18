@@ -20,6 +20,7 @@ import shutil
 
 
 from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
 class ChemCompAnnotate(object):
@@ -77,8 +78,9 @@ class ChemCompAnnotate(object):
         """
         """
         idUc = str(ccId).upper()
-        fileName = idUc + ".cif"
-        self.__definitionFilePath = os.path.join(self.__ccConfig.getPath('chemCompCachePath'), idUc[0:1], idUc[0:3], fileName)
+        crpi = ChemRefPathInfo(verbose=self.__verbose, log=self.__lfh)
+
+        self.__definitionFilePath = crpi.getFilePath(idUc, "CC")
         #
         if (not os.access(self.__definitionFilePath, os.R_OK)):
             return False
