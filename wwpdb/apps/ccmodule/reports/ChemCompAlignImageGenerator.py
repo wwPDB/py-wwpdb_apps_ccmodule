@@ -24,7 +24,6 @@ import os
 import sys
 
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
-from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
@@ -44,7 +43,6 @@ class ChemCompAlignImageGenerator(object):
 
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
-        self.__cICommon = ConfigInfoAppCommon(self.__siteId)
         #
         self.__ccRefPathInfo = ChemRefPathInfo(self.__siteId, verbose=self.__verbose, log=self.__lfh)
 

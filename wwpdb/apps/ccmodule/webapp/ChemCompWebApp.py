@@ -159,7 +159,6 @@ from wwpdb.apps.ccmodule.sketch.ChemCompSketch import ChemCompSketch
 from wwpdb.apps.ccmodule.sketch.ChemCompSketchDepict import ChemCompSketchDepict
 #
 from wwpdb.utils.wf.dbapi.WfTracking import WfTracking
-from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 #
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
 from wwpdb.apps.ccmodule.io.ChemCompDataImport import ChemCompDataImport
@@ -299,7 +298,6 @@ class ChemCompWebAppWorker(object):
         self.__rltvSessionPath = None
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
-        self.__ccConfig = ChemCompConfig(reqObj, verbose=self.__verbose, log=self.__lfh)
         self.__modelFilePath = None
         #
         self.__pathInstncsVwTmplts = "templates/workflow_ui/instances_view"

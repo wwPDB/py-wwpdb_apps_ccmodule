@@ -24,7 +24,6 @@ import sys
 import shutil
 
 from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
-from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCc
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
 from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
@@ -274,6 +273,8 @@ class ChemCompCheckReport(object):
         self.__sessionRelativePath = self.__sObj.getRelativePath()
         #
         self.__ccConfig = ChemCompConfig(reqObj, verbose=self.__verbose, log=self.__lfh)
+        siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__crpi = ChemRefPathInfo(siteId, verbose=verbose, log=log)
 
         #
         self.__reportFilePath = None

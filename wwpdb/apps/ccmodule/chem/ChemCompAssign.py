@@ -104,7 +104,6 @@ from wwpdb.apps.ccmodule.io.ChemCompDataImport import ChemCompDataImport
 from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo import ChemCompReader
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
-from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 from mmcif.io.PdbxReader import PdbxReader
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
@@ -805,7 +804,6 @@ class ChemCompAssign(object):
             self.__lfh.write("+%s.%s() starting\n" % (self.__class__.__name__, inspect.currentframe().f_code.co_name))
         #
         rtrnCode = -1
-        ccConfig = ChemCompConfig(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
         crpi = ChemRefPathInfo(self.__cI.get("SITE_PREFIX"), verbose=self.__verbose, log=self.__lfh)
         validationPth = crpi.getFilePath(ccId, "CC")
 

@@ -106,7 +106,6 @@ except Exception as e:
 # from wwpdb.apps.ccmodule.search.ChemCompSearchDbDepict import ChemCompSearchDbDepict
 #
 # from wwpdb.utils.wf.dbapi.WfTracking import WfTracking
-from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 #
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
 from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
@@ -248,7 +247,6 @@ class ChemCompWebAppLiteWorker(object):
         self.__siteSrvcUrlPathPrefix = self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         # self.__siteConfigDir = self.__cI.get('TOP_WWPDB_SITE_CONFIG_DIR')
         # self.__siteLoc = self.__cI.get('WWPDB_SITE_LOC')
-        self.__ccConfig = ChemCompConfig(reqObj, verbose=self.__verbose, log=self.__lfh)
         self.__pathInfo = PathInfo()
         self.__depositPath = Path(self.__pathInfo.getDepositPath(self.__depId)).parent
         # self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')

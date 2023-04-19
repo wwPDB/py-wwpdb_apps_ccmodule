@@ -54,6 +54,10 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             instance.get_site_cc_apps_path.return_value = "Foo"
             cls.__mocks = [patch("wwpdb.apps.ccmodule.utils.ChemCompConfig.ConfigInfoAppCommon", instance)]
 
+            instance1a = MagicMock()
+            instance1a.get_site_refdata_top_cvs_sb_path.return_value = "somecomponents"
+            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompConfig.ConfigInfoAppCc", instance1a))
+
             instance2 = MagicMock()
             instance2.get = "Foo"
             cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.ConfigInfo", instance2))
@@ -70,6 +74,14 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             instance5 = MagicMock()
             instance5.return_value = True
             cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.ChemCompDpUtility._genImages", instance5))
+
+            def c1(ccid):
+                # Old hash
+                return os.path.join(HERE, "test-output", "ligand-dict-v3", ccid[0], ccid, ccid + ".cif")
+
+            instance6 = MagicMock()
+            instance6.getFilePath().return_value = os.path.join(HERE, "test-output", "filename")
+            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.ChemRefPathInfo.getFilePath", side_effect=c1))
 
             def getPath(pth):
                 if pth == "chemCompCachePath":
