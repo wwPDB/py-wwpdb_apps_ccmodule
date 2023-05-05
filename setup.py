@@ -46,7 +46,7 @@ setup(
     },
     #
     # Also depends on 'openeye.oechem' but cannot install by pypi
-    install_requires=['mmcif', 'mmcif.utils >= 0.13', 'wwpdb.utils.config ~= 0.24',
+    install_requires=['mmcif', 'mmcif.utils >= 0.13', 'wwpdb.utils.config ~= 0.34',
                       'wwpdb.utils.dp >= 0.11', 'rcsb.utils.multiproc',
                       'wwpdb.utils.wf',
                       'wwpdb.utils.session >= 0.2',

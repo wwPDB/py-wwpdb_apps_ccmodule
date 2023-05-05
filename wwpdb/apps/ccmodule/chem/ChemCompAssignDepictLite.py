@@ -62,6 +62,7 @@ from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
 # from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition
 from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataStore
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCc
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
 
@@ -115,6 +116,8 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         #
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
+        self.__cIAppCc = ConfigInfoAppCc(self.__siteId, verbose=self.__verbose, log=self.__lfh)
+
         # self.__deployPath = self.__cI.get('SITE_DEPLOY_PATH')
         self.__siteSrvcUrlPathPrefix = self.__cI.get('SITE_SERVICE_URL_PATH_PREFIX', '')
         self.__workingRltvAssgnSessionPath = ''
@@ -605,6 +608,7 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         lclDict['none_of_abv_checked'] = ''
 
         lclDict['alt_ccid'] = ''
+        lclDict['alt_ccid_width'] = '3'
         lclDict['dscrptr_type'] = ''
         lclDict['dscrptr_str'] = ''
         lclDict['inchi_selected'] = ''
@@ -626,6 +630,9 @@ class ChemCompAssignDepictLite(ChemCompDepict):
         ligName = p_ccAssgnDataStr.getDpstrCcName(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrCcName(p_authAssignedGrp) != '?' else ""
         ligFrmla = p_ccAssgnDataStr.getDpstrCcFrmla(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrCcFrmla(p_authAssignedGrp) != '?' else ""
         ligComments = p_ccAssgnDataStr.getDpstrComments(p_authAssignedGrp) if p_ccAssgnDataStr.getDpstrComments(p_authAssignedGrp) != '?' else ""
+
+        if self.__cIAppCc.get_extended_ccd_supp():
+            lclDict['alt_ccid_width'] = '5'
 
         if p_authAssignedGrp in p_hlprDict['hndle_msmtch_tophit_id_list'] and len(p_hlprDict['hndle_msmtch_tophit_id_list'][p_authAssignedGrp]) > 0:
             lclDict['dsply_addrss_msmtch_opts'] = ''
