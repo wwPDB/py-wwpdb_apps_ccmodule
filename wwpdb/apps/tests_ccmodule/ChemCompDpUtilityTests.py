@@ -140,14 +140,14 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         cls._ccDictPath = os.path.join(cls._ccConfig.getPath("chemCompCachePath"), "0", "0G7")
         if cls.__standalone:
             HERE = os.path.abspath(os.path.dirname(__file__))
-            cls._depositPath = Path(os.path.join(HERE, "test-output", "deposit"))
+            cls.__myDepositPath = Path(os.path.join(HERE, "test-output", "deposit", cls._depId))
         else:
-            cls._depositPath = Path(PathInfo().getDepositPath(cls._depId)).parent
-        cls._ccReportPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_REPORT_DIR)  # pylint: disable=protected-access
-        cls._depositAssignPath = os.path.join(cls._depositPath, cls._depId, ChemCompDpUtility._CC_ASSIGN_DIR)  # pylint: disable=protected-access
+            cls.__myDepositPath = Path(PathInfo().getDepositPath(cls._depId))
+        cls._ccReportPath = os.path.join(cls.__myDepositPath, ChemCompDpUtility._CC_REPORT_DIR)  # pylint: disable=protected-access
+        cls._depositAssignPath = os.path.join(cls.__myDepositPath, ChemCompDpUtility._CC_ASSIGN_DIR)  # pylint: disable=protected-access
 
         os.makedirs(cls._ccDictPath, exist_ok=True)
-        os.makedirs(cls._depositPath, exist_ok=True)
+        os.makedirs(cls.__myDepositPath, exist_ok=True)
         os.makedirs(cls._ccReportPath, exist_ok=True)
         os.makedirs(cls._depositAssignPath, exist_ok=True)
 
@@ -220,7 +220,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             generated = f.read()
 
         # Adjust paths in files
-        new_orig = original.replace("/nfs/msd/services/onedep/data/development/deposit", str(self._depositPath))
+        new_orig = original.replace("/nfs/msd/services/onedep/data/development/deposit", str(self.__myDepositPath.parent))
         new_orig = new_orig.replace("/nfs/msd/services/onedep/deployments/development/reference/components/ligand-dict-v3",
                                     os.path.join(os.path.dirname(__file__), "test-output/ligand-dict-v3"))
 

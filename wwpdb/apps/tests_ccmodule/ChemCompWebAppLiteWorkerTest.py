@@ -66,14 +66,14 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("TopPath", self.__topPath)
         self.__reqObj.setValue("identifier", "D_800001")
 
-        self.__depositPath = Path(PathInfo().getDepositPath("D_800001")).parent
+        self.__myDepositPath = Path(PathInfo().getDepositPath("D_800001"))
 
     def testGetReportInstanceSvg(self):
         self.__reqObj.setValue("source", "author")
         self.__reqObj.setValue("file", "1_A_F6R_501_.svg")
 
         # generating dummy svg file
-        depid_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis")
+        depid_dir = os.path.join(self.__myDepositPath, "cc_analysis")
         os.makedirs(depid_dir, exist_ok=True)
 
         with open(os.path.join(depid_dir, "1_A_F6R_501_.svg"), "w") as f:
@@ -92,7 +92,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("ligid", "G6Q")
 
         # generating dummy gif file
-        gif_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis", "rfrnc_reports", "G6Q")
+        gif_dir = os.path.join(self.__myDepositPath, "cc_analysis", "rfrnc_reports", "G6Q")
         os.makedirs(gif_dir, exist_ok=True)
 
         with open(os.path.join(gif_dir, "G6Q-noh.gif"), "w") as f:
@@ -111,7 +111,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("ligid", "G6Q")
 
         # generating dummy cif file
-        cif_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis", "rfrnc_reports", "G6Q")
+        cif_dir = os.path.join(self.__myDepositPath, "cc_analysis", "rfrnc_reports", "G6Q")
         os.makedirs(cif_dir, exist_ok=True)
 
         with open(os.path.join(cif_dir, "G6Q_ideal.cif"), "w") as f:
@@ -128,7 +128,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("ligid", "1_A_F6R_501_")
 
         # generating dummy cif file
-        cif_dir = os.path.join(self.__depositPath, "D_800001", "cc_analysis", "1_A_F6R_501_", "report")
+        cif_dir = os.path.join(self.__myDepositPath, "cc_analysis", "1_A_F6R_501_", "report")
         os.makedirs(cif_dir, exist_ok=True)
 
         with open(os.path.join(cif_dir, "F6R_model.cif"), "w") as f:

@@ -124,10 +124,8 @@ class ChemCompAssignDepictLite(ChemCompDepict):
 
         self.__alternateTopHitMarkup = '''<input id="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s" class="c_%(auth_assgnd_grp)s addrss_msmtch use_exact_mtch_id" type="radio" name="addrss_msmtch_chc" value="use_exact_mtch_id" %(use_exact_mtch_id_checked)s %(disabled)s /><label for="use_exact_mtch_id_%(auth_assgnd_grp)s_%(tophit_id)s">Use exact match ID of <span name="%(tophit_id)s" style="color: #F00;" class="strong tophit">%(tophit_id)s</span> (<a href="http://ligand-expo.rcsb.org/pyapps/ldHandler.py?formid=cc-index-search&target=%(tophit_id)s&operation=ccid" target="_blank">See Definition</a>) instead of originally proposed ID</label><br />'''  # noqa: E501
 
-        print("XXXX", self.__depId)
-        self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
-        self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
-        # self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, self._CC_ASSIGN_DIR)
+        depositPath = Path(PathInfo().getDepositPath(self.__depId))
+        self.__ccReportPath = os.path.join(depositPath, self._CC_REPORT_DIR)
         self.__logger = self._setupLog(log)
 
     ################################################################################################################

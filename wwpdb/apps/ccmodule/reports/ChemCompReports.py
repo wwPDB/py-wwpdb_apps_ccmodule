@@ -72,8 +72,8 @@ class ChemCompReport(object):
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier').upper()
-            self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
-            self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')
+            depositPath = Path(PathInfo().getDepositPath(self.__depId))
+            self.__ccReportPath = os.path.join(depositPath, 'cc_analysis')
 
     def __getContext(self):
         filesource = self.__reqObj.getValue('filesource')

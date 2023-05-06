@@ -248,9 +248,6 @@ class ChemCompWebAppLiteWorker(object):
         # self.__siteConfigDir = self.__cI.get('TOP_WWPDB_SITE_CONFIG_DIR')
         # self.__siteLoc = self.__cI.get('WWPDB_SITE_LOC')
         self.__pathInfo = PathInfo()
-        self.__depositPath = Path(self.__pathInfo.getDepositPath(self.__depId)).parent
-        # self.__depositAssignPath = os.path.join(self.__depositPath, self.__depId, 'assign')
-        # self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, 'cc_analysis')  # should we add 'cc_analysis' in a variable in site-config?
         self.__logger = self._setupLog(log)
 
         #
@@ -380,7 +377,8 @@ class ChemCompWebAppLiteWorker(object):
         ligandId = self.__reqObj.getValue("ligid")
         filename = self.__reqObj.getValue("file")
 
-        ccReportPath = os.path.join(self.__depositPath, depId, "cc_analysis")
+        depositPath = Path(self.__pathInfo.getDepositPath(depId))
+        ccReportPath = os.path.join(depositPath, "cc_analysis")
         fileType = filename.split(".")[-1]
         filePath = None
 
