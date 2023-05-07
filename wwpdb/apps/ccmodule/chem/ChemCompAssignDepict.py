@@ -535,6 +535,12 @@ class ChemCompAssignDepict(ChemCompDepict):
         ##
         ############################################################
         #
+        # CCD ID width expansion
+        if self.__cIAppCc.get_extended_ccd_supp():
+            lclDict['max_ccd_width'] = '5'
+        else:
+            lclDict['max_ccd_width'] = '3'
+
         # ######## Rerun Search handling ############################
         ##
         lclDict['link_radius_dlta'] = p_ccAssgnDataStr.getGlblRerunSrchParam_lnkRadii(p_authAssignedGrp)
@@ -632,6 +638,11 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         #######################################################################################################################################################
         #######################################################################################################################################################
+        if self.__cIAppCc.get_extended_ccd_supp():
+            p_hlprDict['max_ccd_width'] = '5'
+        else:
+            p_hlprDict['max_ccd_width'] = '3'
+
         p_hlprDict['top_hit_ccid'] = topHitCcId
         p_hlprDict['2dpath_labld_w_hy_ref'] = os.path.join(self.rltvSessionPath, 'assign', instId, 'image', topHitCcId + '_Big.svg')
         # p_hlprDict['2dpath_labld_w_hy_ref'] = os.path.join(self.rltvSessionPath, 'assign', 'rfrnc_reports', topHitCcId, topHitCcId + '_D3L3.gif')
