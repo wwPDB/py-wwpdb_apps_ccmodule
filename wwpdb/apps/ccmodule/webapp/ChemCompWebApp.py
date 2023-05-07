@@ -166,7 +166,7 @@ from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo import ChemCompReader
 #
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
-from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon
+from wwpdb.utils.config.ConfigInfoApp import ConfigInfoAppCommon, ConfigInfoAppCc
 #
 from wwpdb.io.file.mmCIFUtil import mmCIFUtil
 #
@@ -298,6 +298,7 @@ class ChemCompWebAppWorker(object):
         self.__rltvSessionPath = None
         self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
         self.__cI = ConfigInfo(self.__siteId)
+        self.__cIAppCc = ConfigInfoAppCc(self.__siteId, verbose=self.__verbose, log=self.__lfh)
         self.__modelFilePath = None
         #
         self.__pathInstncsVwTmplts = "templates/workflow_ui/instances_view"
@@ -623,6 +624,11 @@ class ChemCompWebAppWorker(object):
         myD['instance'] = wfInstId
         myD['pdbid'] = str(self.__reqObj.getValue("pdbid"))
         myD['annotator'] = str(self.__reqObj.getValue("annotator"))
+        # CCD ID width expansion
+        if self.__cIAppCc.get_extended_ccd_supp():
+            myD['max_ccd_width'] = '5'
+        else:
+            myD['max_ccd_width'] = '3'
         #
         myD['session_url_prefix'] = os.path.join(self.__rltvSessionPath, "assign", instanceId)
         myD['processing_site'] = self.__cI.get('SITE_NAME').upper()
