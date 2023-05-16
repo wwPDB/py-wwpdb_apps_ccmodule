@@ -28,8 +28,8 @@ class LigandAnalysisState:
 
         self._cI = ConfigInfo()
         self._depId = depId
-        self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
-        self._ccReportPath = os.path.join(self._depositPath, self._depId, 'cc_analysis')
+        depositPath = Path(PathInfo().getDepositPath(self._depId))
+        self._ccReportPath = os.path.join(depositPath, 'cc_analysis')
         self._ccStateFilePath = os.path.join(self._ccReportPath, self._CC_STATE_FILE)
 
         self._progress = 0

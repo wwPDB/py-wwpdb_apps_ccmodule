@@ -57,9 +57,9 @@ class ChemCompDpUtility(object):
         siteId = str(self._reqObj.getValue("WWPDB_SITE_ID"))
 
         self._ccRefPathInfo = ChemRefPathInfo(siteId, verbose=self._verbose, log=self._lfh)
-        self._depositPath = Path(PathInfo().getDepositPath(self._depId)).parent
-        self._ccReportPath = os.path.join(self._depositPath, self._depId, self._CC_REPORT_DIR)
-        self._depositAssignPath = os.path.join(self._depositPath, self._depId, self._CC_ASSIGN_DIR)
+        depositPath = Path(PathInfo().getDepositPath(self._depId))
+        self._ccReportPath = os.path.join(depositPath, self._CC_REPORT_DIR)
+        self._depositAssignPath = os.path.join(depositPath, self._CC_ASSIGN_DIR)
         self._ligState = LigandAnalysisState(self._depId, self._verbose, self._lfh)
 
     def doAnalysis(self):
@@ -552,7 +552,8 @@ class ChemCompDpUtility(object):
                 self._logger.warning('---- WARNING ---- No path obtained for CC assign details export file, id %s', depId)
 
             # chem comp depositor progress file
-            pathDict['dpstrPrgrssFileFlPth'] = os.path.join(self._depositPath, depId, 'cc-dpstr-progress')
+            depositPath = Path(PathInfo().getDepositPath(depId))
+            pathDict['dpstrPrgrssFileFlPth'] = os.path.join(depositPath, 'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = os.path.split(pathDict['dpstrPrgrssFileFlPth'])[0]
 
             if (self._verbose):

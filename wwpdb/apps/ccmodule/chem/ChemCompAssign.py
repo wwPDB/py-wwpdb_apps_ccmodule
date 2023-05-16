@@ -166,9 +166,9 @@ class ChemCompAssign(object):
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier')
-            self.__depositPath = Path(PathInfo().getDepositPath(self.__depId)).parent
-            self.__modelDirPath = os.path.join(self.__depositPath, self.__depId)
-            self.__ccReportPath = os.path.join(self.__depositPath, self.__depId, self._CC_REPORT_DIR)
+            depositPath = Path(PathInfo().getDepositPath(self.__depId))
+            self.__modelDirPath = os.path.join(depositPath)
+            self.__ccReportPath = os.path.join(depositPath, self._CC_REPORT_DIR)
 
         self.normal = ['ALA', 'CYS', 'ASP', 'GLU', 'PHE', 'GLY', 'HIS', 'ILE',
                        'LYS', 'LEU', 'MET', 'ASN', 'PRO', 'GLN', 'ARG', 'SER',
