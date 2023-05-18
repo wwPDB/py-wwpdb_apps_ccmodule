@@ -59,7 +59,6 @@ class ChemCompConfig(object):
         # RPS 2011-11-29 --- use of above symbolic links for archBinPath and archDataPath being superseded by paths determined via calls to ConfigInfo
         self.__ccAppsBinPath = os.path.join(self.__cICommon.get_site_cc_apps_path(), "bin")
         self.__ccDictPath = self.__cIAppCc.get_site_cc_dict_path()
-        self.__ccCvsPath = self.__cIAppCc.get_site_cc_cvs_path()
         self.__oeLicenseFilePath = self.__cICommon.get_site_cc_oe_licence()
         self.__oeDirPath = self.__cICommon.get_site_cc_oe_dir()
 
@@ -68,7 +67,6 @@ class ChemCompConfig(object):
             self.__lfh.write("+ChemCompConfig.__init() --------------------------------------------------------------------------\n")
             self.__lfh.write("+ChemCompConfig.__init() ------ self.__ccAppsBinPath is: %s \n" % self.__ccAppsBinPath)
             self.__lfh.write("+ChemCompConfig.__init() ------ self.__ccDictPath is: %s \n" % self.__ccDictPath)
-            self.__lfh.write("+ChemCompConfig.__init() ------ self.__ccCvsPath is: %s \n" % self.__ccCvsPath)
             self.__lfh.write("+ChemCompConfig.__init() --------------------------------------------------------------------------\n")
         #
         # Place holders for working path info -
@@ -147,8 +145,8 @@ class ChemCompConfig(object):
         # elif (type == "sandboxPathV2"):
         #    return os.path.join("/data/components/ligand-dict-v1")
         #
-        elif (type == "sandboxPathV3" or type == "chemCompCachePath"):
-            return self.__ccCvsPath
+        # elif (type == "sandboxPathV3" or type == "chemCompCachePath"):
+        #    return self.__ccCvsPath
         elif (type == "fpPatternPath"):
             return self.__cICommon.get_cc_fp_patterns()
         elif (type == "serializedCcDictPath"):

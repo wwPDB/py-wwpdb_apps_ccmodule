@@ -83,13 +83,6 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             instance6.getFilePath().return_value = os.path.join(HERE, "test-output", "filename")
             cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.ChemRefPathInfo.getFilePath", side_effect=c1))
 
-            def getPath(pth):
-                if pth == "chemCompCachePath":
-                    return os.path.join(HERE, "test-output", "ligand-dict-v3")
-                return "UNKNOWN"
-
-            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.ChemCompConfig.getPath", side_effect=getPath))
-
             def getdeppath(dataSetId):
                 return os.path.join(HERE, "test-output", "deposit", dataSetId)
 
@@ -112,10 +105,11 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         cls._reqObj.setValue("identifier", cls._depId)
 
         cls._ccConfig = ChemCompConfig(cls._reqObj, cls._verbose, cls._lfh)
+
+        cls._ccDpUtility = ChemCompDpUtility("D_800004", cls._verbose, cls._lfh)
         cls._setup_paths()
 
         # setting up class
-        cls._ccDpUtility = ChemCompDpUtility("D_800004", cls._verbose, cls._lfh)
         cls._ccAssignFile = os.path.join(os.path.dirname(__file__), "fixtures", "D_800004_cc-assign_P1.cif.V1")
         cls._testCcInstanceFilePath = os.path.join(os.path.dirname(__file__), "fixtures", "1_H_0G7_701_.cif")
 
@@ -137,7 +131,8 @@ class ChemCompDpUtilityTests(unittest.TestCase):
     @classmethod
     def _setup_paths(cls):
         """Create the required paths"""
-        cls._ccDictPath = os.path.join(cls._ccConfig.getPath("chemCompCachePath"), "0", "0G7")
+        cls._ccDictPath = os.path.dirname(cls._ccDpUtility._ccRefPathInfo.getFilePath("0G7"))  # pylint: disable=protected-access
+
         if cls.__standalone:
             HERE = os.path.abspath(os.path.dirname(__file__))
             cls.__myDepositPath = Path(os.path.join(HERE, "test-output", "deposit", cls._depId))
@@ -201,7 +196,8 @@ class ChemCompDpUtilityTests(unittest.TestCase):
         self.assertEqual(self._fitTupleDict[self._authAssignedId]["masterAlignRef"], outputTuple)
 
     def test_B_imaging_setup(self):
-        outputTuple = ("0G7", os.path.join(self._ccConfig.getPath("chemCompCachePath"), "0", "0G7", "0G7.cif"), os.path.join(self._ccReportPath, "0G7.svg"))
+        fpath = self._ccDpUtility._ccRefPathInfo.getFilePath("0G7")  # pylint: disable=protected-access
+        outputTuple = ("0G7", fpath, os.path.join(self._ccReportPath, "0G7.svg"))
 
         self._ccDpUtility._imagingSetupForTopHit(self._authAssignedId, self._authAssignedId, self._fitTupleDict)  # pylint: disable=protected-access
         self.assertEqual(self._fitTupleDict[self._authAssignedId]["alignList"][0], outputTuple)

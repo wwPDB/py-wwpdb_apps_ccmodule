@@ -21,6 +21,7 @@ import shutil
 from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 from wwpdb.apps.ccmodule.io.ChemCompIo import ChemCompReader
 from wwpdb.apps.ccmodule.extract.ccOps import ccOps
+from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
 class ChemCompSketch(object):
@@ -76,9 +77,10 @@ class ChemCompSketch(object):
     def __getFilePathFromId(self, ccId):
         """
         """
-        idUc = str(ccId).upper()
-        fileName = idUc + ".cif"
-        self.__ccFilePath = os.path.join(self.__ccConfig.getPath('chemCompCachePath'), idUc[0:1], idUc[0:3], fileName)
+        siteid = self.__reqObj.getValue("WWPDB_SITE_ID")
+        crpi = ChemRefPathInfo(siteid, verbose=self.__verbose, log=self.__lfh)
+
+        self.__ccFilePath = crpi.getFilePath(ccId, "CC")
         #
         if (not os.access(self.__ccFilePath, os.R_OK)):
             return False
