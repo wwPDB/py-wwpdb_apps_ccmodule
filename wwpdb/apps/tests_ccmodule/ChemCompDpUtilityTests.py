@@ -71,6 +71,10 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             instance4.get_site_annot_tools_path = os.path.join(HERE, "test-output", "tools")
             cls.__mocks.append(patch("wwpdb.utils.dp.RcsbDpUtility.ConfigInfoAppCommon", instance4))
 
+            instance4a = MagicMock()
+            instance4a.get_site_refdata_top_cvs_sb_path.return_value = "somecomponents"
+            cls.__mocks.append(patch("wwpdb.utils.dp.RcsbDpUtility.ConfigInfoAppCc", instance4a))
+
             instance5 = MagicMock()
             instance5.return_value = True
             cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.ChemCompDpUtility._genImages", instance5))
