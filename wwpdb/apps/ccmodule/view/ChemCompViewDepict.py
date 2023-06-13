@@ -56,8 +56,8 @@ class ChemCompViewDepict(ChemCompDepict):
         #
         checked = ''
         #
-        sPathRel = os.path.join(self.rltvSessionPath, ccId)
-        sPathAbslt = os.path.join(self.absltSessionPath, ccId)
+        sPathRel = os.path.join(self.rltvAssgnSessionPath, ccId)
+        sPathAbslt = os.path.join(self.absltAssgnSessionPath, ccId)
         #
         p_ccDict['sess_path_rel'] = sPathRel
         p_ccDict['jmol_code_base'] = self.jmolCodeBase
