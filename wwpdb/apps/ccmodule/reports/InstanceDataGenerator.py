@@ -1,6 +1,9 @@
 ##
 # File:  InstanceDataGenerator.py
 # Date:  27-feb-2015
+#
+# Updates:
+# 2023-06-21: ZF   Added AuthRefReportGenerator class
 ##
 """
 Utility Class for generating report material that will support 2D,3D renderings.
@@ -27,6 +30,8 @@ import traceback
 
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
 from wwpdb.apps.ccmodule.reports.ChemCompReports import ChemCompReport
+from wwpdb.utils.config.ConfigInfo import ConfigInfo
+from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 #
 
 
@@ -61,6 +66,11 @@ class InstanceDataGenerator(object):
             uniqList = sorted(set(refList))
             rrG = RefReportGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
             self.__runMultiprocessing(uniqList, rrG, 'runReportGenerator')
+        #
+        authorRefList = self.__ccAssignDataStore.getAuthorProvidedRestraintGrpIds()
+        if len(authorRefList) > 0:
+            arG = AuthRefReportGenerator(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+            self.__runMultiprocessing(authorRefList, arG, 'runReportGenerator')
         #
         irG = InstReportGenerator(reqObj=self.__reqObj, dataStore=self.__ccAssignDataStore, verbose=self.__verbose, log=self.__lfh)
         self.__runMultiprocessing(instIdLst, irG, 'runReportGenerator')
@@ -144,6 +154,46 @@ class RefReportGenerator(object):
         for ccId in dataList:
             ccReport.setDefinitionId(definitionId=ccId.lower())
             ccReport.doReport(type='ref', ccAssignPthMdfier=ccId)
+        #
+
+
+class AuthRefReportGenerator(object):
+    """
+    """
+    def __init__(self, reqObj=None, verbose=False, log=sys.stderr):
+        self.__reqObj = reqObj
+        self.__verbose = verbose
+        self.__lfh = log
+        #
+        self.__sObj = self.__reqObj.getSessionObj()
+        self.__sessionPath = self.__sObj.getPath()
+        #
+        self.__siteId = str(self.__reqObj.getValue("WWPDB_SITE_ID"))
+        self.__cI = ConfigInfo(self.__siteId)
+
+    def runReportGenerator(self, dataList=None, processLabel=None):  # pylint: disable=unused-argument
+        for authId in dataList:
+            chemCompFilePathAbs = os.path.join(self.__sessionPath, 'assign', authId, authId + '.cif')
+            if (not os.access(chemCompFilePathAbs, os.R_OK)):  
+                continue
+            #
+            imagePath = os.path.join(self.__sessionPath, 'assign', authId, 'image')
+            if not os.access(imagePath, os.F_OK):
+                try:
+                    os.makedirs(imagePath)
+                except:  # noqa: E722 pylint: disable=bare-except
+                    continue
+                #
+            #
+            for paraTupL in ( ( 300, '', False ), ( 1000, '_Big', True ) ):
+                dp = RcsbDpUtility(tmpPath=imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+                dp.addInput(name="title", value=authId)
+                dp.addInput(name="path", value=chemCompFilePathAbs)
+                dp.addInput(name="image_path", value=os.path.join(imagePath, authId + paraTupL[1] + '.svg'))
+                dp.addInput(name="size", value=paraTupL[0])
+                dp.addInput(name="label", value=paraTupL[2])
+                dp.op("chem-comp-gen-images")
+            #
         #
 
 

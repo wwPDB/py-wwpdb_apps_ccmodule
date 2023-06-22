@@ -11,7 +11,7 @@ from wwpdb.apps.ccmodule.chem.ChemCompAssign import ChemCompAssign
 from wwpdb.apps.ccmodule.utils.ChemCompConfig import ChemCompConfig
 from wwpdb.apps.ccmodule.utils.LigandAnalysisState import LigandAnalysisState
 from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
-from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxChemCompAssignReader
+from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition,PdbxChemCompAssignReader
 from wwpdb.apps.ccmodule.chem.ChemCompAssignDepictLite import ChemCompAssignDepictLite
 from wwpdb.utils.session.WebRequest import InputRequest
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
@@ -186,7 +186,7 @@ class ChemCompDpUtility(object):
         pR.setFilePath(filePath=fPath)
         pR.getBlock()
 
-        for cN in ['pdbx_entry_info', 'pdbx_instance_assignment', 'pdbx_match_list', 'pdbx_atom_mapping', 'pdbx_missing_atom']:
+        for cN in list(PdbxCategoryDefinition._cDict.keys()):
             if pR.categoryExists(cN):
                 dataDict[cN] = pR.getCategory(catName=cN)
 

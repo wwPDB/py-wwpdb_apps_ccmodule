@@ -77,6 +77,7 @@
 # 2017-09-19    ZF     Add runMultiAssignValidation() and change doAssignValidation() to multiprocessing mode
 # 2021-02-25    ZF     Add self.__origUpdIdMap & self.__sortCompositeMatchScore()
 # 2022-05-23    ZF     Move the __getDpstrOrigCcids() method call from __synchronizeDataStore() method to doAssignValidation() for multiple instances case
+# 2023-06-21    ZF     Add "pdbx_metadata_info" & "pdbx_descriptor_info" categories to chemical assign program
 ##
 """
 Residue-level chemical component extraction operations.
@@ -99,7 +100,7 @@ import inspect
 from rcsb.utils.multiproc.MultiProcUtil import MultiProcUtil
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
-from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxChemCompAssignReader
+from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition,PdbxChemCompAssignReader
 from wwpdb.apps.ccmodule.io.ChemCompDataImport import ChemCompDataImport
 from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo import ChemCompReader
@@ -243,6 +244,8 @@ class ChemCompAssign(object):
                 this deposition corresponding to cif categories:
 
                             + 'pdbx_entry_info'
+                            + 'pdbx_metadata_info'
+                            + 'pdbx_descriptor_info'
                             + 'pdbx_instance_assignment'
                             + 'pdbx_match_list'
                             + 'pdbx_atom_mapping'
@@ -372,7 +375,7 @@ class ChemCompAssign(object):
         pR = PdbxChemCompAssignReader(self.__verbose, self.__lfh)
         pR.setFilePath(filePath=pathToAssignFile)
         pR.getBlock()
-        for cN in ['pdbx_entry_info', 'pdbx_instance_assignment', 'pdbx_match_list', 'pdbx_atom_mapping', 'pdbx_missing_atom']:
+        for cN in list(PdbxCategoryDefinition._cDict.keys()):
             if pR.categoryExists(cN):
                 dataDict[cN] = pR.getCategory(catName=cN)
 
@@ -868,7 +871,7 @@ class ChemCompAssign(object):
             pR.setFilePath(filePath=retResult[1])
             pR.getBlock()
             dd = {}
-            for cN in ['pdbx_entry_info', 'pdbx_instance_assignment', 'pdbx_match_list', 'pdbx_atom_mapping', 'pdbx_missing_atom']:
+            for cN in list(PdbxCategoryDefinition._cDict.keys()):
                 if pR.categoryExists(cN):
                     dd[cN] = pR.getCategory(catName=cN)
                 #
@@ -991,7 +994,7 @@ class ChemCompAssign(object):
             pR = PdbxChemCompAssignReader(self.__verbose, self.__lfh)
             pR.setFilePath(filePath=ccAssignFilePath)
             pR.getBlock()
-            for cN in ['pdbx_entry_info', 'pdbx_instance_assignment', 'pdbx_match_list', 'pdbx_atom_mapping', 'pdbx_missing_atom']:
+            for cN in list(PdbxCategoryDefinition._cDict.keys()):
                 if pR.categoryExists(cN):
                     dd[cN] = pR.getCategory(catName=cN)
 
@@ -1067,7 +1070,7 @@ class ChemCompAssign(object):
             pR = PdbxChemCompAssignReader(self.__verbose, self.__lfh)
             pR.setFilePath(filePath=ccAssignFilePath)
             pR.getBlock()
-            for cN in ['pdbx_entry_info', 'pdbx_instance_assignment', 'pdbx_match_list', 'pdbx_atom_mapping', 'pdbx_missing_atom']:
+            for cN in list(PdbxCategoryDefinition._cDict.keys()):
                 if pR.categoryExists(cN):
                     dd[cN] = pR.getCategory(catName=cN)
 
@@ -1565,6 +1568,35 @@ class ChemCompAssign(object):
                 #    END OF for-loop
                 ####################################################################################################################################
                 ####################################################################################################################################
+            #
+        #
+        if ("pdbx_metadata_info" in p_dataDict) and (len(p_dataDict["pdbx_metadata_info"]) > 0):
+            for row in p_dataDict["pdbx_metadata_info"]:
+                if ("_pdbx_metadata_info.id" not in row) or (not row["_pdbx_metadata_info.id"]):
+                    continue
+                #
+                p_ccAssgnDataStore.setAuthorProvidedRestraintFlag(row["_pdbx_metadata_info.id"])
+                #
+                for keyTupL in ( ( "name", "_pdbx_metadata_info.name" ), ( "formula", "_pdbx_metadata_info.formula" ), \
+                                 ( "natoms", "_pdbx_metadata_info.natoms" ) ):
+                    if (keyTupL[1] not in row) or (not row[keyTupL[1]]):
+                        continue
+                    #
+                    p_ccAssgnDataStore.addAuthorProvidedMetaData(row["_pdbx_metadata_info.id"], keyTupL[0], row[keyTupL[1]])
+                #
+            #
+        #
+        if ("pdbx_descriptor_info" in p_dataDict) and (len(p_dataDict["pdbx_descriptor_info"]) > 0):
+            for row in p_dataDict["pdbx_descriptor_info"]:
+                if ("_pdbx_descriptor_info.id" not in row) or (not row["_pdbx_descriptor_info.id"]) or \
+                   ("_pdbx_descriptor_info.type" not in row) or (not row["_pdbx_descriptor_info.type"]) or \
+                   ("_pdbx_descriptor_info.descriptor" not in row) or (not row["_pdbx_descriptor_info.descriptor"]):
+                    continue
+                #
+                p_ccAssgnDataStore.addAuthorProvidedDescriptor(row["_pdbx_descriptor_info.id"], row["_pdbx_descriptor_info.type"], \
+                                                               row["_pdbx_descriptor_info.descriptor"])
+            #
+        #
 
     def __ccLiteUploadFileHndling(self, p_ccADS, p_ligId=None):
         """ Method for processing any files that were uploaded by the depositor to supplement

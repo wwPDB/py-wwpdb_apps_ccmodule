@@ -63,6 +63,7 @@
 # 2017-02-17    RPS    generateUpdatedDepInfoFile updated --> accommodating new "auth_comp_id" item for "pdbx_binding_assay category"
 # 2017-03-30    RPS    now generating cc-dpstr-prgrss file when there are no ligands requiring attention (in support of depui monitoring at module launch)
 # 2017-05-03    RPS    Updates so that LOI tracking can succeed even in cases where annotator reruns ligand search and consequently changes value for "author" assigned CCID
+# 2023-06-21    ZF     Added self.__authorProvidedInfo dict to hold chemical description information provided by refinement packages
 ##
 '''
 Provide a storage interface for recording chemical component
@@ -175,6 +176,9 @@ class ChemCompAssignDataStore(object):
         self.__rsrchSlctdGrpLst = []     # admin/convenience list for keeping track of entity groups which were indicated as "focus of research".
         self.__dpstrOrigCcIdMaster = {}  # Authoritative copy of CCID which depositor had originally used to identify the ligand
         # ###################Chem Comp Lite attributes END   ###############################
+
+        self.__authorProvidedInfo = {} # Metadata and chemical descriptor(s) information provided by depositor from extra data block(s) 
+                                       # where new chemical information are stored.
 
         self.__setup()
 
@@ -314,6 +318,7 @@ class ChemCompAssignDataStore(object):
         self.__dpstrCcRsrchInfo = {}
         self.__rsrchSlctdGrpLst = []
         self.__dpstrOrigCcIdMaster = {}
+        self.__authorProvidedInfo = {}
 
     def serialize(self):
         """ Persist data to a pickle file on server so that state can be maintained
@@ -369,6 +374,7 @@ class ChemCompAssignDataStore(object):
             pickle.dump(self.__dpstrCcRsrchInfo, fb, self.__pickleProtocol)
             pickle.dump(self.__rsrchSlctdGrpLst, fb, self.__pickleProtocol)
             pickle.dump(self.__dpstrOrigCcIdMaster, fb, self.__pickleProtocol)
+            pickle.dump(self.__authorProvidedInfo, fb, self.__pickleProtocol)
             fb.close()
         except:  # noqa: E722 pylint: disable=bare-except
             self.__lfh.write("+ChemCompAssignStore.serialize() - exception encountered\n")
@@ -426,6 +432,7 @@ class ChemCompAssignDataStore(object):
             self.__dpstrCcRsrchInfo = pickle.load(fb)
             self.__rsrchSlctdGrpLst = pickle.load(fb)
             self.__dpstrOrigCcIdMaster = pickle.load(fb)
+            self.__authorProvidedInfo = pickle.load(fb)
 
             fb.close()
 
@@ -1407,6 +1414,100 @@ class ChemCompAssignDataStore(object):
             return None
 
     #########################################################################
+
+    def setAuthorProvidedRestraintFlag(self, grpId):
+        try:
+            if grpId not in self.__authorProvidedInfo:
+                self.__authorProvidedInfo[grpId] = {}
+            #
+            self.__authorProvidedInfo[grpId]["restraint"] = "YES"
+            return True
+        except:  # noqa: E722 pylint: disable=bare-except
+            return False
+        #
+
+    def hasAuthorProvidedRestraintFlag(self, grpId):
+        try:
+            if (grpId in self.__authorProvidedInfo) and ("restraint" in self.__authorProvidedInfo[grpId]):
+               if self.__authorProvidedInfo[grpId]["restraint"] == "YES":
+                   return True
+                #
+            #
+            return False
+        except:  # noqa: E722 pylint: disable=bare-except
+            return False
+        #
+
+    def getAuthorProvidedRestraintGrpIds(self):
+        try:
+            grpIdList = []
+            for grpId,valD in self.__authorProvidedInfo.items():
+                if ("restraint" in valD) and (valD["restraint"] == "YES"):
+                    grpIdList.append(grpId)
+                #
+            #
+            return grpIdList
+        except:  # noqa: E722 pylint: disable=bare-except
+            return []
+        #
+
+    def addAuthorProvidedMetaData(self, grpId, key, val):
+        try:
+            if grpId not in self.__authorProvidedInfo:
+                self.__authorProvidedInfo[grpId] = {}
+            #
+            self.__authorProvidedInfo[grpId][key] = val
+            return True
+        except:  # noqa: E722 pylint: disable=bare-except
+            return False
+        #
+
+    def getAuthorProvidedMetaData(self, grpId, key):
+        try:
+            if (grpId in self.__authorProvidedInfo) and (key in self.__authorProvidedInfo[grpId]):
+                return self.__authorProvidedInfo[grpId][key]
+            #
+            return None
+        except:  # noqa: E722 pylint: disable=bare-except
+            return None
+        #
+
+    def addAuthorProvidedDescriptor(self, grpId, descriptorType, descriptorVal):
+        try:
+            if grpId not in self.__authorProvidedInfo:
+                self.__authorProvidedInfo[grpId] = {}
+            #
+            if "descriptor" not in self.__authorProvidedInfo[grpId]:
+                self.__authorProvidedInfo[grpId]["descriptor"] = {}
+            #
+            self.__authorProvidedInfo[grpId]["descriptor"][descriptorType] = descriptorVal
+            return True
+        except:  # noqa: E722 pylint: disable=bare-except
+            return False
+        #
+
+    def getAuthorProvidedDescriptor(self, grpId, descriptorType):
+        try: 
+            if (grpId in self.__authorProvidedInfo) and ("descriptor" in self.__authorProvidedInfo[grpId]) and \
+               (descriptorType in self.__authorProvidedInfo[grpId]["descriptor"]):
+                return self.__authorProvidedInfo[grpId]["descriptor"][descriptorType]
+            #
+            return None
+        except:  # noqa: E722 pylint: disable=bare-except
+            return None
+        #
+
+    def getAuthorProvidedDescriptorInfo(self, grpId):
+        try: 
+            if (grpId in self.__authorProvidedInfo) and ("descriptor" in self.__authorProvidedInfo[grpId]) and \
+               (len(self.__authorProvidedInfo[grpId]["descriptor"]) > 0):
+                itemList = sorted(self.__authorProvidedInfo[grpId]["descriptor"].items())
+                return itemList[-1]
+            #
+            return None,None
+        except:  # noqa: E722 pylint: disable=bare-except
+            return None,None
+        #
 
     def setDpstrAltCcId(self, grpId, altId):
         try:

@@ -11,6 +11,7 @@
 #                            _pdbx_match_list.warning_message
 # 2011-06-20    RPS    Updated for update to _pdbx_match_list category definition
 # 2012-10-24    RPS    Updated to reflect reorganization of modules in pdbx packages
+# 2023-06-21    ZF     Added 'pdbx_metadata_info' & 'pdbx_descriptor_info' catetories
 ##
 """
 A collection of classes supporting chemical component assignment data files.
@@ -48,6 +49,15 @@ class PdbxCategoryDefinition:
             ('_pdbx_entry_info.number_of_close_match', '%s', 'str', ''),
             ('_pdbx_entry_info.number_of_no_match', '%s', 'str', ''),
             ('_pdbx_entry_info.status', '%s', 'str', '')],
+        'pdbx_metadata_info': [
+            ('_pdbx_metadata_info.id', '%s', 'str', ''),
+            ('_pdbx_metadata_info.name', '%s', 'str', ''),
+            ('_pdbx_metadata_info.formula', '%s', 'str', ''),
+            ('_pdbx_metadata_info.natoms', '%s', 'str', '')],
+        'pdbx_descriptor_info': [
+            ('_pdbx_descriptor_info.id', '%s', 'str', ''),
+            ('_pdbx_descriptor_info.type', '%s', 'str', ''),
+            ('_pdbx_descriptor_info.descriptor', '%s', 'str', '')],
         'pdbx_instance_assignment': [
             ('_pdbx_instance_assignment.inst_id', '%s', 'str', ''),
             ('_pdbx_instance_assignment.het_id', '%s', 'str', ''),

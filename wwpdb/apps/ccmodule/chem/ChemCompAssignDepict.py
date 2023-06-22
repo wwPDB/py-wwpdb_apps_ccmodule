@@ -80,6 +80,7 @@
 # 2017-02-10    RPS    Implementing safeguard against crashes of OeBuildMol/OeDepict when problematic SMILES strings encountered
 # 2017-04-11    RPS    Updates to accommodate identification of ligands selected by depositor as "ligands of interest"
 # 2017-05-03    RPS    Updates so that LOI tracking can succeed even in cases where annotator reruns ligand search and consequently changes value for "author" assigned CCID
+# 2023-06-21    ZF     Added chemical descriptions provided by refinement packages
 ##
 """
 Create HTML depiction chemical component assignment files.
@@ -154,6 +155,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                                    'dpstr_info_dscrptr',
                                    'dpstr_info_dscrptr_type',
                                    'dpstr_info_dscrptr_img_pth',
+                                   'dpstr_restraint_img_pth',
                                    'dpstr_info_type',
                                    'dpstr_info_details']
 
@@ -555,6 +557,13 @@ class ChemCompAssignDepict(ChemCompDepict):
             buttonLbl = "Show Rerun Search Form"
         lclDict['rerun_display_class'] = displayClass
         lclDict['rerun_btn_lbl'] = buttonLbl
+        #
+        author_info_display_class = 'displaynone'
+        if p_ccAssgnDataStr.hasAuthorProvidedRestraintFlag(p_authAssignedGrp) and \
+           os.access(os.path.join(self.absltAssgnSessionPath, p_authAssignedGrp, p_authAssignedGrp + ".cif"), os.F_OK):
+            author_info_display_class = ''
+        #
+        lclDict['author_info_display_class'] = author_info_display_class
         ##
         ############################################################
         #
@@ -587,7 +596,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         #
         for keyName in self.__dpstrInfoKeyList:
             lclDict[keyName] = naStr
-        if p_authAssignedGrp in p_ccAssgnDataStr.getGlbllyRslvdGrpList():
+        if (p_authAssignedGrp in p_ccAssgnDataStr.getGlbllyRslvdGrpList()) or p_ccAssgnDataStr.hasAuthorProvidedRestraintFlag(p_authAssignedGrp):
             self.__packDpstrViewDict(p_authAssignedGrp, p_ccAssgnDataStr, lclDict)
         for keyName in self.__dpstrInfoKeyList:
             lclDict[keyName + "_displ"] = "displaynone" if lclDict[keyName] == naStr else ""
@@ -1330,7 +1339,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         for keyName in self.__dpstrInfoKeyList:
             lclDict[keyName] = naStr
         ccAssgnDataStr = ChemCompAssignDataStore(p_reqObj, verbose=True, log=self.__lfh)
-        if authAssngdGrp in ccAssgnDataStr.getGlbllyRslvdGrpList():
+        if (authAssngdGrp in ccAssgnDataStr.getGlbllyRslvdGrpList()) or ccAssgnDataStr.hasAuthorProvidedRestraintFlag(authAssngdGrp):
             self.__packDpstrViewDict(authAssngdGrp, ccAssgnDataStr, lclDict)
         for keyName in self.__dpstrInfoKeyList:
             lclDict[keyName + "_displ"] = "displaynone" if lclDict[keyName] == naStr else ""
@@ -1360,17 +1369,36 @@ class ChemCompAssignDepict(ChemCompDepict):
         ligType = p_dataStore.getDpstrCcType(p_grpId)
         altLigId = p_dataStore.getDpstrAltCcId(p_grpId)
         chemCompName = p_dataStore.getDpstrCcName(p_grpId)
+        if (chemCompName is None) or (chemCompName == "?"):
+            name = p_dataStore.getAuthorProvidedMetaData(p_grpId, "name")
+            if name:
+                chemCompName = name
+            #
+        #
         chemCompFrmla = p_dataStore.getDpstrCcFrmla(p_grpId)
+        if (chemCompFrmla is None) or (chemCompFrmla == "?"):
+            formula = p_dataStore.getAuthorProvidedMetaData(p_grpId, "formula")
+            if formula:
+                chemCompFrmla = formula
+            #
+        #
         chemCompDescriptor = p_dataStore.getDpstrCcDscrptrStr(p_grpId)
         chemCompDescriptorType = p_dataStore.getDpstrCcDscrptrType(p_grpId)
+        if (chemCompDescriptor is None) or (chemCompDescriptor == "?") or (chemCompDescriptorType is None) or (chemCompDescriptorType == "?"):
+            desType,desStr = p_dataStore.getAuthorProvidedDescriptorInfo(p_grpId)
+            if desType and desStr:
+                chemCompDescriptor = desStr
+                chemCompDescriptorType = desType
+            #
+        #
         chemCompDetails = p_dataStore.getDpstrComments(p_grpId)
         p_strReplDict['display_dpstr_info'] = ""
-        p_strReplDict['dpstr_info_name'] = chemCompName if chemCompName != '?' else naStr
-        p_strReplDict['dpstr_info_alt_comp_id'] = altLigId if altLigId != '?' else naStr
-        p_strReplDict['dpstr_info_frmla'] = chemCompFrmla if chemCompFrmla != '?' else naStr
+        p_strReplDict['dpstr_info_name'] = chemCompName if chemCompName and (chemCompName != '?') else naStr
+        p_strReplDict['dpstr_info_alt_comp_id'] = altLigId if altLigId and (altLigId != '?') else naStr
+        p_strReplDict['dpstr_info_frmla'] = chemCompFrmla if chemCompFrmla and (chemCompFrmla != '?') else naStr
 
-        p_strReplDict['dpstr_info_dscrptr'] = chemCompDescriptor if chemCompDescriptor != '?' else naStr
-        p_strReplDict['dpstr_info_dscrptr_type'] = chemCompDescriptorType if chemCompDescriptorType != '?' else naStr
+        p_strReplDict['dpstr_info_dscrptr'] = chemCompDescriptor if chemCompDescriptor and (chemCompDescriptor != '?') else naStr
+        p_strReplDict['dpstr_info_dscrptr_type'] = chemCompDescriptorType if chemCompDescriptorType and (chemCompDescriptorType != '?') else naStr
 
         if chemCompDescriptorType and chemCompDescriptorType.lower() == 'smiles':
 
@@ -1420,8 +1448,8 @@ class ChemCompAssignDepict(ChemCompDepict):
             if self.__verbose:
                 self.__lfh.write("+%s.%s() - no SMILES string submitted for this ligand ID [%s].\n" % (className, methodName, p_grpId))
 
-        p_strReplDict['dpstr_info_type'] = ligType if ligType != '?' else naStr
-        p_strReplDict['dpstr_info_details'] = chemCompDetails if chemCompDetails != '?' else naStr
+        p_strReplDict['dpstr_info_type'] = ligType if ligType and (ligType != '?') else naStr
+        p_strReplDict['dpstr_info_details'] = chemCompDetails if chemCompDetails and (chemCompDetails != '?') else naStr
 
         for contentType in contentTypeDict['component-image'][0]:
             imageFileList = p_dataStore.getDpstrUploadFile(p_grpId, contentType)
@@ -1454,6 +1482,11 @@ class ChemCompAssignDepict(ChemCompDepict):
             p_strReplDict['dpstr_info_sketch_sdf'] = fileName
             p_strReplDict['dpstr_info_sketch_sdf_lnk'] = '<a href="' + os.path.join(self.rltvAssgnSessionPath, fileName) + '" target="_blank">' + fileName + '</a>'
             p_strReplDict['dpstr_info_sketch_sdf_img_pth'] = os.path.join(self.rltvAssgnSessionPath, p_grpId + ".svg")
+        #
+        restraintImagePath = os.path.join(self.absltAssgnSessionPath, p_grpId, "image", p_grpId + ".svg")
+        if os.access(restraintImagePath, os.F_OK):
+            p_strReplDict['dpstr_restraint_img_pth'] = os.path.join(self.rltvAssgnSessionPath, p_grpId, "image", p_grpId + ".svg")
+        #
 
     def __renderInstance3dViews(self, p_ccAssgnDataStr, p_hlprDict):
         ''' For given ligand instance id, generates html fragments used for 3D jmol viewing in the "single-instance view"
