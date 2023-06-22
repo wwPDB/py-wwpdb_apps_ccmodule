@@ -177,8 +177,8 @@ class ChemCompAssignDataStore(object):
         self.__dpstrOrigCcIdMaster = {}  # Authoritative copy of CCID which depositor had originally used to identify the ligand
         # ###################Chem Comp Lite attributes END   ###############################
 
-        self.__authorProvidedInfo = {} # Metadata and chemical descriptor(s) information provided by depositor from extra data block(s) 
-                                       # where new chemical information are stored.
+        self.__authorProvidedInfo = {}  # Metadata and chemical descriptor(s) information provided by depositor from extra data block(s)
+                                        # where new chemical information are stored.  # noqa: E116
 
         self.__setup()
 
@@ -1429,8 +1429,8 @@ class ChemCompAssignDataStore(object):
     def hasAuthorProvidedRestraintFlag(self, grpId):
         try:
             if (grpId in self.__authorProvidedInfo) and ("restraint" in self.__authorProvidedInfo[grpId]):
-               if self.__authorProvidedInfo[grpId]["restraint"] == "YES":
-                   return True
+                if self.__authorProvidedInfo[grpId]["restraint"] == "YES":
+                    return True
                 #
             #
             return False
@@ -1441,7 +1441,7 @@ class ChemCompAssignDataStore(object):
     def getAuthorProvidedRestraintGrpIds(self):
         try:
             grpIdList = []
-            for grpId,valD in self.__authorProvidedInfo.items():
+            for grpId, valD in self.__authorProvidedInfo.items():
                 if ("restraint" in valD) and (valD["restraint"] == "YES"):
                     grpIdList.append(grpId)
                 #
@@ -1487,7 +1487,7 @@ class ChemCompAssignDataStore(object):
         #
 
     def getAuthorProvidedDescriptor(self, grpId, descriptorType):
-        try: 
+        try:
             if (grpId in self.__authorProvidedInfo) and ("descriptor" in self.__authorProvidedInfo[grpId]) and \
                (descriptorType in self.__authorProvidedInfo[grpId]["descriptor"]):
                 return self.__authorProvidedInfo[grpId]["descriptor"][descriptorType]
@@ -1498,15 +1498,15 @@ class ChemCompAssignDataStore(object):
         #
 
     def getAuthorProvidedDescriptorInfo(self, grpId):
-        try: 
+        try:
             if (grpId in self.__authorProvidedInfo) and ("descriptor" in self.__authorProvidedInfo[grpId]) and \
                (len(self.__authorProvidedInfo[grpId]["descriptor"]) > 0):
                 itemList = sorted(self.__authorProvidedInfo[grpId]["descriptor"].items())
                 return itemList[-1]
             #
-            return None,None
+            return None, None
         except:  # noqa: E722 pylint: disable=bare-except
-            return None,None
+            return None, None
         #
 
     def setDpstrAltCcId(self, grpId, altId):

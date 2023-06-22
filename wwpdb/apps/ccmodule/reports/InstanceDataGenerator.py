@@ -174,7 +174,7 @@ class AuthRefReportGenerator(object):
     def runReportGenerator(self, dataList=None, processLabel=None):  # pylint: disable=unused-argument
         for authId in dataList:
             chemCompFilePathAbs = os.path.join(self.__sessionPath, 'assign', authId, authId + '.cif')
-            if (not os.access(chemCompFilePathAbs, os.R_OK)):  
+            if (not os.access(chemCompFilePathAbs, os.R_OK)):
                 continue
             #
             imagePath = os.path.join(self.__sessionPath, 'assign', authId, 'image')
@@ -185,7 +185,7 @@ class AuthRefReportGenerator(object):
                     continue
                 #
             #
-            for paraTupL in ( ( 300, '', False ), ( 1000, '_Big', True ) ):
+            for paraTupL in ((300, '', False), (1000, '_Big', True)):
                 dp = RcsbDpUtility(tmpPath=imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
                 dp.addInput(name="title", value=authId)
                 dp.addInput(name="path", value=chemCompFilePathAbs)

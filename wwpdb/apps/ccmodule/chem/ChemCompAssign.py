@@ -100,7 +100,7 @@ import inspect
 from rcsb.utils.multiproc.MultiProcUtil import MultiProcUtil
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
-from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition,PdbxChemCompAssignReader
+from wwpdb.apps.ccmodule.chem.PdbxChemCompAssign import PdbxCategoryDefinition, PdbxChemCompAssignReader
 from wwpdb.apps.ccmodule.io.ChemCompDataImport import ChemCompDataImport
 from wwpdb.apps.ccmodule.io.ChemCompDataExport import ChemCompDataExport
 from wwpdb.apps.ccmodule.io.ChemCompIo import ChemCompReader
@@ -375,7 +375,7 @@ class ChemCompAssign(object):
         pR = PdbxChemCompAssignReader(self.__verbose, self.__lfh)
         pR.setFilePath(filePath=pathToAssignFile)
         pR.getBlock()
-        for cN in list(PdbxCategoryDefinition._cDict.keys()):
+        for cN in list(PdbxCategoryDefinition._cDict.keys()):  # pylint: disable=protected-access
             if pR.categoryExists(cN):
                 dataDict[cN] = pR.getCategory(catName=cN)
 
@@ -871,7 +871,7 @@ class ChemCompAssign(object):
             pR.setFilePath(filePath=retResult[1])
             pR.getBlock()
             dd = {}
-            for cN in list(PdbxCategoryDefinition._cDict.keys()):
+            for cN in list(PdbxCategoryDefinition._cDict.keys()):  # pylint: disable=protected-access
                 if pR.categoryExists(cN):
                     dd[cN] = pR.getCategory(catName=cN)
                 #
@@ -994,7 +994,7 @@ class ChemCompAssign(object):
             pR = PdbxChemCompAssignReader(self.__verbose, self.__lfh)
             pR.setFilePath(filePath=ccAssignFilePath)
             pR.getBlock()
-            for cN in list(PdbxCategoryDefinition._cDict.keys()):
+            for cN in list(PdbxCategoryDefinition._cDict.keys()):  # pylint: disable=protected-access
                 if pR.categoryExists(cN):
                     dd[cN] = pR.getCategory(catName=cN)
 
@@ -1070,7 +1070,7 @@ class ChemCompAssign(object):
             pR = PdbxChemCompAssignReader(self.__verbose, self.__lfh)
             pR.setFilePath(filePath=ccAssignFilePath)
             pR.getBlock()
-            for cN in list(PdbxCategoryDefinition._cDict.keys()):
+            for cN in list(PdbxCategoryDefinition._cDict.keys()):  # pylint: disable=protected-access
                 if pR.categoryExists(cN):
                     dd[cN] = pR.getCategory(catName=cN)
 
@@ -1577,8 +1577,8 @@ class ChemCompAssign(object):
                 #
                 p_ccAssgnDataStore.setAuthorProvidedRestraintFlag(row["_pdbx_metadata_info.id"])
                 #
-                for keyTupL in ( ( "name", "_pdbx_metadata_info.name" ), ( "formula", "_pdbx_metadata_info.formula" ), \
-                                 ( "natoms", "_pdbx_metadata_info.natoms" ) ):
+                for keyTupL in (("name", "_pdbx_metadata_info.name"), ("formula", "_pdbx_metadata_info.formula"),
+                                ("natoms", "_pdbx_metadata_info.natoms")):
                     if (keyTupL[1] not in row) or (not row[keyTupL[1]]):
                         continue
                     #
@@ -1593,7 +1593,7 @@ class ChemCompAssign(object):
                    ("_pdbx_descriptor_info.descriptor" not in row) or (not row["_pdbx_descriptor_info.descriptor"]):
                     continue
                 #
-                p_ccAssgnDataStore.addAuthorProvidedDescriptor(row["_pdbx_descriptor_info.id"], row["_pdbx_descriptor_info.type"], \
+                p_ccAssgnDataStore.addAuthorProvidedDescriptor(row["_pdbx_descriptor_info.id"], row["_pdbx_descriptor_info.type"],
                                                                row["_pdbx_descriptor_info.descriptor"])
             #
         #

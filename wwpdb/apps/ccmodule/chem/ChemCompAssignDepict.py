@@ -1385,7 +1385,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         chemCompDescriptor = p_dataStore.getDpstrCcDscrptrStr(p_grpId)
         chemCompDescriptorType = p_dataStore.getDpstrCcDscrptrType(p_grpId)
         if (chemCompDescriptor is None) or (chemCompDescriptor == "?") or (chemCompDescriptorType is None) or (chemCompDescriptorType == "?"):
-            desType,desStr = p_dataStore.getAuthorProvidedDescriptorInfo(p_grpId)
+            desType, desStr = p_dataStore.getAuthorProvidedDescriptorInfo(p_grpId)
             if desType and desStr:
                 chemCompDescriptor = desStr
                 chemCompDescriptorType = desType
