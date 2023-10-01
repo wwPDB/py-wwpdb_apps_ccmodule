@@ -1114,11 +1114,9 @@ class ChemCompAssign(object):
         dpstrFileSource = "archive"
         # dpstrFileSource = "deposit"   #in interim getting file from deposit storage until transfer from deposit to annotation storage is stable
 
-        if not self.__isWorkflow():
-            dpstrInfoFlPth = None
-        else:
-            ccI = ChemCompDataImport(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
-            dpstrInfoFlPth = ccI.getChemCompDpstrInfoFilePath(fileSource=dpstrFileSource)
+        ccI = ChemCompDataImport(self.__reqObj, verbose=self.__verbose, log=self.__lfh)
+        dpstrInfoFlPth = ccI.getChemCompDpstrInfoFilePath(fileSource=dpstrFileSource)
+        self.__lfh.write("dpstrInfoFlPth=%r\n" % dpstrInfoFlPth)
 
         if dpstrInfoFlPth is not None and os.access(dpstrInfoFlPth, os.R_OK):
             dpstrInfoDict = self.__processCcDpstrInfoFile(dpstrInfoFlPth)
@@ -1327,29 +1325,29 @@ class ChemCompAssign(object):
             categories = ('pdbx_branch_scheme', 'pdbx_nonpoly_scheme')  # tuple is hashable and can be used with lru_cache
 
             ioUtil = IoAdapterCore()
-            container = ioUtil.readFile(
-                inputFilePath=fpModel,
-                selectList=categories,
-            )
+            container = ioUtil.readFile(inputFilePath=fpModel, selectList=categories,)
             #
             if len(container) == 0:
                 return rtrnDict
 
             for category in categories:
-                clist = container[0].getObj(category)
+                catObj = container[0].getObj(category)
 
-                if clist is None:
-                    clist = []
-
-                # clist = cifObj.GetValue(category)
-                for Dict in clist:
-                    if ('pdb_mon_id' not in Dict) or ('auth_mon_id' not in Dict):
-                        continue
+                if catObj is None:
+                    continue
+                #
+                pdb_mon_id = catObj.getAttributeIndex('pdb_mon_id')
+                auth_mon_id = catObj.getAttributeIndex('auth_mon_id')
+                if (pdb_mon_id < 0) or (auth_mon_id < 0):
+                    continue
+                #
+                clist = catObj.getRowList()
+                for vlist in clist:
+                    pdbWorkingCcid = vlist[pdb_mon_id].upper()
+                    dpstrOrigCcid = vlist[auth_mon_id].upper()
                     #
-                    pdbWorkingCcid = Dict['pdb_mon_id'].upper()
-                    dpstrOrigCcid = Dict['auth_mon_id'].upper()
-                    #
-                    if pdbWorkingCcid == 'HOH':
+                    if (pdbWorkingCcid == "HOH") or (pdbWorkingCcid == "DOD") or (pdbWorkingCcid == "?") or (pdbWorkingCcid == ".") or (pdbWorkingCcid == "") \
+                        or (dpstrOrigCcid == "HOH") or (dpstrOrigCcid == "DOD") or (dpstrOrigCcid == "?") or (dpstrOrigCcid == ".") or (dpstrOrigCcid == ""):
                         continue
                     #
                     rtrnDict[pdbWorkingCcid] = dpstrOrigCcid
