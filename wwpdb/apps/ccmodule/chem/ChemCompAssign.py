@@ -1347,7 +1347,7 @@ class ChemCompAssign(object):
                     dpstrOrigCcid = vlist[auth_mon_id].upper()
                     #
                     if (pdbWorkingCcid == "HOH") or (pdbWorkingCcid == "DOD") or (pdbWorkingCcid == "?") or (pdbWorkingCcid == ".") or (pdbWorkingCcid == "") \
-                        or (dpstrOrigCcid == "HOH") or (dpstrOrigCcid == "DOD") or (dpstrOrigCcid == "?") or (dpstrOrigCcid == ".") or (dpstrOrigCcid == ""):
+                       or (dpstrOrigCcid == "HOH") or (dpstrOrigCcid == "DOD") or (dpstrOrigCcid == "?") or (dpstrOrigCcid == ".") or (dpstrOrigCcid == ""):
                         continue
                     #
                     rtrnDict[pdbWorkingCcid] = dpstrOrigCcid
