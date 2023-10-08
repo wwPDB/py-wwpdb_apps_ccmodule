@@ -100,7 +100,7 @@ class LigandAnalysisState:
         except Exception as e:
             self._logging.error('Error trying to read ligand state for %s %s', self._depId, e)
         finally:
-            return currentState  # pylint: disable=lost-exception
+            return currentState  # pylint: disable=lost-exception,return-in-finally
 
     def addProgress(self, step, current_ligand=None):
         """Update the current state of the ligand analysis.
