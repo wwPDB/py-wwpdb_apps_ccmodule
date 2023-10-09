@@ -317,7 +317,8 @@ class ChemCompAssignDepict(ChemCompDepict):
             cmpstScore = scorePrefix + str(p_ccAssgnDataStr.getBatchBestHitScore(instId)) + scoreSuffix
             #
             origMasterDpstrCcid = p_ccAssgnDataStr.getDpstrOrigCcIdMaster(instId)
-            loiStatus = '&#x2714;' if (origMasterDpstrCcid in rsrchGrpIdsLst) else ''
+            authDpstrCcid = p_ccAssgnDataStr.getAuthAssignment(instId)
+            loiStatus = '&#x2714;' if (origMasterDpstrCcid in rsrchGrpIdsLst) or (authDpstrCcid in rsrchGrpIdsLst) else ''
             #
             oL.append('<tr class="%s c_%s c_%s">' % (self.__rowClass(iRow), instId, authAssgndId))
             #
