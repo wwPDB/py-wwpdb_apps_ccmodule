@@ -593,6 +593,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         # ## dpstr info handling ###
         lclDict['display_dpstr_info'] = "displaynone"
         lclDict['display_dscrptr_vw_btn'] = "displaynone"
+        lclDict['display_dscrptr_error'] = "displaynone"
         naStr = "n/a"
         #
         for keyName in self.__dpstrInfoKeyList:
@@ -1335,6 +1336,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         # ## dpstr info handling ###
         lclDict['display_dpstr_info'] = "displaynone"
         lclDict['display_dscrptr_vw_btn'] = "displaynone"
+        lclDict['display_dscrptr_error'] = "displaynone"
         naStr = "n/a"
         #
         for keyName in self.__dpstrInfoKeyList:
@@ -1423,11 +1425,13 @@ class ChemCompAssignDepict(ChemCompDepict):
                                          (className, methodName, toLclSessnImgPth, chemCompDescriptorType.upper(), chemCompDescriptor))
 
                     p_strReplDict['display_dscrptr_vw_btn'] = ""
+                    p_strReplDict['display_dscrptr_error'] = "displaynone"
                     p_strReplDict['dpstr_info_dscrptr_img_pth'] = os.path.join(self.rltvAssgnSessionPath, fileName)
 
                 else:
                     # problem with importing SMILES string
                     p_strReplDict['display_dscrptr_vw_btn'] = "displaynone"
+                    p_strReplDict['display_dscrptr_error'] = ""
                     p_strReplDict['dpstr_info_dscrptr_img_pth'] = ""
                     if self.__verbose:
                         self.__lfh.write("+%s.%s() - Failed to generate image file [%s] from %s string [%s].\n" %
@@ -1437,6 +1441,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             except:  # noqa: E722 pylint: disable=bare-except
                 # problem with importing SMILES string
                 p_strReplDict['display_dscrptr_vw_btn'] = "displaynone"
+                p_strReplDict['display_dscrptr_error'] = ""
                 p_strReplDict['dpstr_info_dscrptr_img_pth'] = ""
                 if self.__verbose:
                     self.__lfh.write("+%s.%s() - Failed to generate image file [%s] from %s string [%s].\n" %
@@ -1445,6 +1450,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                 #
         else:
             p_strReplDict['display_dscrptr_vw_btn'] = "displaynone"
+            p_strReplDict['display_dscrptr_error'] = "displaynone"
             p_strReplDict['dpstr_info_dscrptr_img_pth'] = ""
             if self.__verbose:
                 self.__lfh.write("+%s.%s() - no SMILES string submitted for this ligand ID [%s].\n" % (className, methodName, p_grpId))
