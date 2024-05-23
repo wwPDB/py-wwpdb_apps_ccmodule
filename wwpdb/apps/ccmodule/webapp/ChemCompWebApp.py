@@ -2169,6 +2169,9 @@ class ChemCompWebAppWorker(object):
             state = "closed(0)"
         elif (mode == 'unfinished'):
             state = "waiting"
+        else:
+            state = "unknown"
+            self.__lfh.write("+ChemCompWebAppWorker.__exitLigMod() - unknown state\n")
         #
         bIsWorkflow = self.__isWorkflow()
         #
