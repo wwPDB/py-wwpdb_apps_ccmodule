@@ -1440,6 +1440,7 @@ class ChemCompWebAppWorker(object):
         #
         # zk: Add checking if assgnCcId is in HitList
         #
+        warnMsg = ""
         if (assgnCcId != "Not Assigned"):
             errorMessage = ''
             for instId in instIdL:
@@ -1449,18 +1450,36 @@ class ChemCompWebAppWorker(object):
                     for tup in hitList:
                         if tup[0] == assgnCcId:
                             ok = True
+                            if tup[2] != "n.a.":
+                                first = True
+                                msgList = tup[2].split("<br />")
+                                for msg in msgList:
+                                    if msg.startswith("Mismatch chiral center between instance atom"):
+                                        if warnMsg:
+                                            warnMsg += "\n"
+                                        #
+                                        if first:
+                                            warnMsg += "\n" + instId + ":\n"
+                                            first = False
+                                        #
+                                        warnMsg += msg
+                                    #
+                                #
+                            #
                             break
                         #
                     #
                 #
                 if not ok:
                     errorMessage += assgnCcId + ' is not in hit list for ' + instId + '\n'
+                #
             #
             if errorMessage:
                 if (self.__verbose):
                     self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- Error: %s\n" % errorMessage)
                 rC.setError(errMsg=errorMessage)
                 return rC
+            #
         #
         for instId in instIdL:
             self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- instId %s\n" % instId)
@@ -1469,14 +1488,20 @@ class ChemCompWebAppWorker(object):
                 self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- tuple %s for %s\n" % (hlist, instId))
             else:
                 self.__lfh.write("+ChemCompWebAppWorker._ccAssign_assignInstnc() ----- no tuple for %s\n" % instId)
+            #
             ccADS.setAnnotAssignment(instId, assgnCcId)
             if assgnMode == 'glbl' and assgnCcId != "Not Assigned":
                 ccADS.addGrpToGlbllyAssgndLst(authAssgnGrp, assgnCcId)
             elif assgnMode == 'glbl' and assgnCcId == "Not Assigned":
                 ccADS.removeGrpFrmGlbllyAssgndLst(authAssgnGrp)
+            #
             ccADS.serialize()
+        #
         ccADS.dumpData(self.__lfh)
 
+        if warnMsg:
+            rC.set("warnMsg", "Assigning (" + assgnCcId + ") will result in chirality error(s) for the following instance(s):\n" + warnMsg)
+        #
         return rC
 
     def _ccAssign_setNewCcDefinedForInstnc(self):
