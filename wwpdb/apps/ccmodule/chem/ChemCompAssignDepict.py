@@ -81,6 +81,7 @@
 # 2017-04-11    RPS    Updates to accommodate identification of ligands selected by depositor as "ligands of interest"
 # 2017-05-03    RPS    Updates so that LOI tracking can succeed even in cases where annotator reruns ligand search and consequently changes value for "author" assigned CCID
 # 2023-06-21    ZF     Added chemical descriptions provided by refinement packages
+# 2024-12-07    ZF     Added extpdbid
 ##
 """
 Create HTML depiction chemical component assignment files.
@@ -186,6 +187,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         classId = str(p_reqObj.getValue("classID")).lower()
         fileSource = str(p_reqObj.getValue("filesource")).lower()
         pdbId = str(p_reqObj.getValue("pdbid"))
+        extPdbId = str(p_reqObj.getValue("extpdbid"))
         annotator = str(p_reqObj.getValue("annotator"))
         entryTitle = str(p_reqObj.getValue("entry_title"))
         tmpltPath = p_reqObj.getValue("TemplatePath")
@@ -211,6 +213,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         myD['classid'] = classId
         myD['filesource'] = fileSource
         myD['pdbid'] = pdbId
+        myD['extpdbid'] = extPdbId
         myD['entry_title'] = entryTitle
         myD['annotator'] = annotator
         # following params only for rcsb stand-alone version

@@ -111,6 +111,7 @@
 # 2015-03-01    ZF     Re-implemented _ccAssign_generateBatchData()
 # 2019-11-12    ZF     Added option for deposition id input in standalone mode
 # 2020-08-27    ZF     Added blocking 'REF_ONLY' status ligands
+# 2024-12-09    ZF     Added extpdbid
 #
 ##
 """
@@ -757,25 +758,31 @@ class ChemCompWebAppWorker(object):
         if self.__modelFilePath and os.access(self.__modelFilePath, os.R_OK):
             cifObj = mmCIFUtil(filePath=self.__modelFilePath)
             dlist = cifObj.GetValue('database_2')
-            for dir in dlist:  # pylint: disable=redefined-builtin
-                if ('database_id' not in dir) or ('database_code' not in dir):
+            for Dict in dlist:  # pylint: disable=redefined-builtin
+                if ('database_id' not in Dict) or ('database_code' not in Dict):
                     continue
                 #
-                dbname = dir['database_id'].upper()
-                dbcode = dir['database_code'].upper()
+                dbname = Dict['database_id'].upper().strip()
+                dbcode = Dict['database_code'].upper().strip()
                 if dbname == 'PDB':
                     self.__reqObj.setValue("pdbid", dbcode)
+                    extpdbid = dbcode
+                    if ('pdbx_database_accession' in Dict) and Dict['pdbx_database_accession']:
+                        extpdbid = Dict['pdbx_database_accession'].strip()
+                    #
+                    self.__reqObj.setValue("extpdbid", extpdbid)
                     break
                 #
             #
             slist = cifObj.GetValue('struct')
-            for dir in slist:
-                if 'title' not in dir:
+            for Dict in slist:
+                if 'title' not in Dict:
                     continue
                 #
-                entryTitle = dir['title']
+                entryTitle = Dict['title']
                 self.__reqObj.setValue("entry_title", entryTitle)
                 break
+            #
         # # END
 
         ccAD = ChemCompAssignDepict(self.__verbose, self.__lfh)
