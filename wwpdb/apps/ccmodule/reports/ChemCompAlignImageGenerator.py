@@ -22,9 +22,11 @@ __version__ = "V0.01"
 
 import os
 import sys
+import traceback
 
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
+from wwpdb.io.file.mmCIFUtil import mmCIFUtil
 from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 
 
@@ -47,12 +49,12 @@ class ChemCompAlignImageGenerator(object):
         self.__ccRefPathInfo = ChemRefPathInfo(self.__siteId, verbose=self.__verbose, log=self.__lfh)
 
     def generateImages(self, instId=None, instFile=None, hitList=None):
-        if (not instId) or (not instFile):
+        if (not instId) or (not instFile) or (not os.access(instFile, os.F_OK)):
             return
         if hitList is None:
             hitList = []
         #
-        self.__imagePath = os.path.join(self.__sessionPath, 'assign', instId, 'image')
+        self.__imagePath = os.path.join(self.__sessionPath, "assign", instId, "image")
         if not os.access(self.__imagePath, os.F_OK):
             try:
                 os.makedirs(self.__imagePath)
@@ -61,65 +63,87 @@ class ChemCompAlignImageGenerator(object):
             #
         #
         foundList = []
-        imageFile = os.path.join(self.__imagePath, 'image.txt')
-        ofh = open(imageFile, 'w')
-        ofh.write(instId + ' ' + instFile + '\n')
-        for id in hitList:  # pylint: disable=redefined-builtin
-            refFile = self.__ccRefPathInfo.getFilePath(str(id).upper())
+        imageFile = os.path.join(self.__imagePath, "image.txt")
+        ofh = open(imageFile, "w")
+        ofh.write(instId + " " + instFile + "\n")
+        for hitId in hitList:  # pylint: disable=redefined-builtin
+            refFile = self.__ccRefPathInfo.getFilePath(str(hitId).upper())
             if not os.access(refFile, os.F_OK):
                 continue
             #
-            ofh.write(id + ' ' + refFile + '\n')
+            ofh.write(hitId + " " + refFile + "\n")
             #
             alist = []
-            alist.append(id)
+            alist.append(hitId)
             alist.append(refFile)
             foundList.append(alist)
         #
         ofh.close()
         #
         if foundList:
-            self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - Generating images \n')
-
-            dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
-            dp.addInput(name='image_file', value=imageFile)
-            dp.setWorkingDir(self.__imagePath)
-            returnCode = dp.op('chem-comp-align-img-gen')
-
-            self.__lfh.write('+ChemCompAlignImageGenerator.generateImages() - remote process returned %d \n' % returnCode)
-
-            if returnCode == 0:
-                FounImage = True
-                imageFile = os.path.join(self.__imagePath, instId + '.svg')
-                if not os.access(imageFile, os.F_OK):
-                    FounImage = False
+            try:
+                heavyAtomCount = 0
+                cifObj = mmCIFUtil(filePath=instFile)
+                dlist = cifObj.GetValue("chem_comp_atom")
+                for ccDic in dlist:
+                    if ("type_symbol" not in ccDic) or (not ccDic["type_symbol"]):
+                        continue
+                    #
+                    type_symbol = ccDic["type_symbol"].upper().strip()
+                    if (type_symbol == "H") or (type_symbol == "D"):
+                        continue
+                    #
+                    heavyAtomCount += 1
                 #
-                for id in hitList:
-                    imageFile = os.path.join(self.__imagePath, id + '.svg')
-                    if not os.access(imageFile, os.F_OK):
-                        FounImage = False
+                # Only generate aligned images for small ligands - DAOTHER-9883 for D_1292143423: TP3 -> A1IZO
+                #
+                if heavyAtomCount < 100:
+                    self.__lfh.write("+ChemCompAlignImageGenerator.generateImages() - Generating images \n")
+
+                    dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get("SITE_PREFIX"), verbose=self.__verbose, log=self.__lfh)
+                    dp.addInput(name="image_file", value=imageFile)
+                    dp.setWorkingDir(self.__imagePath)
+                    returnCode = dp.op("chem-comp-align-img-gen")
+
+                    self.__lfh.write("+ChemCompAlignImageGenerator.generateImages() - remote process returned %d \n" % returnCode)
+
+                    if returnCode == 0:
+                        FounImage = True
+                        imageFile = os.path.join(self.__imagePath, instId + ".svg")
+                        if not os.access(imageFile, os.F_OK):
+                            FounImage = False
+                        #
+                        for hitId in hitList:
+                            imageFile = os.path.join(self.__imagePath, hitId + ".svg")
+                            if not os.access(imageFile, os.F_OK):
+                                FounImage = False
+                            #
+                        #
+                        if FounImage:
+                            return
+                        #
                     #
                 #
-                if FounImage:
-                    return
+            except:  # noqa: E722 pylint: disable=bare-except
+                if self.__verbose:
+                    traceback.print_exc(file=self.__lfh)
                 #
             #
         #
 
         self.__generateSingleImage(Id=instId, FileName=instFile)
-        self.__generateSingleImage(Id=instId, FileName=instFile, size=1000, labelAtomName=True, suffix='_Big')
+        self.__generateSingleImage(Id=instId, FileName=instFile, size=1000, labelAtomName=True, suffix="_Big")
         if foundList:
             for flist in foundList:
                 self.__generateSingleImage(Id=flist[0], FileName=flist[1])
-                self.__generateSingleImage(Id=flist[0], FileName=flist[1], size=1000, labelAtomName=True, suffix='_Big')
-                #
+                self.__generateSingleImage(Id=flist[0], FileName=flist[1], size=1000, labelAtomName=True, suffix="_Big")
             #
         #
 
-    def __generateSingleImage(self, Id=None, FileName=None, size=300, labelAtomName=False, suffix=''):
-        imgPth = os.path.join(self.__imagePath, Id + suffix + '.svg')
+    def __generateSingleImage(self, Id=None, FileName=None, size=300, labelAtomName=False, suffix=""):
+        imgPth = os.path.join(self.__imagePath, Id + suffix + ".svg")
 
-        dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get('SITE_PREFIX'), verbose=self.__verbose, log=self.__lfh)
+        dp = RcsbDpUtility(tmpPath=self.__imagePath, siteId=self.__cI.get("SITE_PREFIX"), verbose=self.__verbose, log=self.__lfh)
         dp.addInput(name="title", value=Id)
         dp.addInput(name="path", value=FileName)
         dp.addInput(name="image_path", value=imgPth)
