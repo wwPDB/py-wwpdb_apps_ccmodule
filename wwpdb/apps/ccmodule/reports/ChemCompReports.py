@@ -72,7 +72,7 @@ class ChemCompReport(object):
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier').upper()
-            depositPath = Path(PathInfo().getDepositPath(self.__depId))
+            depositPath = Path(PathInfo().getDepositUIPath(self.__depId))
             self.__ccReportPath = os.path.join(depositPath, 'cc_analysis')
 
     def __getContext(self):
@@ -82,7 +82,7 @@ class ChemCompReport(object):
         if depid == 'TMP_ID':
             return 'standalone'
 
-        if filesource == 'deposit':
+        if filesource == 'deposit-ui':
             return 'deposition'
 
         if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:

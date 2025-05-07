@@ -167,7 +167,7 @@ class ChemCompAssign(object):
             self.__ccReportPath = os.path.join(self.__sessionPath, 'assign')
         elif context == 'deposition':
             self.__depId = self.__reqObj.getValue('identifier')
-            depositPath = Path(PathInfo().getDepositPath(self.__depId))
+            depositPath = Path(PathInfo().getDepositUIPath(self.__depId))
             self.__modelDirPath = os.path.join(depositPath)
             self.__ccReportPath = os.path.join(depositPath, self._CC_REPORT_DIR)
 
@@ -185,7 +185,7 @@ class ChemCompAssign(object):
         if depid == 'TMP_ID':
             return 'standalone'
 
-        if filesource == 'deposit':
+        if filesource == 'deposit-ui':
             return 'deposition'
 
         if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:
@@ -702,7 +702,7 @@ class ChemCompAssign(object):
                 #    set up access to instance level assignment data
                 #######################################################
                 # below is instance specific chem comp cif file for data at cc *instance* level
-                chemCompFilePathAbs = os.path.join(self.__pathInfo.getDepositPath(depDataSetId), 'assign', srchId, srchId + ".cif")
+                chemCompFilePathAbs = os.path.join(self.__pathInfo.getDepositUIPath(depDataSetId), 'assign', srchId, srchId + ".cif")
                 if not os.access(chemCompFilePathAbs, os.R_OK):
                     # i.e. if not in Workflow Managed context, must be in standalone dev context where we've run cc-assign search locally
                     # and therefore produced cc-assign results file in local session area
@@ -2097,7 +2097,7 @@ class ChemCompAssign(object):
         #
         fileSource = str(self.__reqObj.getValue("filesource")).lower()
         #
-        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit']:
+        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit', 'deposit-ui']:
             # if the file source is any of the above then we are in the workflow manager environment
             return True
         else:

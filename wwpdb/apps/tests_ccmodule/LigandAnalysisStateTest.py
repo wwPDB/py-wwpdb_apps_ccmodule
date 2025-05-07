@@ -40,7 +40,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         cls._verbose = False
         cls._depId = "D_0"
 
-        cls._reportDir = os.path.join(Path(PathInfo().getDepositPath(cls._depId)), "cc_analysis")
+        cls._reportDir = os.path.join(Path(PathInfo().getDepositUIPath(cls._depId)), "cc_analysis")
         os.makedirs(cls._reportDir, exist_ok=True)
 
         cls._progressFile = os.path.join(cls._reportDir, "state.json")

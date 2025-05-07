@@ -377,7 +377,7 @@ class ChemCompWebAppLiteWorker(object):
         ligandId = self.__reqObj.getValue("ligid")
         filename = self.__reqObj.getValue("file")
 
-        depositPath = Path(self.__pathInfo.getDepositPath(depId))
+        depositPath = Path(self.__pathInfo.getDepositUIPath(depId))
         ccReportPath = os.path.join(depositPath, "cc_analysis")
         fileType = filename.split(".")[-1]
         filePath = None
@@ -1704,7 +1704,7 @@ class ChemCompWebAppLiteWorker(object):
                 self.__lfh.write("+ChemCompWebAppLiteWorker.__saveLigModState() ---- WARNING ---- No path obtained for CC assign details export file, id %s \n" % depId)
 
             # #################################### chem comp depositor progress file #################################################
-            pathDict['dpstrPrgrssFileFlPth'] = os.path.join(Path(self.__pathInfo.getDepositPath(depId)), 'cc-dpstr-progress')
+            pathDict['dpstrPrgrssFileFlPth'] = os.path.join(Path(self.__pathInfo.getDepositUIPath(depId)), 'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = (os.path.split(pathDict['dpstrPrgrssFileFlPth']))[0]
 
             if (self.__verbose):
@@ -1934,7 +1934,7 @@ class ChemCompWebAppLiteWorker(object):
         #
         # add wf_archive to fix PDBe wfm issue -- jdw 2011-06-30
         #
-        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit']:
+        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit', 'deposit-ui']:
             # if the file source is any of the above then we are in the workflow manager environment
             return True
         else:
