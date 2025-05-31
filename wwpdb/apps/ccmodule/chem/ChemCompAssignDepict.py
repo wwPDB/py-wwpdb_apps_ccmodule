@@ -82,6 +82,7 @@
 # 2017-05-03    RPS    Updates so that LOI tracking can succeed even in cases where annotator reruns ligand search and consequently changes value for "author" assigned CCID
 # 2023-06-21    ZF     Added chemical descriptions provided by refinement packages
 # 2024-12-07    ZF     Added extpdbid
+# 2025-05-31    ZF     Added self.__splitCcdList[] and displaying OBS status information for split CCDs
 ##
 """
 Create HTML depiction chemical component assignment files.
@@ -141,7 +142,7 @@ class ChemCompAssignDepict(ChemCompDepict):
         self.__pathAllInstcs = "templates/workflow_ui/instances_view/all_instances"
         self.__pathAllInstncsCmprTmplts = self.__pathAllInstcs + "/comparison_view"
         self.__pathAllInstncsJmolTmplts = self.__pathAllInstncsCmprTmplts + "/jmol"
-
+        #
         self.__dpstrInfoKeyList = ['dpstr_info_name',
                                    'dpstr_info_alt_comp_id',
                                    'dpstr_info_frmla',
@@ -159,6 +160,13 @@ class ChemCompAssignDepict(ChemCompDepict):
                                    'dpstr_restraint_img_pth',
                                    'dpstr_info_type',
                                    'dpstr_info_details']
+        #
+        self.__splitCcdList = [ "1CU", "2OF", "3OF", "543", "CD1", "CD3", "CD5", "CO5", "KO4", "MH3",
+                                "MN5", "MN6", "MO1", "MO2", "MO3", "MO4", "MO5", "MO6", "MW1", "MW2",
+                                "MW3", "NA2", "NA5", "NA6", "NAO", "NAW", "NI1", "NI2", "NI3", "NIK",
+                                "O4M", "OC1", "OC2", "OC3", "OC4", "OC5", "OC6", "OC7", "OC8", "OCL",
+                                "OCM", "OCN", "OCO", "OF1", "OF3", "YH",  "ZH3", "ZN3", "ZNO", "ZO3" ]
+        #
 
     ################################################################################################################
     # ------------------------------------------------------------------------------------------------------------
@@ -314,8 +322,13 @@ class ChemCompAssignDepict(ChemCompDepict):
                     scoreWarnClass = retD['warn_class']
                     scorePrefix = retD['prefix']
                     scoreSuffix = retD['suffix']
+                #
+                status = ''
+                if topHitCcId.upper() in self.__splitCcdList:
+                    status = ' <br/><span style="color: red;">Status: OBS</span>'
+                #
                 # we also apply required html markup to CCID display field when not "None"
-                topHitCcId = '<a href="/ccmodule/cc-view.html?ccid=' + topHitCcId + '" target="_blank" title="Profile in Viewer">' + topHitCcId + '</a>'
+                topHitCcId = '<a href="/ccmodule/cc-view.html?ccid=' + topHitCcId + '" target="_blank" title="Profile in Viewer">' + topHitCcId + '</a>' + status
             #
             cmpstScore = scorePrefix + str(p_ccAssgnDataStr.getBatchBestHitScore(instId)) + scoreSuffix
             #
@@ -861,7 +874,11 @@ class ChemCompAssignDepict(ChemCompDepict):
                 if topHit == 'None':
                     myD['top_hit_ccid'] = topHit
                 else:
-                    myD['top_hit_ccid'] = '<a href="/ccmodule/cc-view.html?ccid=' + topHit + '" target="_blank" title="Profile in Viewer">' + topHit + '</a>'
+                    status = ''
+                    if topHit.upper() in self.__splitCcdList:
+                        status = ' <br/><span style="color: red;">Status: OBS</span>'
+                    #
+                    myD['top_hit_ccid'] = '<a href="/ccmodule/cc-view.html?ccid=' + topHit + '" target="_blank" title="Profile in Viewer">' + topHit + '</a>' + status
                 #
                 hlprD = self.__processWarningMsg(p_ccAssgnDataStr.getCcAssgnWarning(instId))
                 #
@@ -1144,19 +1161,24 @@ class ChemCompAssignDepict(ChemCompDepict):
                 #
                 countr = 0
                 for tupL in p_ccAssgnDataStr.getTopHitsList(instId):
-
+                    candidate_ccid_with_status = tupL[0]
+                    if tupL[0].upper() in self.__splitCcdList:
+                        candidate_ccid_with_status = tupL[0] + ' <br/><span style="color: red;">Status: OBS</span>'
+                    #
+                    myD['candidate_ccid_with_status'] = candidate_ccid_with_status
                     myD['candidate_ccid'] = tupL[0]
                     # template requires "candidate_ccid", "instanceid", and "showstyle" substitution parameters
                     oL.append(self.processTemplate(tmpltPth=p_tmpltPth, fn="cc_all_instncs_assgn_row_tmplt.html", parameterDict=myD))
                     countr += 1
-
+                #
                 if countr == 0:
                     myD['candidate_ccid'] = "None"
                     if self.__verbose:
                         self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceAssgnRows() candidate_ccid for %s set to 'None'\n" % instId)
                     # template requires "candidate_ccid", "instanceid", and "showstyle" substitution parameters
                     oL.append(self.processTemplate(tmpltPth=p_tmpltPth, fn="cc_all_instncs_assgn_row_tmplt.html", parameterDict=myD))
-
+                #
+            #
         # end of iterating through all instanc IDs
 
         return oL
@@ -1639,6 +1661,10 @@ class ChemCompAssignDepict(ChemCompDepict):
             else:
                 assgnChecked = ''
             #
+            status = ''
+            if ccid.upper() in self.__splitCcdList:
+                status = ' <br/><span style="color: red;">Status: OBS</span>'
+            #
             # using lclDict to supply text substitution content for both cc_instnc_match_rslts_tbl_tmplt.html and cc_viz_cmp_li_tmplt.html in this loop
             lclDict['assgn_checked'] = assgnChecked
             #
@@ -1649,6 +1675,7 @@ class ChemCompAssignDepict(ChemCompDepict):
             #
             lclDict['score'] = scorePrefix + cmpstscore + scoreSuffix
             lclDict['ccid'] = ccid
+            lclDict['ccid_status'] = status
             lclDict['cc_name'] = name
             lclDict['cc_name_displ'] = self.truncateForDisplay(name)
             lclDict['cc_formula'] = formula
