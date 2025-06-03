@@ -1172,6 +1172,7 @@ class ChemCompAssignDepict(ChemCompDepict):
                     countr += 1
                 #
                 if countr == 0:
+                    myD['candidate_ccid_with_status'] = "None"
                     myD['candidate_ccid'] = "None"
                     if self.__verbose:
                         self.__lfh.write("+ChemCompAssignDepict.doRender_InstanceAssgnRows() candidate_ccid for %s set to 'None'\n" % instId)
