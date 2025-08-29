@@ -91,8 +91,8 @@ class ChemCompDpUtilityTests(unittest.TestCase):
                 return os.path.join(HERE, "test-output", "deposit", dataSetId)
 
             # instance4.getDepositPath.side_effect=getdeppath
-            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.PathInfo.getDepositPath", side_effect=getdeppath))
-            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.LigandAnalysisState.PathInfo.getDepositPath", side_effect=getdeppath))
+            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.ChemCompDpUtility.PathInfo.getDepositUIPath", side_effect=getdeppath))
+            cls.__mocks.append(patch("wwpdb.apps.ccmodule.utils.LigandAnalysisState.PathInfo.getDepositUIPath", side_effect=getdeppath))
 
             for mock in cls.__mocks:
                 mock.start()
@@ -141,7 +141,7 @@ class ChemCompDpUtilityTests(unittest.TestCase):
             HERE = os.path.abspath(os.path.dirname(__file__))
             cls.__myDepositPath = Path(os.path.join(HERE, "test-output", "deposit", cls._depId))
         else:
-            cls.__myDepositPath = Path(PathInfo().getDepositPath(cls._depId))
+            cls.__myDepositPath = Path(PathInfo().getDepositUIPath(cls._depId))
         cls._ccReportPath = os.path.join(cls.__myDepositPath, ChemCompDpUtility._CC_REPORT_DIR)  # pylint: disable=protected-access
         cls._depositAssignPath = os.path.join(cls.__myDepositPath, ChemCompDpUtility._CC_ASSIGN_DIR)  # pylint: disable=protected-access
 

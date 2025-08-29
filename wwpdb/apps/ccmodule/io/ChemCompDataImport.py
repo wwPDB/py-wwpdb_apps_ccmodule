@@ -59,7 +59,7 @@ class ChemCompDataImport(object):
             self.__fileSource = str(self.__reqObj.getValue("filesource")).lower()
             self.__identifier = str(self.__reqObj.getValue("identifier")).upper()
             self.__instance = str(self.__reqObj.getValue("instance")).upper()
-            if self.__fileSource not in ['archive', 'wf-archive', 'wf-instance', 'wf_archive', 'wf_instance', 'deposit']:
+            if self.__fileSource not in ['archive', 'wf-archive', 'wf-instance', 'wf_archive', 'wf_instance', 'deposit', 'deposit-ui']:
                 self.__fileSource = 'archive'
             #
             if (self.__verbose):
@@ -127,8 +127,8 @@ class ChemCompDataImport(object):
         dfRef.setDepositionDataSetId(self.__identifier)
         if fileSource in ['archive', 'wf-archive', 'wf_archive']:
             dfRef.setStorageType('archive')
-        elif fileSource == 'deposit':
-            dfRef.setStorageType('deposit')
+        elif fileSource == 'deposit-ui':
+            dfRef.setStorageType('deposit-ui')
         elif fileSource in ['wf-instance', 'wf_instance']:
             dfRef.setWorkflowInstanceId(self.__instance)
             dfRef.setStorageType('wf-instance')

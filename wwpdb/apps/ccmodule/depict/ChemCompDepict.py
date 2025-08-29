@@ -232,7 +232,7 @@ class ChemCompDepict(object):
         #
         fileSource = str(p_reqObj.getValue("filesource")).lower()
         #
-        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit']:
+        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit', 'deposit-ui']:
             # if the file source is any of the above then we are in the workflow manager environment
             return True
         else:

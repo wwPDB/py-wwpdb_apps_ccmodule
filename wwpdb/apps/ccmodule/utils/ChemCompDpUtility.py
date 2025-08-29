@@ -57,7 +57,7 @@ class ChemCompDpUtility(object):
         siteId = str(self._reqObj.getValue("WWPDB_SITE_ID"))
 
         self._ccRefPathInfo = ChemRefPathInfo(siteId, verbose=self._verbose, log=self._lfh)
-        depositPath = Path(PathInfo().getDepositPath(self._depId))
+        depositPath = Path(PathInfo().getDepositUIPath(self._depId))
         self._ccReportPath = os.path.join(depositPath, self._CC_REPORT_DIR)
         self._depositAssignPath = os.path.join(depositPath, self._CC_ASSIGN_DIR)
         self._ligState = LigandAnalysisState(self._depId, self._verbose, self._lfh)
@@ -518,7 +518,7 @@ class ChemCompDpUtility(object):
 
         # determine if currently operating in Workflow Managed environment
         bIsWorkflow = False
-        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit']:
+        if fileSource in ['archive', 'wf-archive', 'wf_archive', 'wf-instance', 'wf_instance', 'deposit', 'deposit-ui']:
             bIsWorkflow = True
 
         if bIsWorkflow:
@@ -552,7 +552,7 @@ class ChemCompDpUtility(object):
                 self._logger.warning('---- WARNING ---- No path obtained for CC assign details export file, id %s', depId)
 
             # chem comp depositor progress file
-            depositPath = Path(PathInfo().getDepositPath(depId))
+            depositPath = Path(PathInfo().getDepositUIPath(depId))
             pathDict['dpstrPrgrssFileFlPth'] = os.path.join(depositPath, 'cc-dpstr-progress')
             pathDict['dpstrPrgrssFileDirPth'] = os.path.split(pathDict['dpstrPrgrssFileFlPth'])[0]
 
@@ -564,6 +564,7 @@ class ChemCompDpUtility(object):
 
         # call on ChemCompAssign to save current state of ligand assignments
         cca = ChemCompAssign(self._reqObj, self._verbose, self._lfh)
+        # the context param can be left as 'deposit'
         bSuccess, _msg = cca.saveState(pathDict, context='deposit', mode=mode)
 
         return bSuccess
@@ -620,7 +621,7 @@ class ChemCompDpUtility(object):
         self._reqObj.setValue('TOP_WWPDB_SESSIONS_PATH', self._cICommon.get_site_web_apps_top_sessions_path())
         self._reqObj.setValue('SessionsPath', self._cICommon.get_site_web_apps_sessions_path())
         self._reqObj.setValue('identifier', depId)
-        self._reqObj.setValue('filesource', 'deposit')
+        self._reqObj.setValue('filesource', 'deposit-ui')
         self._reqObj.setValue('TemplatePath', self._templatePath)
 
         if self._verbose:

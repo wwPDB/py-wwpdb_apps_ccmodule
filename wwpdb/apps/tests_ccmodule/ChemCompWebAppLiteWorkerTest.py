@@ -66,7 +66,7 @@ class ReportFilesRequestTest(unittest.TestCase):
         self.__reqObj.setValue("TopPath", self.__topPath)
         self.__reqObj.setValue("identifier", "D_800001")
 
-        self.__myDepositPath = Path(PathInfo().getDepositPath("D_800001"))
+        self.__myDepositPath = Path(PathInfo().getDepositUIPath("D_800001"))
 
     def testGetReportInstanceSvg(self):
         self.__reqObj.setValue("source", "author")
@@ -199,7 +199,7 @@ class LigandSummaryTest(unittest.TestCase):
         self.__reqObj = InputRequest(paramDict={}, verbose=self.__verbose, log=self.__lfh)
         self.__reqObj.setValue("WWPDB_SITE_ID", "PDBE_DEV")
         self.__reqObj.setValue("TopSessionPath", self.__cI.get("SITE_WEB_APPS_TOP_SESSIONS_PATH"))
-        self.__reqObj.setValue("TopPath", Path(PathInfo().getDepositPath("D_800001")).parent.parent)
+        self.__reqObj.setValue("TopPath", Path(PathInfo().getDepositUIPath("D_800001")).parent.parent)
         self.__reqObj.setValue("identifier", "D_800001")
 
     def testLigSummaryDict(self):
@@ -299,7 +299,7 @@ class RunAnalysisTest(unittest.TestCase):
         self.__reqObj = InputRequest(paramDict={}, verbose=self.__verbose, log=self.__lfh)
         self.__reqObj.setValue("WWPDB_SITE_ID", "PDBE_DEV")
         self.__reqObj.setValue("TopSessionPath", self.__cI.get("SITE_WEB_APPS_TOP_SESSIONS_PATH"))
-        self.__reqObj.setValue("TopPath", Path(PathInfo().getDepositPath("D_800001")).parent.parent)
+        self.__reqObj.setValue("TopPath", Path(PathInfo().getDepositUIPath("D_800001")).parent.parent)
         self.__reqObj.setValue("identifier", "D_800001")
 
         self.chemCompApp = ChemCompWebAppLiteWorker(reqObj=self.__reqObj, verbose=self.__verbose, log=self.__lfh)
