@@ -185,7 +185,7 @@ class ChemCompAssign(object):
         if depid == 'TMP_ID':
             return 'standalone'
 
-        if filesource == 'deposit-ui':
+        if filesource in ['deposit-ui', 'deposit']:
             return 'deposition'
 
         if filesource in ['wf-archive', 'wf_archive', 'wf-instance', 'wf_instance']:

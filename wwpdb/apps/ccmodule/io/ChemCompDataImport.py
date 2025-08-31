@@ -127,7 +127,7 @@ class ChemCompDataImport(object):
         dfRef.setDepositionDataSetId(self.__identifier)
         if fileSource in ['archive', 'wf-archive', 'wf_archive']:
             dfRef.setStorageType('archive')
-        elif fileSource == 'deposit-ui':
+        elif fileSource in ['deposit-ui', 'deposit']:
             dfRef.setStorageType('deposit-ui')
         elif fileSource in ['wf-instance', 'wf_instance']:
             dfRef.setWorkflowInstanceId(self.__instance)

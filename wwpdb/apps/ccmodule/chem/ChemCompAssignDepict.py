@@ -161,11 +161,11 @@ class ChemCompAssignDepict(ChemCompDepict):
                                    'dpstr_info_type',
                                    'dpstr_info_details']
         #
-        self.__splitCcdList = [ "1CU", "2OF", "3OF", "543", "CD1", "CD3", "CD5", "CO5", "KO4", "MH3",
-                                "MN5", "MN6", "MO1", "MO2", "MO3", "MO4", "MO5", "MO6", "MW1", "MW2",
-                                "MW3", "NA2", "NA5", "NA6", "NAO", "NAW", "NI1", "NI2", "NI3", "NIK",
-                                "O4M", "OC1", "OC2", "OC3", "OC4", "OC5", "OC6", "OC7", "OC8", "OCL",
-                                "OCM", "OCN", "OCO", "OF1", "OF3", "YH",  "ZH3", "ZN3", "ZNO", "ZO3" ]
+        self.__splitCcdList = ["1CU", "2OF", "3OF", "543", "CD1", "CD3", "CD5", "CO5", "KO4", "MH3",
+                               "MN5", "MN6", "MO1", "MO2", "MO3", "MO4", "MO5", "MO6", "MW1", "MW2",
+                               "MW3", "NA2", "NA5", "NA6", "NAO", "NAW", "NI1", "NI2", "NI3", "NIK",
+                               "O4M", "OC1", "OC2", "OC3", "OC4", "OC5", "OC6", "OC7", "OC8", "OCL",
+                               "OCM", "OCN", "OCO", "OF1", "OF3", "YH", "ZH3", "ZN3", "ZNO", "ZO3"]
         #
 
     ################################################################################################################

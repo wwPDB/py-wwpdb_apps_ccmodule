@@ -122,6 +122,8 @@ class ChemCompDataExport(object):
         dfRef.setDepositionDataSetId(self.__identifier)
         if fileSource in ['archive', 'wf-archive', 'wf_archive']:
             dfRef.setStorageType('archive')
+        elif fileSource == 'deposit':
+            dfRef.setStorageType('deposit')
         elif fileSource == 'deposit-ui':
             dfRef.setStorageType('deposit-ui')
         elif fileSource in ['wf-instance', 'wf_instance']:
