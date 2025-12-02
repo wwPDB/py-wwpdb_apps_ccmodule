@@ -905,8 +905,12 @@ class ChemCompAssign(object):
                 errList.append('Chemical component file ' + mdlfilePath + ' not found.')
                 continue
             #
+            coordFilePath = os.path.join(self.__sessionPath, 'assign', instId, instId + '_coord.cif')
+            if not os.access(coordFilePath, os.R_OK):
+                coordFilePath = ""
+            #
             ccAssignVldtnFilePath = os.path.join(assignVldtnDirPath, 'cc-assign-validation.cif')
-            completed = self.__ccAssignValidationOp(instId, mdlfilePath, assignVldtnDirPath, ccAssignVldtnFilePath, 'cc-assign-validation.log')
+            completed = self.__ccAssignValidationOp(instId, mdlfilePath, coordFilePath, assignVldtnDirPath, ccAssignVldtnFilePath, 'cc-assign-validation.log')
             if completed:
                 if os.access(ccAssignVldtnFilePath, os.R_OK):
                     idList.append(instId)
@@ -1926,12 +1930,13 @@ class ChemCompAssign(object):
             traceback.print_exc(file=self.__lfh)
             return False
 
-    def __ccAssignValidationOp(self, instId, compPath, assignVldtnDirPath, ccAssignVldtnFilePath, ccVldtnLogFile):
+    def __ccAssignValidationOp(self, instId, compPath, coordFilePath, assignVldtnDirPath, ccAssignVldtnFilePath, ccVldtnLogFile):
         """Performs validation checking on prospective ID being assigned to deposition chem components
         """
         if (self.__verbose):
             self.__lfh.write("+ChemCompAssign.__ccAssignValidationOp() - Starting\n")
             self.__lfh.write("+ChemCompAssign.__ccAssignValidationOp() - CC file path      : %s\n" % compPath)
+            self.__lfh.write("+ChemCompAssign.__ccAssignValidationOp() - Coord file path   : %s\n" % coordFilePath)
             self.__lfh.write("+ChemCompAssign.__ccAssignValidationOp() - CC assign validation file path : %s\n" % ccAssignVldtnFilePath)
             self.__lfh.write("+ChemCompAssign.__ccAssignValidationOp() - CC instid validation list  : %s\n" % instId)
             self.__lfh.write("+ChemCompAssign.__ccAssignValidationOp() - CC validation reference file path  : %s\n" % self.__ccValidationRefFilePth)
@@ -1943,6 +1948,9 @@ class ChemCompAssign(object):
             dp.addInput(name="cc_validation_ref_file_path", value=self.__ccValidationRefFilePth, type='param')
             dp.addInput(name="cc_validation_instid_list", value=instId, type='param')
             dp.addInput(name="cc_validation_log_file", value=ccVldtnLogFile, type='param')
+            if coordFilePath != "":
+                dp.addInput(name="coord_file_path", value=coordFilePath, type='param')
+            #
             dp.imp(compPath)
             dp.op("chem-comp-assign-validation")
             dp.exp(ccAssignVldtnFilePath)
