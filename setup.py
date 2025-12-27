@@ -51,7 +51,7 @@ setup(
                       'wwpdb.utils.wf',
                       'wwpdb.utils.session >= 0.2',
                       'mysqlclient',
-                      "wwpdb.io ~= 0.35"
+                      "wwpdb.io >= 0.35, < 2.0"
                       ],
     packages=find_packages(exclude=['wwpdb.apps.tests_ccmodule']),
     package_data={
