@@ -38,7 +38,9 @@ class PdbxCategoryDefinition:
                      ('pdbx_instance_assignment',  'table'),  # noqa: E241
                      ('pdbx_match_list',           'table'),  # noqa: E241
                      ('pdbx_atom_mapping',         'table'),  # noqa: E241
-                     ('pdbx_missing_atom',         'table')]  # noqa: E241
+                     ('pdbx_missing_atom',         'table'),  # noqa: E241
+                     ('pdbx_polyatomic_metal_ccd', 'table'),  # noqa: E241
+                     ('pdbx_single_metal_ccd',     'table')]  # noqa: E241
     _cDict = {
         'pdbx_entry_info': [
             ('_pdbx_entry_info.file', '%s', 'str', ''),
@@ -99,6 +101,13 @@ class PdbxCategoryDefinition:
             ('_pdbx_missing_atom.inst_id', '%s', 'str', ''),
             ('_pdbx_missing_atom.reference_id', '%s', 'str', ''),
             ('_pdbx_missing_atom.reference_atom_name', '%s', 'str', '')
+        ],
+        'pdbx_polyatomic_metal_ccd': [
+            ('_pdbx_polyatomic_metal_ccd.id', '%s', 'str', '')
+        ],
+        'pdbx_single_metal_ccd': [
+            ('_pdbx_single_metal_ccd.id', '%s', 'str', ''),
+            ('_pdbx_single_metal_ccd.count', '%s', 'str', '')
         ]
     }
 

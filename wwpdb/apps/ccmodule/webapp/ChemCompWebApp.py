@@ -176,6 +176,7 @@ from wwpdb.utils.oe_util.build.OeBuildMol import OeBuildMol
 #
 from wwpdb.io.locator.PathInfo import PathInfo
 from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
+from wwpdb.utils.dp.MetalCoordinationUtility import MetalCoordinationUtility
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 
 
@@ -833,11 +834,12 @@ class ChemCompWebAppWorker(object):
             # determine if currently operating in Workflow Managed environment
             bIsWorkflow = self.__isWorkflow()
             #
-            if bIsWorkflow:
-                depId = depId.upper()
-            else:
-                depId = depId.lower()
+#           if bIsWorkflow:
+#               depId = depId.upper()
+#           else:
+#               depId = depId.lower()
             #
+            depId = depId.upper()
             sys.stdout = RedirectDevice()
             sys.stderr = RedirectDevice()
             os.setpgrp()
@@ -909,6 +911,22 @@ class ChemCompWebAppWorker(object):
                     else:
                         # run cc-assign search in current session
                         assignRsltsDict = self.__runChemCompSearch(ccA)
+                    #
+                    polyAtomicMetalCcdList = []
+                    if 'pdbx_polyatomic_metal_ccd' in assignRsltsDict:
+                        for dataDict in assignRsltsDict['pdbx_polyatomic_metal_ccd']:
+                            if '_pdbx_polyatomic_metal_ccd.id' in dataDict:
+                                polyAtomicMetalCcdList.append(dataDict['_pdbx_polyatomic_metal_ccd.id'])
+                            #
+                        #
+                    #
+                    if len(polyAtomicMetalCcdList) > 0:
+                        metalUtil = MetalCoordinationUtility(wrkPath=self.__sessionPath, siteId=self.__siteId, verbose=self.__verbose, log=self.__lfh)
+                        metalUtil.setModelCoordinatesFilePath(os.path.join(self.__sessionPath, depId + '-model.cif'))
+                        metalUtil.setPolyAtomicMetalLigandIdList(polyAtomicMetalCcdList)
+                        metalUtil.setFindGeoOutputFilePath(os.path.join(self.__sessionPath, depId + '_findgeo-annotation.json'))
+                        metalUtil.setMetalCoordOutputFilePath(os.path.join(self.__sessionPath, depId + '_metalcoord-annotation.json'))
+                        metalUtil.run()
                     #
                     ccAssignDataStore = self.__genCcAssignDataStore(assignRsltsDict, ccA)
                     self.__lfh.flush()
