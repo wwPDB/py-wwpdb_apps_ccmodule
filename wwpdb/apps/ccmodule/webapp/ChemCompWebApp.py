@@ -112,6 +112,7 @@
 # 2019-11-12    ZF     Added option for deposition id input in standalone mode
 # 2020-08-27    ZF     Added blocking 'REF_ONLY' status ligands
 # 2024-12-09    ZF     Added extpdbid
+# 2026-07-16    ZF     Added metal coordination
 #
 ##
 """
@@ -900,6 +901,20 @@ class ChemCompWebAppWorker(object):
                                 foundWfImageResult = True
                                 ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
                             #
+                            # copy findgeo-annotation file if exists
+                            wfFindGeoFilePath = pI.getFilePath(depId, wfInstanceId=self.__reqObj.getValue('instance'), contentType='findgeo-annotation', \
+                                       formatType='json', fileSource=str(self.__reqObj.getValue('filesource')).lower(), versionId='latest', partNumber='1')
+                            if os.access(wfFindGeoFilePath, os.R_OK):
+                                findGeoFileName = pI.getFileName(depId, contentType='findgeo-annotation', formatType='json', versionId='none', partNumber='1')
+                                shutil.copyfile(wfFindGeoFilePath, os.path.join(self.__sessionPath, findGeoFileName))
+                            #
+                            # copy metalcoord-annotation file if exists
+                            wfMetalCoordFilePath = pI.getFilePath(depId, wfInstanceId=self.__reqObj.getValue('instance'), contentType='metalcoord-annotation', \
+                                       formatType='json', fileSource=str(self.__reqObj.getValue('filesource')).lower(), versionId='latest', partNumber=1)
+                            if os.access(wfMetalCoordFilePath, os.R_OK):
+                                metalCoordFileName = pI.getFileName(depId, contentType='metalcoord-annotation', formatType='json', versionId='none', partNumber='1')
+                                shutil.copyfile(wfMetalCoordFilePath, os.path.join(self.__sessionPath, metalCoordFileName))
+                            #
                         #
                     #
                 #
@@ -911,22 +926,23 @@ class ChemCompWebAppWorker(object):
                     else:
                         # run cc-assign search in current session
                         assignRsltsDict = self.__runChemCompSearch(ccA)
-                    #
-                    polyAtomicMetalCcdList = []
-                    if 'pdbx_polyatomic_metal_ccd' in assignRsltsDict:
-                        for dataDict in assignRsltsDict['pdbx_polyatomic_metal_ccd']:
-                            if '_pdbx_polyatomic_metal_ccd.id' in dataDict:
-                                polyAtomicMetalCcdList.append(dataDict['_pdbx_polyatomic_metal_ccd.id'])
+                        #
+                        polyAtomicMetalCcdList = []
+                        if 'pdbx_polyatomic_metal_ccd' in assignRsltsDict:
+                            for dataDict in assignRsltsDict['pdbx_polyatomic_metal_ccd']:
+                                if '_pdbx_polyatomic_metal_ccd.id' in dataDict:
+                                    polyAtomicMetalCcdList.append(dataDict['_pdbx_polyatomic_metal_ccd.id'])
+                                #
                             #
                         #
-                    #
-                    if len(polyAtomicMetalCcdList) > 0:
-                        metalUtil = MetalCoordinationUtility(wrkPath=self.__sessionPath, siteId=self.__siteId, verbose=self.__verbose, log=self.__lfh)
-                        metalUtil.setModelCoordinatesFilePath(os.path.join(self.__sessionPath, depId + '-model.cif'))
-                        metalUtil.setPolyAtomicMetalLigandIdList(polyAtomicMetalCcdList)
-                        metalUtil.setFindGeoOutputFilePath(os.path.join(self.__sessionPath, depId + '_findgeo-annotation.json'))
-                        metalUtil.setMetalCoordOutputFilePath(os.path.join(self.__sessionPath, depId + '_metalcoord-annotation.json'))
-                        metalUtil.run()
+                        if len(polyAtomicMetalCcdList) > 0:
+                            metalUtil = MetalCoordinationUtility(wrkPath=self.__sessionPath, siteId=self.__siteId, verbose=self.__verbose, log=self.__lfh)
+                            metalUtil.setModelCoordinatesFilePath(os.path.join(self.__sessionPath, depId + '-model.cif'))
+                            metalUtil.setPolyAtomicMetalLigandIdList(polyAtomicMetalCcdList)
+                            metalUtil.setFindGeoOutputFilePath(os.path.join(self.__sessionPath, depId + '_findgeo-annotation.json'))
+                            metalUtil.setMetalCoordOutputFilePath(os.path.join(self.__sessionPath, depId + '_metalcoord-annotation.json'))
+                            metalUtil.run(noTimeOutFlag=False, regularFilter="-filter-regular")
+                        #
                     #
                     ccAssignDataStore = self.__genCcAssignDataStore(assignRsltsDict, ccA)
                     self.__lfh.flush()
