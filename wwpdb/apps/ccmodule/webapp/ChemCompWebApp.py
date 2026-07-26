@@ -902,15 +902,18 @@ class ChemCompWebAppWorker(object):
                                 ccAssignDataStore = ChemCompAssignDataStore(self.__reqObj, verbose=True, log=self.__lfh)
                             #
                             # copy findgeo-annotation file if exists
-                            wfFindGeoFilePath = pI.getFilePath(depId, wfInstanceId=self.__reqObj.getValue('instance'), contentType='findgeo-annotation', \
-                                       formatType='json', fileSource=str(self.__reqObj.getValue('filesource')).lower(), versionId='latest', partNumber='1')
+                            wfFindGeoFilePath = pI.getFilePath(depId, wfInstanceId=self.__reqObj.getValue('instance'), contentType='findgeo-annotation',
+                                                               formatType='json',
+                                                               fileSource=str(self.__reqObj.getValue('filesource')).lower(),
+                                                               versionId='latest', partNumber='1')
                             if os.access(wfFindGeoFilePath, os.R_OK):
                                 findGeoFileName = pI.getFileName(depId, contentType='findgeo-annotation', formatType='json', versionId='none', partNumber='1')
                                 shutil.copyfile(wfFindGeoFilePath, os.path.join(self.__sessionPath, findGeoFileName))
                             #
                             # copy metalcoord-annotation file if exists
-                            wfMetalCoordFilePath = pI.getFilePath(depId, wfInstanceId=self.__reqObj.getValue('instance'), contentType='metalcoord-annotation', \
-                                       formatType='json', fileSource=str(self.__reqObj.getValue('filesource')).lower(), versionId='latest', partNumber=1)
+                            wfMetalCoordFilePath = pI.getFilePath(depId, wfInstanceId=self.__reqObj.getValue('instance'), contentType='metalcoord-annotation',
+                                                                  formatType='json', fileSource=str(self.__reqObj.getValue('filesource')).lower(),
+                                                                  versionId='latest', partNumber=1)
                             if os.access(wfMetalCoordFilePath, os.R_OK):
                                 metalCoordFileName = pI.getFileName(depId, contentType='metalcoord-annotation', formatType='json', versionId='none', partNumber='1')
                                 shutil.copyfile(wfMetalCoordFilePath, os.path.join(self.__sessionPath, metalCoordFileName))
