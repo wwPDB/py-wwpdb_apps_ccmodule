@@ -30,6 +30,7 @@ import traceback
 
 from wwpdb.apps.ccmodule.reports.ChemCompAlignImageGenerator import ChemCompAlignImageGenerator
 from wwpdb.apps.ccmodule.reports.ChemCompReports import ChemCompReport
+from wwpdb.io.misc.ResourceAllocation import ResourceAllocation
 from wwpdb.utils.config.ConfigInfo import ConfigInfo
 from wwpdb.utils.dp.RcsbDpUtility import RcsbDpUtility
 #
@@ -78,9 +79,7 @@ class InstanceDataGenerator(object):
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
         """
         """
-        numProc = int(multiprocessing.cpu_count() / 2)
-        if numProc == 0:
-            numProc = 1
+        numProc = ResourceAllocation().get_worker_count("ccmodule.instance_reports", "cpus / 2")
         #
         if numProc > len(dataList):
             numProc = len(dataList)

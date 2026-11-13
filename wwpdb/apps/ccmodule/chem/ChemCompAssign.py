@@ -89,7 +89,6 @@ __email__ = "jwest@rcsb.rutgers.edu"
 __license__ = "Creative Commons Attribution 3.0 Unported"
 __version__ = "V0.01"
 
-import multiprocessing
 import os
 import sys
 import shutil
@@ -108,6 +107,7 @@ from wwpdb.apps.ccmodule.io.ChemCompAssignDataStore import ChemCompAssignDataSto
 from mmcif.io.PdbxReader import PdbxReader
 from pathlib import Path
 from wwpdb.io.locator.PathInfo import PathInfo
+from wwpdb.io.misc.ResourceAllocation import ResourceAllocation
 from wwpdb.io.locator.ChemRefPathInfo import ChemRefPathInfo
 from mmcif.io.IoAdapterCore import IoAdapterCore
 
@@ -850,9 +850,10 @@ class ChemCompAssign(object):
             self.__lfh.flush()
         #
         if self.__cI.get('USE_COMPUTE_CLUSTER'):
-            numProc = len(self.__ccValidateInstIdList.split(','))
+            defaultNumProc = len(self.__ccValidateInstIdList.split(','))
         else:
-            numProc = int(multiprocessing.cpu_count() / 2)
+            defaultNumProc = "cpus / 2"
+        numProc = ResourceAllocation(config_info=self.__cI).get_worker_count("ccmodule.assign_validation", defaultNumProc)
         mpu = MultiProcUtil(verbose=self.__verbose)
         mpu.set(workerObj=self, workerMethod="runMultiAssignValidation")
         mpu.setWorkingDir(self.__sessionPath)
