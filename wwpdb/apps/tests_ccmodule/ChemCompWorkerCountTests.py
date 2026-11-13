@@ -9,6 +9,8 @@ either step.  The tests replace the process pool, the site configuration and the
 started.
 """
 
+# pylint: disable=protected-access,unused-argument
+
 import json
 import multiprocessing
 import os
