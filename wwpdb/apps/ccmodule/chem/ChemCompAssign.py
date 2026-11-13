@@ -850,10 +850,10 @@ class ChemCompAssign(object):
             self.__lfh.flush()
         #
         if self.__cI.get('USE_COMPUTE_CLUSTER'):
-            numProc = len(self.__ccValidateInstIdList.split(','))
+            defaultNumProc = len(self.__ccValidateInstIdList.split(','))
         else:
-            numProc = ResourceAllocation.default_worker_count()
-        numProc = ResourceAllocation(config_info=self.__cI).get_worker_count("ccmodule.assign_validation", numProc)
+            defaultNumProc = "cpus / 2"
+        numProc = ResourceAllocation(config_info=self.__cI).get_worker_count("ccmodule.assign_validation", defaultNumProc)
         mpu = MultiProcUtil(verbose=self.__verbose)
         mpu.set(workerObj=self, workerMethod="runMultiAssignValidation")
         mpu.setWorkingDir(self.__sessionPath)

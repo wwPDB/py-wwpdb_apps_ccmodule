@@ -79,7 +79,7 @@ class InstanceDataGenerator(object):
     def __runMultiprocessing(self, dataList, workerObj, workerMethod):
         """
         """
-        numProc = ResourceAllocation().get_worker_count("ccmodule.instance_reports", ResourceAllocation.default_worker_count())
+        numProc = ResourceAllocation().get_worker_count("ccmodule.instance_reports", "cpus / 2")
         #
         if numProc > len(dataList):
             numProc = len(dataList)
